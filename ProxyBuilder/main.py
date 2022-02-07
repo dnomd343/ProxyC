@@ -17,19 +17,30 @@ libcPaths = [
     '/lib/libc.musl-x86_64.so.1', # Alpine
 ]
 
-# TODO: TCP/UDP IPv4/IPv6
-def __checkPortAvailable(port, host = '127.0.0.1'): # 检测端口可用性
-    s = None
+def __checkPortAvailable(port): # 检测端口可用性
     try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(1)
-        s.connect((host, int(port)))
-        return False
-    except socket.error:
+        ipv4_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        ipv4_udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        ipv4_tcp.bind(('0.0.0.0', port))
+        ipv4_udp.bind(('0.0.0.0', port))
+        ipv4_tcp.close()
+        ipv4_udp.close()
+        ipv6_tcp = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
+        ipv6_udp = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
+        ipv6_tcp.bind(('::', port))
+        ipv6_udp.bind(('::', port))
+        ipv6_tcp.close()
+        ipv6_udp.close()
         return True
+    except:
+        return False
     finally:
-        if s:
-            s.close()
+        try:
+            if ipv4_tcp: ipv4_tcp.close()
+            if ipv4_udp: ipv4_udp.close()
+            if ipv6_tcp: ipv6_tcp.close()
+            if ipv6_udp: ipv6_udp.close()
+        except: pass
 
 def __genTaskFlag(length = 16): # 生成任务代号
     flag = ""
