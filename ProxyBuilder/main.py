@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
+import os
 import time
 import ctypes
 import random
@@ -8,8 +9,13 @@ import socket
 import subprocess
 from ProxyBuilder import Shadowsocks
 
-# TODO: find in multi path
-libcPath = '/lib/libc.musl-x86_64.so.1' # for Alpine
+libcPaths = [
+    '/usr/lib64/libc.so.6', # CentOS
+    '/lib/i386-linux-gnu/libc.so.6', # Debian / Ubuntu
+    '/lib/x86_64-linux-gnu/libc.so.6',
+    '/lib/aarch64-linux-gnu/libc.so.6',
+    '/lib/libc.musl-x86_64.so.1', # Alpine
+]
 
 # TODO: TCP/UDP IPv4/IPv6
 def __checkPortAvailable(port, host = '127.0.0.1'): # 检测端口可用性
@@ -57,8 +63,11 @@ def build(proxyInfo, configDir): # 构建代理节点连接
         startCommand = Shadowsocks.load(proxyInfo, socksPort, configFile)
     else: # 未知类型
         return None
-    
+
     try:
+        for libcPath in libcPaths:
+            if os.path.exists(libcPath): # 定位libc.so文件
+                break
         exitWithMe = lambda: ctypes.CDLL(libcPath).prctl(1, 15) # SIGTERM
         process = subprocess.Popen(startCommand, \
             stdout = subprocess.DEVNULL, \
@@ -71,7 +80,7 @@ def build(proxyInfo, configDir): # 构建代理节点连接
 
     return { # 返回连接参数
         'flag': taskFlag,
-        'port': socksPort,        
+        'port': socksPort,
         'file': configFile,
         'process': process,
         'pid': process.pid,
