@@ -49,6 +49,7 @@ print(task)
 time.sleep(1)
 if Builder.check(task) == False:
     print("error exit")
+    Builder.destroy(task)
 else:
     print("test with gstatic")
     checkSocksPort(task['port'])

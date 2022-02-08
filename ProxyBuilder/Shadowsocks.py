@@ -141,9 +141,9 @@ ssMethodList = { # shadowsocks各版本支持的加密方式
 def __baseJSON(proxyInfo, socksPort): # 生成JSON基本结构
     jsonContent = {
         'server': proxyInfo['server'],
-        'server_port': proxyInfo['port'],
+        'server_port': int(proxyInfo['port']),
         'local_address': '127.0.0.1',
-        'local_port': socksPort,
+        'local_port': int(socksPort),
         'password': proxyInfo['password'],
         'method': proxyInfo['method'],
     }

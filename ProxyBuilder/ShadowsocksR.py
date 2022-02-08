@@ -82,9 +82,9 @@ def load(proxyInfo, socksPort, configFile): # ShadowsocksR配置载入
         return None, None # 匹配不到混淆方式
     return [ 'ssr-local', '-c', configFile ], json.dumps({
         'server': proxyInfo['server'],
-        'server_port': proxyInfo['port'],
+        'server_port': int(proxyInfo['port']),
         'local_address': '127.0.0.1',
-        'local_port': socksPort,
+        'local_port': int(socksPort),
         'password': proxyInfo['password'],
         'method': proxyInfo['method'],
         'protocol': proxyInfo['protocol'],
