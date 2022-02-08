@@ -8,6 +8,7 @@ import random
 import socket
 import subprocess
 from ProxyBuilder import Shadowsocks
+from ProxyBuilder import ShadowsocksR
 
 libcPaths = [
     '/usr/lib64/libc.so.6', # CentOS
@@ -31,11 +32,11 @@ def __checkPortAvailable(port): # 检测端口可用性
         ipv6_udp.bind(('::', port))
         ipv6_tcp.close()
         ipv6_udp.close()
-        return True
+        return True # IPv4 TCP / IPv4 UDP / IPv6 TCP / IPv6 UDP 均无占用
     except:
         return False
     finally:
-        try:
+        try: # 关闭socket
             if ipv4_tcp: ipv4_tcp.close()
             if ipv4_udp: ipv4_udp.close()
             if ipv6_tcp: ipv6_tcp.close()
@@ -70,10 +71,20 @@ def build(proxyInfo, configDir): # 构建代理节点连接
     proxyInfo.pop('type')
 
     configFile = configDir + '/' + taskFlag + '.json' # 配置文件路径
-    if (proxyType == 'shadowsocks'): # Shadowsocks节点
-        startCommand = Shadowsocks.load(proxyInfo, socksPort, configFile)
+    if proxyType == 'ss': # Shadowsocks节点
+        startCommand, fileContent = Shadowsocks.load(proxyInfo, socksPort, configFile)
+    elif proxyType == 'ssr': # ShadowsocksR节点
+        startCommand, fileContent = ShadowsocksR.load(proxyInfo, socksPort, configFile)
     else: # 未知类型
         return None
+    if startCommand == None: # 格式出错
+        return None
+    try:
+        with open(configFile, 'w') as fileObject:
+            fileObject.write(fileContent) # 保存配置文件
+    except:
+        print("Unable write to file " + configFile)
+        return None # 配置文件写入失败
 
     try:
         for libcPath in libcPaths:
@@ -98,6 +109,8 @@ def build(proxyInfo, configDir): # 构建代理节点连接
     }
 
 def check(taskInfo): # 检查客户端是否正常
+    if taskInfo == None:
+        return False
     process = taskInfo['process']
     if process.poll() != None:
         return False # 死亡
@@ -105,6 +118,8 @@ def check(taskInfo): # 检查客户端是否正常
         return True # 正常
 
 def destroy(taskInfo): # 结束客户端并清理
+    if taskInfo == None:
+        return
     process = taskInfo['process']
     if process.poll() == None: # 未死亡
         process.terminate() # SIGTERM
@@ -112,5 +127,5 @@ def destroy(taskInfo): # 结束客户端并清理
             time.sleep(1)
             process.terminate()
     try:
-        os.remove(taskInfo.file) # 删除配置文件
+        os.remove(taskInfo['file']) # 删除配置文件
     except: pass

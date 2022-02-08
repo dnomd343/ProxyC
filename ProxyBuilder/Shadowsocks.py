@@ -173,9 +173,8 @@ def __pluginUdpCheck(plugin, pluginArg): # 插件是否使用UDP通讯
     if plugin in onlyUdpPlugin:
         return True
     if plugin == 'v2ray-plugin' or plugin == 'xray-plugin' or plugin == 'gost-plugin':
-        if 'mode=quic' in pluginArg.split(';'):
-            return True
-        return False
+        if not 'mode=quic' in pluginArg.split(';'):
+            return False
     return True # 默认假定占用UDP
 
 def __ssPython(proxyInfo, socksPort, isLegacy = False): # ss-python配置文件生成
@@ -216,7 +215,7 @@ def __ssRust(proxyInfo, socksPort): # ss-rust配置文件生成
         jsonContent['mode'] = 'tcp_and_udp'
     return jsonContent, 'ss-rust-local'
 
-def load(proxyInfo, socksPort, configFile): # shadowsocks配置载入
+def load(proxyInfo, socksPort, configFile): # Shadowsocks配置载入
     proxyInfo['udp'] = not __pluginUdpCheck(proxyInfo['plugin'], proxyInfo['pluginArg'])
     if proxyInfo['method'] in ssMethodList['ss-libev']:
         jsonContent, ssFile = __ssLibev(proxyInfo, socksPort)
@@ -229,10 +228,5 @@ def load(proxyInfo, socksPort, configFile): # shadowsocks配置载入
     elif proxyInfo['method'] in ssMethodList['ss-rust']:
         jsonContent, ssFile = __ssRust(proxyInfo, socksPort)
     else:
-        return None # 匹配不到加密方式
-    try:
-        with open(configFile, 'w') as fileObject:
-            fileObject.write(json.dumps(jsonContent)) # 保存配置文件
-    except:
-        return None # 配置文件写入失败
-    return [ ssFile, '-c', configFile ]
+        return None, None # 匹配不到加密方式
+    return [ ssFile, '-c', configFile ], json.dumps(jsonContent)
