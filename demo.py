@@ -1,7 +1,7 @@
 import time
 import socket
 import requests
-import ProxyBuilder
+import ProxyBuilder as Builder
 
 def checkSocksPort(port):
     try:
@@ -40,11 +40,14 @@ testInfo = {
 }
 
 print("start")
+
+print(dir(Builder))
+
 print(testInfo)
-task = ProxyBuilder.build(testInfo, '/tmp/ProxyC')
+task = Builder.build(testInfo, '/tmp/ProxyC')
 print(task)
 time.sleep(1)
-if ProxyBuilder.check(task) == False:
+if Builder.check(task) == False:
     print("error exit")
 else:
     print("test with gstatic")
@@ -55,6 +58,5 @@ else:
         print("ok")
     else:
         print("error")
-    ProxyBuilder.destroy(task)
+    Builder.destroy(task)
     print("stop")
-    

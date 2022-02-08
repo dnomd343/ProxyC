@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-from ProxyBuilder.main import build
-from ProxyBuilder.main import check
-from ProxyBuilder.main import destroy
+from ProxyBuilder.builder import *
+
+__all__ = [ 'build', 'check', 'destroy' ]

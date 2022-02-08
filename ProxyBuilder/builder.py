@@ -7,6 +7,7 @@ import ctypes
 import random
 import socket
 import subprocess
+
 from ProxyBuilder import Shadowsocks
 from ProxyBuilder import ShadowsocksR
 
@@ -129,3 +130,6 @@ def destroy(taskInfo): # 结束客户端并清理
     try:
         os.remove(taskInfo['file']) # 删除配置文件
     except: pass
+
+def test():
+    print("ProxyBuilder test")
