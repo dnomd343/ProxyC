@@ -59,13 +59,13 @@ def test(port, password):
         proxyInfo = {
             'type': 'ss',
             'server': '127.0.0.1',
-            'port': str(port),
+            'port': int(port),
             'password': password,
             'method': method,
             'plugin': '',
             'pluginArg': '',
         }
-        testInfo = 'Shadowsocks ' + method
+        testInfo = 'Shadowsocks method ' + method
         if method == 'plain' or method == 'none':
             serverCommand = [
                 'ss-rust-server', '-U',
