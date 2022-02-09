@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding:utf-8 -*-
 
 testHost = "dns.343.re"
 testCert = "/etc/ssl/certs/dns.343.re/certificate.crt"

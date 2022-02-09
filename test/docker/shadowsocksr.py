@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
+
 method_list = [
     "aes-128-cfb",
     "aes-192-cfb",

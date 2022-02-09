@@ -1,4 +1,6 @@
 #!/usr/bin/python
+# -*- coding:utf-8 -*-
+
 method_list = {
     "ss-python": [
         "aes-128-gcm",

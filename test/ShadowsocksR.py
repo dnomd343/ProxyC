@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-
 ssrMethodList = [
     "aes-128-cfb",
     "aes-192-cfb",

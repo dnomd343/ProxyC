@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding:utf-8 -*-
+
 import time
 import socket
 import requests
@@ -28,10 +31,6 @@ testInfo = {
 }
 
 print("start")
-
-print(dir(Builder))
-print(dir(Checker))
-
 print(testInfo)
 task = Builder.build(testInfo, '/tmp/ProxyC')
 print(task)
@@ -40,7 +39,7 @@ if Builder.check(task) == False:
     print("error exit")
     Builder.destroy(task)
 else:
-    print("test with gstatic")
+    print("http check")
     health, delay = Checker.httpCheck(task['port'])
     print("health = " + str(health))
     if delay < 0:
@@ -48,4 +47,4 @@ else:
     else:
         print("delay = " + format(delay, '.2f') + 'ms')
     Builder.destroy(task)
-    print("stop")
+    print("done")
