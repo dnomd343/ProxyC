@@ -10,8 +10,8 @@ import ProxyChecker as Checker
 
 # print(dir(Tester))
 
-# data = Tester.Shadowsocks(1081, 'dnomd343')
-data = Tester.ShadowsocksR(1081, 'dnomd343')
+data = Tester.Shadowsocks(1081, 'dnomd343')
+# data = Tester.ShadowsocksR(1081, 'dnomd343')
 
 # for field in data:
 #     print(field['proxyInfo'])

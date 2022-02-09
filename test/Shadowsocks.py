@@ -106,4 +106,25 @@ def test(port, password):
             'proxyInfo': proxyInfo,
             'serverCommand': serverCommand
         })
+    testList.append({
+        'caption': 'Shadowsocks SIP003 plugin',
+        'proxyInfo': {
+            'type': 'ss',
+            'server': '127.0.0.1',
+            'port': int(port),
+            'password': password,
+            'method': 'aes-256-ctr',
+            'plugin': 'obfs-local',
+            'pluginArg': 'obfs=http;obfs-host=www.bing.com',
+        },
+        'serverCommand': [
+            'ss-bootstrap-server',
+            '--shadowsocks', 'ss-python-server',
+            '-p', str(port),
+            '-k', password,
+            '-m', 'aes-256-ctr',
+            '--plugin', 'obfs-server',
+            '--plugin-opts', 'obfs=http'
+        ]
+    })
     return testList
