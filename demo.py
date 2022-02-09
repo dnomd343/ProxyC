@@ -1,21 +1,9 @@
 import time
 import socket
 import requests
-import ProxyBuilder as Builder
 
-def checkSocksPort(port):
-    try:
-        startTime = time.time_ns()
-        r = requests.get('http://gstatic.com/generate_204', proxies = {
-            'http': 'socks5://127.0.0.1:' + str(port),
-            'https': 'socks5://127.0.0.1:' + str(port),
-        })
-        if r.status_code == 204:
-            delay = (time.time_ns() - startTime) / (10 ** 6)
-            print(format(delay, '.2f') + 'ms')
-            return True
-    except: pass
-    return False
+import ProxyBuilder as Builder
+import ProxyChecker as Checker
 
 # testInfo = {
 #     'type': 'ss',
@@ -42,6 +30,7 @@ testInfo = {
 print("start")
 
 print(dir(Builder))
+print(dir(Checker))
 
 print(testInfo)
 task = Builder.build(testInfo, '/tmp/ProxyC')
@@ -52,12 +41,11 @@ if Builder.check(task) == False:
     Builder.destroy(task)
 else:
     print("test with gstatic")
-    checkSocksPort(task['port'])
-    checkSocksPort(task['port'])
-    checkSocksPort(task['port'])
-    if checkSocksPort(task['port']):
-        print("ok")
-    else:
+    health, delay = Checker.httpCheck(task['port'])
+    print("health = " + str(health))
+    if delay < 0:
         print("error")
+    else:
+        print("delay = " + format(delay, '.2f') + 'ms')
     Builder.destroy(task)
     print("stop")
