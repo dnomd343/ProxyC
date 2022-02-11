@@ -5,28 +5,71 @@ import time
 import requests
 
 def httpPing(port, url = 'http://gstatic.com/generate_204', timeout = 30):
+    '''
+    HTTP请求延迟测试
+
+        检测异常: return None, {reason}
+
+        服务错误: return False, {reason}
+
+        连接正常: return True, httpDelay
+    '''
     try:
-        startTime = time.time_ns()
+        startTime = time.time_ns() # 请求开始时间
         socks5 = 'socks5://127.0.0.1:' + str(port)
-        httpRequest = requests.get(url, proxies = {
+        httpRequest = requests.get(url, proxies = { # http请求
             'http': socks5,
             'https': socks5,
         }, timeout = timeout)
-        if httpRequest.status_code == 204:
-            delay = (time.time_ns() - startTime) / (10 ** 6)
-            return round(delay, 2) # 保留小数点后两位
-    except: pass
-    return -1
+    except NameError: # 模块无效
+        return None, 'Missing modules'
+    except requests.exceptions.InvalidSchema: # 缺失pysocks包
+        return None, 'Missing dependencies for SOCKS support'
+    except requests.exceptions.ConnectionError: # socks端口出错
+        return None, 'Unable to connect socks5 proxy'
+    except requests.exceptions.ProxyError: # socks代理出错
+        return None, 'Unable to connect socks5 proxy'
+    except requests.exceptions.ConnectTimeout: # 请求超时
+        return False, 'Request timeout'
+    except requests.exceptions.ReadTimeout: # 请求超时
+        return False, 'Request timeout'
+    except requests.exceptions.Timeout: # 请求超时
+        return False, 'Request timeout'
+    except: # 未知错误
+        return None, 'Unknown error'
+
+    try:
+        statusCode = httpRequest.status_code # 获取http状态码
+    except:
+        return None, 'Http request error'
+    if 'statusCode' in vars() and statusCode == 204: # http测试成功
+        delay = (time.time_ns() - startTime) / (10 ** 6)
+        return True, round(delay, 2) # 保留小数点后两位
+    else:
+        return False, 'Http status code not 204'
 
 def httpCheck(port, url = 'http://gstatic.com/generate_204', timeout = 30):
+    '''
+    HTTP请求测试
+
+        测试异常: return None, {reason}
+
+        测试完成: return health, delay
+    '''
     result = []
-    result.append(httpPing(port, url, timeout / 4))
-    result.append(httpPing(port, url, timeout / 2))
-    result.append(httpPing(port, url, timeout / 1))
     failNum = 0
-    for ret in result:
+    for i in [4, 2, 1]: # 三次测试
+        status, delay = httpPing(port, url, timeout / i)
+        if status == None: # 测试异常
+            return None, delay
+        elif status == False: # 连接失败
+            result.append(-1)
+        else: # 连接成功
+            result.append(delay)
+    for ret in result: # 计算失败次数
         if ret < 0:
             failNum += 1
+
     if failNum == 3: # 全部失败
         return False, -1
     elif failNum == 2: # 仅成功一次
