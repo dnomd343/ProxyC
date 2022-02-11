@@ -1,49 +1,18 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-import json
-
 import os
 import time
+import json
+import redis
 
 import ProxyBuilder as Builder
 import ProxyChecker as Checker
 
 workDir = '/tmp/ProxyC'
-
-ssTest = {
-    'tag': 'f43c9bae21ae8693',
-    'check': [
-        'http'
-    ],
-    'info': {
-        'type': 'ss',
-        'server': '127.0.0.1',
-        'port': 12345,
-        'password': 'dnomd343',
-        'method': 'aes-256-ctr',
-        'plugin': '',
-        'pluginParam': '',
-    }
-}
-
-ssrTest = {
-    'tag': 'f43c9bae21ae8693',
-    'check': [
-        'http'
-    ],
-    'info': {
-        'type': 'ssr',
-        "server": "127.0.0.1",
-        "port": 23456,
-        "password": "dnomd343",
-        "method": "table",
-        "protocol": "auth_aes128_md5",
-        "protocolParam": "",
-        "obfs": "tls1.2_ticket_auth",
-        "obfsParam": ""
-    }
-}
+redisPrefix = 'proxyc-'
+redisHost = 'localhost'
+redisPort = 6379
 
 def loadDir(folderPath): # 创建文件夹
     try:
@@ -124,5 +93,38 @@ def proxyTest(rawInfo, startDelay = 1):
         'result': checkResult
     }
 
-ret = proxyTest(ssTest)
-print(json.dumps(ret))
+def getTask(): # 从数据库中获取一项检测任务
+    redisObject = redis.StrictRedis(host = redisHost, port = redisPort, db = 0)
+    checkList = redisObject.keys(redisPrefix + 'check-a-*') # 优先级排序
+    if len(checkList) == 0:
+        checkList = redisObject.keys(redisPrefix + 'check-b-*')
+    if len(checkList) == 0:
+        checkList = redisObject.keys(redisPrefix + 'check-c-*')
+    if len(checkList) == 0:
+        checkList = redisObject.keys(redisPrefix + 'check-d-*')
+    if len(checkList) == 0:
+        checkList = redisObject.keys(redisPrefix + 'check-e-*')
+
+    if len(checkList) == 0: # 无任务
+        return None
+    key = checkList[0] # 选取首个任务
+    taskContent = redisObject.get(key)
+    redisObject.delete(key)
+    return json.loads(taskContent) # JSON解码
+
+def setResult(tag, result): # 向数据库中写入检测结果
+    redisObject = redis.StrictRedis(host = redisHost, port = redisPort, db = 0)
+    key = redisPrefix + 'result-' + tag
+    redisObject.set(key, json.dumps(result))
+
+# ssInfo = '{"tag": "f43c9bae21ae8693", "check": ["http"], "info": {"type": "ss", "server": "127.0.0.1", "port": 12345, "password": "dnomd343", "method": "aes-256-ctr", "plugin": "", "pluginParam": ""}}'
+# ssrInfo = '{"tag": "54cd9ba3a8e86f93", "check": ["http"], "info": {"type": "ssr", "server": "127.0.0.1", "port": 23456, "password": "dnomd343", "method": "table", "protocol": "auth_aes128_md5", "protocolParam": "", "obfs": "tls1.2_ticket_auth", "obfsParam": ""}}'
+# redisObject = redis.StrictRedis(host = redisHost, port = redisPort, db = 0)
+# redisObject.set(redisPrefix + 'check-a-f43c9bae21ae8693', ssInfo)
+# redisObject.set(redisPrefix + 'check-c-54cd9ba3a8e86f93', ssrInfo)
+
+task = getTask()
+if task == None:
+    print("no task")
+else:
+    setResult(task['tag'], proxyTest(task))
