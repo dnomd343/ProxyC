@@ -25,10 +25,6 @@ def httpPing(port, url = 'http://gstatic.com/generate_204', timeout = 30):
         return None, 'Missing modules'
     except requests.exceptions.InvalidSchema: # 缺失pysocks包
         return None, 'Missing dependencies for SOCKS support'
-    except requests.exceptions.ConnectionError: # socks端口出错
-        return None, 'Unable to connect socks5 proxy'
-    except requests.exceptions.ProxyError: # socks代理出错
-        return None, 'Unable to connect socks5 proxy'
     except requests.exceptions.ConnectTimeout: # 请求超时
         return False, 'Request timeout'
     except requests.exceptions.ReadTimeout: # 请求超时
@@ -36,7 +32,7 @@ def httpPing(port, url = 'http://gstatic.com/generate_204', timeout = 30):
     except requests.exceptions.Timeout: # 请求超时
         return False, 'Request timeout'
     except: # 未知错误
-        return None, 'Unknown error'
+        return False, 'Request error'
 
     try:
         statusCode = httpRequest.status_code # 获取http状态码

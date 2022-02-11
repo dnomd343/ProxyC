@@ -58,7 +58,7 @@ def loadDir(folderPath): # 创建文件夹
 
 def proxyHttpCheck(socksPort): # Http检测
     try:
-        health, httpDelay = Checker.httpCheck(socksPort, timeout = 10)
+        health, httpDelay = Checker.httpCheck(socksPort, timeout = 12)
         if health == None: # 连接失败
             return None
         return {
