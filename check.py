@@ -41,7 +41,19 @@ def proxyTest(rawInfo, startDelay = 1):
     '''
     代理检测入口
 
-        异常错误: return None
+        异常错误:
+            return None
+
+        启动失败:
+            return {
+                'success': False
+            }
+
+        测试完成:
+            return {
+                'success': True,
+                'result': checkResult
+            }
 
     '''
     if loadDir(workDir) == False: # 工作文件夹无效
@@ -86,14 +98,14 @@ def proxyTest(rawInfo, startDelay = 1):
             Builder.destroy(client)
             return None
         checkResult[item] = result
-    
+
     Builder.destroy(client) # 销毁客户端
     return {
         'success': True,
         'result': checkResult
     }
 
-def getTask(): # 从数据库中获取一项检测任务
+def getTask(): # 获取检测任务
     redisObject = redis.StrictRedis(host = redisHost, port = redisPort, db = 0)
     checkList = redisObject.keys(redisPrefix + 'check-a-*') # 优先级排序
     if len(checkList) == 0:
@@ -110,21 +122,27 @@ def getTask(): # 从数据库中获取一项检测任务
     key = checkList[0] # 选取首个任务
     taskContent = redisObject.get(key)
     redisObject.delete(key)
-    return json.loads(taskContent) # JSON解码
+    tag = str(key[len(redisPrefix) + 8:], encoding = "utf-8")
+    try:
+        return tag, json.loads(taskContent) # JSON解码
+    except: # JSON解码失败
+        return tag, None
 
-def setResult(tag, result): # 向数据库中写入检测结果
+def setResult(tag, result): # 写入检测结果
     redisObject = redis.StrictRedis(host = redisHost, port = redisPort, db = 0)
     key = redisPrefix + 'result-' + tag
     redisObject.set(key, json.dumps(result))
 
-# ssInfo = '{"tag": "f43c9bae21ae8693", "check": ["http"], "info": {"type": "ss", "server": "127.0.0.1", "port": 12345, "password": "dnomd343", "method": "aes-256-ctr", "plugin": "", "pluginParam": ""}}'
-# ssrInfo = '{"tag": "54cd9ba3a8e86f93", "check": ["http"], "info": {"type": "ssr", "server": "127.0.0.1", "port": 23456, "password": "dnomd343", "method": "table", "protocol": "auth_aes128_md5", "protocolParam": "", "obfs": "tls1.2_ticket_auth", "obfsParam": ""}}'
-# redisObject = redis.StrictRedis(host = redisHost, port = redisPort, db = 0)
-# redisObject.set(redisPrefix + 'check-a-f43c9bae21ae8693', ssInfo)
-# redisObject.set(redisPrefix + 'check-c-54cd9ba3a8e86f93', ssrInfo)
+def main():
+    try:
+        taskTag, task = getTask() # 获取检测任务
+    except:
+        return
+    if task == None:
+        return
+    try:
+        setResult(taskTag, proxyTest(task)) # 检测并写入数据库
+    except:
+        pass
 
-task = getTask()
-if task == None:
-    print("no task")
-else:
-    setResult(task['tag'], proxyTest(task))
+main()
