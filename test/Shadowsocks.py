@@ -63,7 +63,7 @@ def test(port, password):
             'password': password,
             'method': method,
             'plugin': '',
-            'pluginArg': '',
+            'pluginParam': '',
         }
         testInfo = 'Shadowsocks method ' + method
         if method == 'plain' or method == 'none':
@@ -115,7 +115,7 @@ def test(port, password):
             'password': password,
             'method': 'aes-256-ctr',
             'plugin': 'obfs-local',
-            'pluginArg': 'obfs=http;obfs-host=www.bing.com',
+            'pluginParam': 'obfs=http;obfs-host=www.bing.com',
         },
         'serverCommand': [
             'ss-bootstrap-server',

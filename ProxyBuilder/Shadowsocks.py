@@ -149,10 +149,10 @@ def __baseJSON(proxyInfo, socksPort): # 生成JSON基本结构
     }
     if proxyInfo['plugin'] != '':
         jsonContent['plugin'] = proxyInfo['plugin']
-        jsonContent['plugin_opts'] = proxyInfo['pluginArg']
+        jsonContent['plugin_opts'] = proxyInfo['pluginParam']
     return jsonContent
 
-def __pluginUdpCheck(plugin, pluginArg): # 插件是否使用UDP通讯
+def __pluginUdpCheck(plugin, pluginParam): # 插件是否使用UDP通讯
     if plugin == '': # 无插件
         return False
     noUdpPlugin = [ # 不使用UDP通讯的插件
@@ -173,7 +173,7 @@ def __pluginUdpCheck(plugin, pluginArg): # 插件是否使用UDP通讯
     if plugin in onlyUdpPlugin:
         return True
     if plugin == 'v2ray-plugin' or plugin == 'xray-plugin' or plugin == 'gost-plugin':
-        if not 'mode=quic' in pluginArg.split(';'):
+        if not 'mode=quic' in pluginParam.split(';'):
             return False
     return True # 默认假定占用UDP
 
@@ -216,7 +216,7 @@ def __ssRust(proxyInfo, socksPort): # ss-rust配置文件生成
     return jsonContent, 'ss-rust-local'
 
 def load(proxyInfo, socksPort, configFile): # Shadowsocks配置载入
-    proxyInfo['udp'] = not __pluginUdpCheck(proxyInfo['plugin'], proxyInfo['pluginArg'])
+    proxyInfo['udp'] = not __pluginUdpCheck(proxyInfo['plugin'], proxyInfo['pluginParam'])
     if proxyInfo['method'] in ssMethodList['ss-libev']:
         jsonContent, ssFile = __ssLibev(proxyInfo, socksPort)
     elif proxyInfo['method'] in ssMethodList['ss-libev-legacy']:

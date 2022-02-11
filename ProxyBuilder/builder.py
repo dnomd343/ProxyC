@@ -77,8 +77,10 @@ def build(proxyInfo, configDir): # 构建代理节点连接
     elif proxyType == 'ssr': # ShadowsocksR节点
         startCommand, fileContent = ShadowsocksR.load(proxyInfo, socksPort, configFile)
     else: # 未知类型
+        print("Unknown proxy type")
         return None
     if startCommand == None: # 格式出错
+        print("Format error with " + proxyType)
         return None
     try:
         with open(configFile, 'w') as fileObject:
@@ -97,6 +99,7 @@ def build(proxyInfo, configDir): # 构建代理节点连接
             stderr = subprocess.DEVNULL,
             preexec_fn = exitWithMe) # 子进程跟随退出
     except:
+        print("WARNING: Subprocess may become a Orphan Process")
         process = subprocess.Popen(startCommand,
             stdout = subprocess.DEVNULL,
             stderr = subprocess.DEVNULL) # prctl失败 回退正常启动

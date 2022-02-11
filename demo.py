@@ -8,27 +8,27 @@ import requests
 import ProxyBuilder as Builder
 import ProxyChecker as Checker
 
-# testInfo = {
-#     'type': 'ss',
-#     'server': '127.0.0.1',
-#     'port': 12345,
-#     'password': 'dnomd343',
-#     'method': 'aes-256-ctr',
-#     'plugin': '',
-#     'pluginArg': '',
-# }
-
 testInfo = {
-    'type': 'ssr',
-    "server": "127.0.0.1",
-    "port": 23456,
-    "password": "dnomd343",
-    "method": "table",
-    "protocol": "auth_aes128_md5",
-    "protocolParam": "",
-    "obfs": "tls1.2_ticket_auth",
-    "obfsParam": ""
+    'type': 'ss',
+    'server': '127.0.0.1',
+    'port': 12345,
+    'password': 'dnomd343',
+    'method': 'aes-256-ctr',
+    'plugin': '',
+    'pluginParam': '',
 }
+
+# testInfo = {
+#     'type': 'ssr',
+#     "server": "127.0.0.1",
+#     "port": 23456,
+#     "password": "dnomd343",
+#     "method": "table",
+#     "protocol": "auth_aes128_md5",
+#     "protocolParam": "",
+#     "obfs": "tls1.2_ticket_auth",
+#     "obfsParam": ""
+# }
 
 print("start")
 print(testInfo)
