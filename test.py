@@ -28,7 +28,11 @@ def startTest(testList):
         if Builder.check(client) != True:
             print("client unexpected exit") # 客户端启动失败
         else:
-            print(format(Checker.httpPing(client['port']), '.2f') + 'ms')
+            status, delay = Checker.httpPing(client['port'])
+            if status == True:
+                print(format(delay, '.2f') + 'ms')
+            else:
+                print(delay)
             Builder.destroy(client) # 关闭客户端
             time.sleep(0.1)
         serverProcess.terminate() # 关闭服务端
