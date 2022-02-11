@@ -23,9 +23,9 @@ def startTest(testList):
             print("server unexpected exit")
             continue
         print(field['caption'] + ' => ', end = '')
-        client = Builder.build(field['proxyInfo'], '/tmp/ProxyC')
+        status, client = Builder.build(field['proxyInfo'], '/tmp/ProxyC')
         time.sleep(0.5) # 等待初始化完成
-        if not Builder.check(client):
+        if Builder.check(client) != True:
             print("client unexpected exit") # 客户端启动失败
         else:
             print(format(Checker.httpPing(client['port']), '.2f') + 'ms')
