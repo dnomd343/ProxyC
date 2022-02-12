@@ -125,8 +125,8 @@ def ssFilter(raw):
         if raw['method'] in ssMethodList:
             result['method'] = raw['method']
         else:
-            return False, 'Unknown shadowsocks method'
-        
+            return False, 'Unknown Shadowsocks method'
+
         if (not 'plugin' in raw) or raw['plugin'] == '':
             result['plugin'] = ''
             result['pluginParam'] = ''

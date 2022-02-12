@@ -3,7 +3,7 @@
 
 import ProxyFilter as Filter
 
-info = {
+ssInfo = {
     "type": "ss",
     "server": "127.0.0.1 ",
     "port": 12345,
@@ -13,4 +13,16 @@ info = {
     "pluginParam": "obfs=http;host=www.bing.com"
 }
 
-print(Filter.filter(info))
+ssrInfo = {
+    "type": "ssr",
+    "server": "  127.0.0.1",
+    "port": 23456,
+    "password": "dnomd343",
+    "method": "table",
+    "protocol": "auth-aes128_md5",
+    "protocolParam": "",
+    "obfs": "",
+    "obfsParam": "fafadfaf"
+}
+
+print(Filter.filter(ssrInfo))

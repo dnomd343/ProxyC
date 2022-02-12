@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 
 from ProxyFilter import Shadowsocks
+from ProxyFilter import ShadowsocksR
 
 def filter(raw):
     '''
@@ -23,6 +24,8 @@ def filter(raw):
             return False, 'Missing `type` option'
         if raw['type'] == 'ss':
             return Shadowsocks.ssFilter(raw)
+        elif raw['type'] == 'ssr':
+            return ShadowsocksR.ssrFilter(raw)
         else:
             return False, 'Unknown proxy type'
     except:
