@@ -4,6 +4,30 @@
 import re
 from ProxyDecoder import baseFunc
 
+def __ssPlainDecode(url: str):
+    '''
+    Shadowsocks原始分享链接解码
+
+    FORMAT: ss://method:password@hostname:port#TAG
+
+    EXAMPLE:
+        ss://bf-cfb:test@192.168.100.1:8888#EXAMPLE
+    '''
+    content = re.search(r'^ss://([\s\S]+?)(#[\s\S]*)?$', url) # ...#REMARK
+    info = re.search(
+        r'^([\S]+?):([\S]+)@([a-zA-Z0-9.:_-]+):([0-9]+)$',
+        content.group(1) # method:password@server:port
+    )
+    remark = content.group(2)[1:] if content.group(2) != None else ''
+    remark = remark.replace('+', ' ') # 向后兼容部分客户端
+    return {
+        'server': info[3],
+        'port': int(info[4]),
+        'password': info[2],
+        'method': info[1],
+        'remark': baseFunc.urlDecode(remark)
+    }
+
 def __ssCommonDecode(url: str):
     '''
     Shadowsocks经典分享链接解码
@@ -15,11 +39,11 @@ def __ssCommonDecode(url: str):
         -> YmYtY2ZiOnRlc3QvIUAjOkAxOTIuMTY4LjEwMC4xOjg4ODg
         -> ss://YmYtY2ZiOnRlc3QvIUAjOkAxOTIuMTY4LjEwMC4xOjg4ODg#example-server
     '''
-    content = re.search(r'^ss://([a-zA-Z0-9_=+\\-]+)#?([\S]*)?$', url)
+    content = re.search(r'^ss://([a-zA-Z0-9_=+\\-]+)#?([\S]*)?$', url) # base64#REMARK
     try:
         info = re.search(
             r'^([\S]+?):([\S]+)@([a-zA-Z0-9.:_-]+):([0-9]+)$',
-            baseFunc.base64Decode(content.group(1))
+            baseFunc.base64Decode(content.group(1)) # method:password@server:port
         )
         return {
             'server': info[3],
@@ -46,35 +70,50 @@ def __sip002Decode(url: str):
 
         => ss://cmM0LW1kNTpwYXNzd2Q@192.168.100.1:8888/?plugin=obfs-local%3Bobfs%3Dhttp#Example
     '''
-    content = re.search(r'^ss://([a-zA-Z0-9_=+\\-]+)@([a-zA-Z0-9.:_-]+):([0-9]+)/?([\S]*)$', url)
+    content = re.search(
+        r'^ss://([a-zA-Z0-9_=+\\-]+)@([a-zA-Z0-9.:_-]+):([0-9]+)'
+        r'/?([\S]*)$', url # base64@server:port/... (/可选)
+    )
     try:
-        userInfo = re.search(r'^([\S]+?):([\S]+)$', baseFunc.base64Decode(content.group(1)))
+        userInfo = re.search(
+            r'^([\S]+?):([\S]+)$',
+            baseFunc.base64Decode(content.group(1)) # method:password
+        )
         info = {
             'server': content.group(2),
             'port': int(content.group(3)),
             'password': userInfo.group(2),
             'method': userInfo.group(1)
         }
-        if content.group(4).find('#') != -1:
-            content = re.search(r'^\??([\S]*)#([\S]*)$', content.group(4))
+        if content.group(4).find('#') != -1: # ...#REMARK
+            content = re.search(
+                r'^\??([\S]*)#([\S]*)$',
+                content.group(4) # ?...#REMARK (?可选)
+            )
             remark = content.group(2)
         else:
-            content = re.search(r'^\??([\S]*)$', content.group(4))
-        for field in content.group(1).split('&'):
-            if field.find('=') == -1: continue
-            field = re.search(r'^([\S]*)=([\S]*)$', field)
+            content = re.search(
+                r'^\??([\S]*)$',
+                content.group(4) # ?... (?可选)
+            )
+        for field in content.group(1).split('&'): # /?plugin=...&other1=...&other2=...
+            if field.find('=') == -1: # 缺失xxx=...
+                continue
+            field = re.search(r'^([\S]*)=([\S]*)$', field) # xxx=...
             if field.group(1) == 'plugin':
-                plugin = baseFunc.urlDecode(field.group(2))
+                plugin = baseFunc.urlDecode(field.group(2)) # plugin参数
                 break
-        plugin = plugin if 'plugin' in dir() else ''
-        if plugin.find(';') == -1:
+        plugin = plugin if 'plugin' in dir() else '' # 无plugin时为空
+        if plugin.find(';') == -1: # plugin=... (无参数)
             info['plugin'] = plugin
             info['pluginParam'] = ''
-        else:
-            plugin = re.search(r'^([\S]*?);([\S]*)$', plugin)
+        else: # plugin=...;... (带参数)
+            plugin = re.search(r'^([\S]*?);([\S]*)$', plugin) # 插件名;插件参数
             info['plugin'] = plugin.group(1)
             info['pluginParam'] = plugin.group(2)
-        info['remark'] = baseFunc.urlDecode(remark if 'remark' in dir() else '')
+        info['remark'] = baseFunc.urlDecode(
+            remark if 'remark' in dir() else '' # 无remark时为空
+        )
         return info
     except:
         return None
@@ -83,10 +122,13 @@ def ssDecode(url: str):
     try:
         if url[0:5] != 'ss://':
             return None
-        result = __ssCommonDecode(url) # try common decode
+        result = __ssCommonDecode(url) # try shadowsocks common decode
         if result != None:
             return result
-        result = __sip002Decode(url) # try sip002 decode
+        result = __sip002Decode(url) # try shadowsocks sip002 decode
+        if result != None:
+            return result
+        result = __ssPlainDecode(url) # try shadowsocks plain decode
         if result != None:
             return result
     except:

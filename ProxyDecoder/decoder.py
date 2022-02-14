@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
+import re
 from ProxyDecoder import Shadowsocks
 
 def decode(url):
@@ -19,7 +20,9 @@ def decode(url):
 
     '''
     try:
-        return Shadowsocks.ssDecode(url)
+        scheme = re.search(r'^([\S]+?)://([\s\S]+)$', url).group(1)
+        if scheme == 'ss':
+            return Shadowsocks.ssDecode(url)
     except:
         pass
     return None
