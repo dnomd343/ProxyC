@@ -99,7 +99,7 @@ def __sip002Decode(url: str):
         for field in content.group(1).split('&'): # /?plugin=...&other1=...&other2=...
             if field.find('=') == -1: # 缺失xxx=...
                 continue
-            field = re.search(r'^([\S]*)=([\S]*)$', field) # xxx=...
+            field = re.search(r'^([\S]*?)=([\S]*)$', field) # xxx=...
             if field.group(1) == 'plugin':
                 plugin = baseFunc.urlDecode(field.group(2)) # plugin参数
                 break
@@ -119,18 +119,28 @@ def __sip002Decode(url: str):
         return None
 
 def ssDecode(url: str):
+    '''
+    Shadowsocks 分享链接解码
+
+        链接合法:
+            return {...}
+
+        链接不合法:
+            return None
+    '''
     try:
         if url[0:5] != 'ss://':
             return None
         result = __ssCommonDecode(url) # try shadowsocks common decode
-        if result != None:
+        if result == None:
+            result = __sip002Decode(url) # try shadowsocks sip002 decode
+        if result == None:
+            result = __ssPlainDecode(url) # try shadowsocks plain decode
+        if result != None: # 解析成功
+            result['type'] = 'ss'
             return result
-        result = __sip002Decode(url) # try shadowsocks sip002 decode
-        if result != None:
-            return result
-        result = __ssPlainDecode(url) # try shadowsocks plain decode
-        if result != None:
-            return result
+        else: # 解析失败
+            return None
     except:
         pass
     return None
