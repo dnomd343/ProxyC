@@ -1,16 +1,21 @@
-FROM alpine:3.15 as shadowsocks
+FROM alpine:3.15 as build
+
 ENV SS_LIBEV="3.3.5"
 ENV SS_RUST="1.12.5"
-ENV GO_VERSION="1.17.6"
 ENV SIMPLE_TLS="v0.6.1"
 ENV GOST_PLUGIN="v1.6.3"
+
+ENV XRAY_VERSION="v1.5.3"
+ENV V2FLY_VERSION="v4.44.0"
+
+ENV GO_VERSION="1.17.6"
 
 RUN \
 apk add asciidoc autoconf automake build-base curl c-ares-dev cmake \
         git glib-dev go libev-dev libsodium-dev libtool linux-headers make \
         mbedtls-dev pcre-dev python3 python3-dev py3-pip udns-dev xmlto zlib-dev && \
 \
-# Get source code of shadowsocks (python/libev/rust)
+# Get source code of Shadowsocks (python/libev/rust)
 cd /tmp/ && mkdir ./release/ && \
 git clone https://github.com/dnomd343/shadowsocksr.git && \
 git clone https://github.com/shadowsocks/shadowsocks.git && \
@@ -39,22 +44,26 @@ git clone https://github.com/ihciah/rabbit-tcp.git && \
 git clone https://github.com/shadowsocks/qtun.git && \
 git clone https://github.com/Qv2ray/gun.git && \
 \
+# Get source code of Xray-core and v2fly-core
+git clone https://github.com/XTLS/Xray-core && \
+git clone https://github.com/v2fly/v2ray-core && \
+\
 # Install rust environment (nightly version)
 sh -c "$(curl -sL https://sh.rustup.rs)" @ -y --no-modify-path --default-toolchain nightly && \
 \
-# Install go environment (v1.16.13)
+# Install Go environment (v1.16.13)
 wget -O /tmp/go-1.16.13.tar.gz https://dl.google.com/go/go1.16.13.src.tar.gz && \
 tar -C /usr/local/ -xf /tmp/go-1.16.13.tar.gz && \
 mv /usr/local/go/ /usr/local/go-1.16.13/ && \
 cd /usr/local/go-1.16.13/src/ && ./make.bash && \
 \
-# Install go environment (latest version)
+# Install Go environment (latest version)
 wget -O /tmp/go-$GO_VERSION.tar.gz https://dl.google.com/go/go$GO_VERSION.src.tar.gz && \
 tar -C /usr/local/ -xf /tmp/go-$GO_VERSION.tar.gz && \
 mv /usr/local/go/ /usr/local/go-$GO_VERSION/ && \
 cd /usr/local/go-$GO_VERSION/src/ && ./make.bash && \
 \
-# Switch to latest version of golang
+# Switch to latest version of Golang
 apk del go && \
 export PATH=$PATH:/usr/local/go-$GO_VERSION/bin && \
 \
@@ -151,6 +160,17 @@ env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.version=$VERSION -s -w" .
 env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.version=$VERSION -s -w" ./cmd/ck-server && \
 mv ./ck-client ./ck-server /tmp/release/ && \
 \
+# Compile Xray-core
+cd /tmp/Xray-core && git checkout $XRAY_VERSION && \
+env CGO_ENABLED=0 go build -o xray -trimpath -ldflags "-s -w" ./main && \
+mv ./xray /tmp/release/ && \
+\
+# Compile v2fly-core
+cd /tmp/v2ray-core && git checkout $V2FLY_VERSION && \
+env CGO_ENABLED=0 go build -o v2ray -trimpath -ldflags "-s -w" ./main && \
+env CGO_ENABLED=0 go build -o v2ctl -trimpath -ldflags "-s -w" -tags confonly ./infra/control/main && \
+mv ./v2ctl ./v2ray /tmp/release/ && \
+\
 # Switch to go 1.16.13
 export PATH=/usr/local/go-1.16.13/bin:$PATH && \
 \
@@ -162,8 +182,8 @@ mv ./v2ray-plugin /tmp/release/ && \
 # Compile kcptun
 cd /tmp/kcptun/ && git checkout sip003 && VERSION=`git describe --tags` && \
 go mod init github.com/shadowsocks/kcptun && go mod tidy && \
-env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.VERSION=$VERSION -s -w" -o kcptun-client ./client && \
-env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.VERSION=$VERSION -s -w" -o kcptun-server ./server && \
+env CGO_ENABLED=0 go build -o kcptun-client -trimpath -ldflags "-X main.VERSION=$VERSION -s -w" ./client && \
+env CGO_ENABLED=0 go build -o kcptun-server -trimpath -ldflags "-X main.VERSION=$VERSION -s -w" ./server && \
 mv ./kcptun-client ./kcptun-server /tmp/release/ && \
 \
 # Compile gost-plugin
@@ -182,23 +202,23 @@ mv ./gq-client ./gq-server /tmp/release/ && \
 # mos-tls-tunnel
 cd /tmp/mos-tls-tunnel/ && \
 go mod init github.com/IrineSistiana/mos-tls-tunnel && go mod vendor && \
-env CGO_ENABLED=0 go build -mod=vendor -trimpath -ldflags "-s -w" -o mtt-client ./cmd/mtt-client && \
-env CGO_ENABLED=0 go build -mod=vendor -trimpath -ldflags "-s -w" -o mtt-server ./cmd/mtt-server && \
+env CGO_ENABLED=0 go build -mod=vendor -trimpath -ldflags "-s -w" ./cmd/mtt-client && \
+env CGO_ENABLED=0 go build -mod=vendor -trimpath -ldflags "-s -w" ./cmd/mtt-server && \
 mv ./mtt-client ./mtt-server /tmp/release/ && \
 \
 # Compile rabbit-plugin
 cd /tmp/rabbit-plugin/ && \
-env CGO_ENABLED=0 go build -trimpath -ldflags '-w -s' -o rabbit-plugin && \
+env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" && \
 mv ./rabbit-plugin /tmp/release/ && \
 \
 # Compile rabbit-tcp
 cd /tmp/rabbit-tcp/ && VERSION=`git describe --tags` && \
-env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.Version=$VERSION -w -s" -o rabbit ./cmd/rabbit.go && \
+env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.Version=$VERSION -s -w" ./cmd/rabbit.go && \
 mv ./rabbit /tmp/release/ && \
 \
 # Compile gun-plugin
 cd /tmp/gun/ && \
-env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o gun-plugin ./cmd/sip003/ && \
+env CGO_ENABLED=0 go build -o gun-plugin -trimpath -ldflags "-s -w" ./cmd/sip003/ && \
 mv ./gun-plugin /tmp/release/ && \
 \
 # Compile qtun
@@ -208,7 +228,7 @@ mv ./target/release/qtun-client /tmp/release/ && \
 mv ./target/release/qtun-server /tmp/release/
 
 FROM alpine:3.15 as asset
-COPY --from=shadowsocks /tmp/release/ /tmp/release/
+COPY --from=build /tmp/release/ /tmp/release/
 RUN apk add gcc python3 upx && \
 cd /tmp/ && mkdir ./bin/ && mkdir ./lib/ && \
 mv ./release/packages.tar.gz ./ && tar xf packages.tar.gz && \
