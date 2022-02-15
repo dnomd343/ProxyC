@@ -38,7 +38,7 @@ def httpPing(port, url = 'http://gstatic.com/generate_204', timeout = 30):
         statusCode = httpRequest.status_code # 获取http状态码
     except:
         return None, 'Http request error'
-    if 'statusCode' in vars() and statusCode == 204: # http测试成功
+    if 'statusCode' in vars() and statusCode >= 200 and statusCode < 300: # http测试成功
         delay = (time.time_ns() - startTime) / (10 ** 6)
         return True, round(delay, 2) # 保留小数点后两位
     else:

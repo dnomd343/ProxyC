@@ -3,18 +3,11 @@
 
 import os
 import time
-import json
-import redis
 
 import ProxyBuilder as Builder
 import ProxyChecker as Checker
 
-workDir = '/tmp/ProxyC'
-redisPrefix = 'proxyc-'
-redisHost = 'localhost'
-redisPort = 6379
-
-def loadDir(folderPath): # 创建文件夹
+def __loadDir(folderPath): # 创建文件夹
     try:
         if os.path.exists(folderPath): # 文件 / 文件夹 存在
             if not os.path.isdir(folderPath): # 文件
@@ -25,9 +18,13 @@ def loadDir(folderPath): # 创建文件夹
     except:
         return False
 
-def proxyHttpCheck(socksPort): # Http检测
+def __proxyHttpCheck(socksPort, httpCheckUrl, httpCheckTimeout): # Http检测
     try:
-        health, httpDelay = Checker.httpCheck(socksPort, timeout = 12)
+        health, httpDelay = Checker.httpCheck(
+            socksPort,
+            url = httpCheckUrl,
+            timeout = httpCheckTimeout
+        )
         if health == None: # 连接失败
             return None
         return {
@@ -37,11 +34,17 @@ def proxyHttpCheck(socksPort): # Http检测
     except: # 未知错误
         return None
 
-def proxyTest(rawInfo, startDelay = 1):
+def proxyTest(
+    rawInfo,
+    startDelay = 1,
+    workDir = '/tmp/ProxyC',
+    httpCheckUrl = 'http://gstatic.com/generate_204',
+    httpCheckTimeout = 12,
+    ):
     '''
     代理检测入口
 
-        异常错误:
+        程序异常:
             return None
 
         启动失败:
@@ -56,7 +59,7 @@ def proxyTest(rawInfo, startDelay = 1):
             }
 
     '''
-    if loadDir(workDir) == False: # 工作文件夹无效
+    if __loadDir(workDir) == False: # 工作文件夹无效
         return None
     if not 'info' in rawInfo: # 缺少代理服务器信息
         return None
@@ -91,7 +94,7 @@ def proxyTest(rawInfo, startDelay = 1):
     checkResult = {}
     for item in checkItem:
         if item == 'http': # http检测
-            result = proxyHttpCheck(client['port'])
+            result = __proxyHttpCheck(client['port'], httpCheckUrl, httpCheckTimeout)
         else: # 未知检测项目
             result = None
         if result == None: # 检测出错
@@ -104,45 +107,3 @@ def proxyTest(rawInfo, startDelay = 1):
         'success': True,
         'result': checkResult
     }
-
-def getTask(): # 获取检测任务
-    redisObject = redis.StrictRedis(host = redisHost, port = redisPort, db = 0)
-    checkList = redisObject.keys(redisPrefix + 'check-a-*') # 优先级排序
-    if len(checkList) == 0:
-        checkList = redisObject.keys(redisPrefix + 'check-b-*')
-    if len(checkList) == 0:
-        checkList = redisObject.keys(redisPrefix + 'check-c-*')
-    if len(checkList) == 0:
-        checkList = redisObject.keys(redisPrefix + 'check-d-*')
-    if len(checkList) == 0:
-        checkList = redisObject.keys(redisPrefix + 'check-e-*')
-
-    if len(checkList) == 0: # 无任务
-        return None
-    key = checkList[0] # 选取首个任务
-    taskContent = redisObject.get(key)
-    redisObject.delete(key)
-    tag = str(key[len(redisPrefix) + 8:], encoding = "utf-8")
-    try:
-        return tag, json.loads(taskContent) # JSON解码
-    except: # JSON解码失败
-        return tag, None
-
-def setResult(tag, result): # 写入检测结果
-    redisObject = redis.StrictRedis(host = redisHost, port = redisPort, db = 0)
-    key = redisPrefix + 'result-' + tag
-    redisObject.set(key, json.dumps(result))
-
-def main():
-    try:
-        taskTag, task = getTask() # 获取检测任务
-    except:
-        return
-    if task == None:
-        return
-    try:
-        setResult(taskTag, proxyTest(task)) # 检测并写入数据库
-    except:
-        pass
-
-main()
