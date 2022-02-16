@@ -4,7 +4,6 @@
 import json
 import redis
 import random
-import hashlib
 from flask import Flask, request
 
 apiPath = '/'
@@ -44,114 +43,160 @@ def genError(message: str): # 生成JSON错误回复
         'message': message
     }
 
-def getAllTask(): # 获取当前所有检测任务
-    # TODO: redis query
-    # print(redisObject.keys(redisPrefix + '*'))
-    return [
-        '54cd9ba3a8e86f93',
-        'f43c9bae21ae8693',
-    ]
-
 def addCheckTask(priority, checkList, proxyList): # 检测任务加入数据库
-    digestList = []
-    checkId = genRandomId()
-    for proxyInfo in proxyList:
-        digest = hashlib.md5(json.dumps({
-            'check': checkList,
-            'info': proxyInfo,
-        }).encode(encoding = 'UTF-8')).hexdigest() # 计算节点摘要
-        digestList.append(digest)
-        repeatKey = redisObject.keys(redisPrefix + 'check-*-' + digest)
-        if repeatKey != []: # 存在重复
-            repeatKey = str(repeatKey[0], encoding = 'utf-8')
-            repeatPriority = repeatKey[len(redisPrefix) + 6:][:1] # 获取原优先级
-            if ord(repeatPriority) > ord(priority): # 原优先级较低
-                redisObject.rename( # 提升优先级
-                    repeatKey,
-                    redisPrefix + 'check-' + priority + '-' + digest
-                )
-        else:
+    try:
+        tagList = []
+        for proxyInfo in proxyList:
+            tag = genRandomId(32) # 32位检测ID
+            tagList.append(tag)
             redisObject.set( # 写入数据库
-                redisPrefix + 'check-' + priority + '-' + digest,
+                redisPrefix + 'check-' + priority + '-' + tag,
                 json.dumps({
-                    'tag': digest,
+                    'tag': tag,
                     'check': checkList,
                     'info': proxyInfo
                 })
             )
-    redisObject.set( # 记录任务
-        redisPrefix + 'task-' + checkId,
-        json.dumps({
-            'checkId': checkId,
-            'priority': priority,
-            'check': checkList,
-            'proxy': digestList,
-            'checkNum': len(digestList),
-            'completeNum': 0
-        })
-    )
+        checkId = genRandomId(24) # 24位任务ID
+        redisObject.set( # 记录任务
+            redisPrefix + 'task-' + checkId,
+            json.dumps({
+                'checkId': checkId,
+                'priority': priority,
+                'check': checkList,
+                'proxy': tagList,
+                'complete': False
+            })
+        )
+        return checkId
+    except: # 异常错误
+        return None
 
 def getCheckList(): # 获取检测任务列表
-    if request.args.get('token') != accessToken: # token无效
-        return genError('invalid token')
-    return {
-        'success': True,
-        'taskList': getAllTask()
-    }
+    try:
+        if request.args.get('token') != accessToken: # token无效
+            return genError('invalid token')
+        taskList = []
+        rawTaskList = redisObject.keys(redisPrefix + 'task-*')
+        for task in rawTaskList: # 获取任务ID
+            taskList.append(str(task[len(redisPrefix) + 5:], encoding = 'utf-8'))
+        return {
+            'success': True,
+            'taskList': taskList
+        }
+    except:
+        return genError('server error')
 
 def newCheckTask(): # 新增检测任务
-    import ProxyDecoder as Decoder
-    import ProxyFilter as Filter
+    try:
+        import ProxyDecoder as Decoder
+        import ProxyFilter as Filter
 
-    if httpPostArg('token') != accessToken: # token无效
-        return genError('invalid token')
+        if httpPostArg('token') != accessToken: # token无效
+            return genError('invalid token')
 
-    priority = httpPostArg('priority') # 优先级选项
-    if not priority in ['a','b','c','d','e']:
-        priority = 'c' # 默认优先级
+        priority = httpPostArg('priority') # 优先级选项
+        if not priority in ['a','b','c','d','e']:
+            priority = 'c' # 默认优先级
 
-    checkList = httpPostArg('check') # 检测列表
-    if checkList == None:
-        return genError('missing check list')
-    for checkMethod in checkList:
-        if not checkMethod in ['http']:
-            return genError('unknown check method `' + checkMethod + '`')
+        checkList = httpPostArg('check') # 检测列表
+        if checkList == None:
+            return genError('missing check list')
+        for checkMethod in checkList:
+            if not checkMethod in ['http']:
+                return genError('unknown check method `' + checkMethod + '`')
 
-    proxyList = httpPostArg('proxy') # 代理列表
-    if proxyList == None:
-        return genError('missing proxy list')
-    if isinstance(proxyList, str): # 单项任务
-        proxyList = [ proxyList ]
-    for i in range(0, len(proxyList)):
-        if isinstance(proxyList[i], str): # 解码分享链接
-            proxyList[i] = Decoder.decode(proxyList[i])
-            if proxyList[i] == None:
-                return genError('could not decode index ' + str(i))
-        status, proxyList[i] = Filter.filter(proxyList[i]) # 节点信息检查
-        if status == False: # 节点不合法
-            return genError('index ' + str(i) + ': ' + proxyList[i])
+        proxyList = httpPostArg('proxy') # 代理列表
+        if proxyList == None:
+            return genError('missing proxy list')
+        if isinstance(proxyList, str): # 单项任务
+            proxyList = [ proxyList ]
+        for i in range(0, len(proxyList)):
+            if isinstance(proxyList[i], str): # 解码分享链接
+                proxyList[i] = Decoder.decode(proxyList[i])
+                if proxyList[i] == None:
+                    return genError('could not decode index ' + str(i))
+            status, proxyList[i] = Filter.filter(proxyList[i]) # 节点信息检查
+            if status == False: # 节点不合法
+                return genError('index ' + str(i) + ': ' + proxyList[i])
 
-    checkId = addCheckTask(priority, checkList, proxyList) # 任务加入数据库
-    if checkId == None: # 异常错误
+        checkId = addCheckTask(priority, checkList, proxyList) # 任务加入数据库
+        if checkId == None: # 异常错误
+            return genError('server error')
+        return {
+            'success': True,
+            'checkId': checkId
+        }
+    except:
         return genError('server error')
-    return {
-        'success': True,
-        'checkId': checkId
-    }
 
 def getTaskInfo(checkId): # 获取任务详情
-    # TODO: get task info from redis
-    return {
-        'success': True,
-        'checkId': checkId
-    }
+    try:
+        taskKey = redisObject.keys(redisPrefix + 'task-' + checkId)
+        if taskKey == []: # 任务ID不存在
+            return genError('invalid check id')
+        taskKey = str(taskKey[0], encoding = 'utf-8')
+        taskInfo = json.loads(
+            redisObject.get(taskKey)
+        )
+        if taskInfo['complete'] == True: # 任务已完成
+            return {
+                'success': True,
+                'complete': True,
+                'checkId': checkId,
+                'result': taskInfo['result']
+            }
+
+        completeNum = 0 # 测试完成数目
+        for tag in taskInfo['proxy']:
+            if redisObject.keys(redisPrefix + 'result-' + tag) != []: # 暂未测试
+                completeNum += 1
+        if completeNum < len(taskInfo['proxy']): # 测试未完成
+            return {
+                'success': True,
+                'complete': False,
+                'checkId': checkId,
+                'schedule': format(completeNum / len(taskInfo['proxy']), '.2f')
+            }
+
+        checkResult = []
+        for tag in taskInfo['proxy']: # 遍历检测结果
+            checkResult.append(
+                json.loads(
+                    redisObject.get(redisPrefix + 'result-' + tag)
+                )
+            )
+            redisObject.delete(redisPrefix + 'result-' + tag) # 删除测试结果
+        taskInfo['complete'] = True
+        taskInfo['result'] = checkResult
+        redisObject.set(taskKey, json.dumps(taskInfo)) # 记入数据库
+        return {
+            'success': True,
+            'complete': True,
+            'checkId': checkId,
+            'result': taskInfo['result']
+        }
+    except:
+        return genError('server error')
 
 def deleteTask(checkId): # 删除任务
-    # TODO: delete task from redis
-    return {
-        'success': True,
-        'checkId': checkId
-    }
+    try:
+        taskKey = redisObject.keys(redisPrefix + 'task-' + checkId)
+        if taskKey == []: # 任务ID不存在
+            return genError('invalid check id')
+        taskKey = str(taskKey[0], encoding = 'utf-8')
+        taskInfo = json.loads(
+            redisObject.get(taskKey)
+        )
+        if taskInfo['complete'] != True: # 任务未完成
+            return genError('task not complete')
+        redisObject.delete(taskKey)
+        return {
+            'success': True,
+            'checkId': checkId
+        }
+    except:
+        return genError('server error')
 
 @api.route(apiPath + '/check', methods = ['GET','POST'])
 def apiCheck():
@@ -161,10 +206,10 @@ def apiCheck():
         return newCheckTask()
 
 @api.route(apiPath + '/check/<checkId>', methods = ['GET','DELETE'])
-def check_id(checkId):
+def apiCheckId(checkId):
     if request.method == 'GET':
         return getTaskInfo(checkId)
-    elif request.method == 'POST':
+    elif request.method == 'DELETE':
         return deleteTask(checkId)
 
 redisObject = redis.StrictRedis(
