@@ -144,6 +144,7 @@ def getTaskInfo(checkId): # 获取任务详情
                 'success': True,
                 'complete': True,
                 'checkId': checkId,
+                'number': len(taskInfo['proxy']),
                 'result': taskInfo['result']
             }
 
@@ -156,7 +157,8 @@ def getTaskInfo(checkId): # 获取任务详情
                 'success': True,
                 'complete': False,
                 'checkId': checkId,
-                'schedule': format(completeNum / len(taskInfo['proxy']), '.2f')
+                'number': len(taskInfo['proxy']),
+                'schedule': round(completeNum / len(taskInfo['proxy']), 2)
             }
 
         checkResult = []
@@ -174,6 +176,7 @@ def getTaskInfo(checkId): # 获取任务详情
             'success': True,
             'complete': True,
             'checkId': checkId,
+            'number': len(taskInfo['proxy']),
             'result': taskInfo['result']
         }
     except:

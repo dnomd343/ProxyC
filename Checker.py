@@ -39,7 +39,7 @@ def proxyTest(
     startDelay = 1,
     workDir = '/tmp/ProxyC',
     httpCheckUrl = 'http://gstatic.com/generate_204',
-    httpCheckTimeout = 12,
+    httpCheckTimeout = 20,
     ):
     '''
     代理检测入口

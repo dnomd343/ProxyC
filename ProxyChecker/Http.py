@@ -54,7 +54,9 @@ def httpCheck(port, url = 'http://gstatic.com/generate_204', timeout = 30):
     '''
     result = []
     failNum = 0
+    timeout = timeout * 64 / 119 # 4/64 + 2/64 + 1/64 + 1/4 + 1/2 + 1/1
     for i in [4, 2, 1]: # 三次测试
+        time.sleep(timeout / 64 * i)
         status, delay = httpPing(port, url, timeout / i)
         if status == None: # 测试异常
             return None, delay

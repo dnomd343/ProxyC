@@ -60,7 +60,12 @@ def main(startDelay, httpCheckUrl, httpCheckTimeout):
         print("no task found")
         return
     print(checkInfo)
-    checkResult = Checker.proxyTest(checkInfo)
+    checkResult = Checker.proxyTest(
+        checkInfo,
+        startDelay = startDelay,
+        httpCheckUrl = httpCheckUrl,
+        httpCheckTimeout = httpCheckTimeout
+    )
     if checkResult == None:
         print("some bad things happen")
         return
@@ -73,8 +78,8 @@ def main(startDelay, httpCheckUrl, httpCheckTimeout):
         return
     print("ok")
 
-defaultStartDelay = 1
-defaultHttpCheckTimeout = 30
-defaultHttpCheckUrl = 'https://api.v2fly.org/checkConnection.svgz'
+defaultStartDelay = 1.5
+defaultHttpCheckTimeout = 20
+defaultHttpCheckUrl = 'http://gstatic.com/generate_204'
 
 main(defaultStartDelay, defaultHttpCheckUrl, defaultHttpCheckTimeout)
