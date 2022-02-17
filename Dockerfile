@@ -73,12 +73,36 @@ cd /tmp/ && tar xf openssl-1.0.2u.tar.gz && cd ./openssl-1.0.2u/ && \
 ./config --shared --prefix=/usr && make && make install && \
 cp /usr/lib/libcrypto.so.1.0.0 /tmp/release/ && \
 \
-# Install and package numpy / salsa20
-pip install numpy salsa20 && \
+# Install and package numpy / salsa20 / flask / IPy / redis / pysocks / requests
+pip install numpy salsa20 flask IPy redis pysocks && \
 mkdir /tmp/packages/ && cd /tmp/packages/ && \
-PYTHON_DIR=/usr/lib/`ls /usr/lib/ | grep ^python` && \
-cp -r $PYTHON_DIR/site-packages/*numpy* ./ && \
-cp -r $PYTHON_DIR/site-packages/*salsa20* ./ && \
+PACKAGE_DIR=/usr/lib/`ls /usr/lib/ | grep ^python`/site-packages && \
+cp -r $PACKAGE_DIR/*certifi* ./ && \
+cp -r $PACKAGE_DIR/*charset* ./ && \
+cp -r $PACKAGE_DIR/*click* ./ && \
+cp -r $PACKAGE_DIR/*deprecated* ./ && \
+cp -r $PACKAGE_DIR/*Deprecated* ./ && \
+cp -r $PACKAGE_DIR/*flask* ./ && \
+cp -r $PACKAGE_DIR/*Flask* ./ && \
+cp -r $PACKAGE_DIR/*idna* ./ && \
+cp -r $PACKAGE_DIR/*IPy* ./ && \
+cp -r $PACKAGE_DIR/*itsdangerous* ./ && \
+cp -r $PACKAGE_DIR/*Jinja2* ./ && \
+cp -r $PACKAGE_DIR/*jinja2* ./ && \
+cp -r $PACKAGE_DIR/*Jinja2* ./ && \
+cp -r $PACKAGE_DIR/*markupsafe* ./ && \
+cp -r $PACKAGE_DIR/*MarkupSafe* ./ && \
+cp -r $PACKAGE_DIR/*numpy* ./ && \
+cp -r $PACKAGE_DIR/*packaging* ./ && \
+cp -r $PACKAGE_DIR/*PySocks* ./ && \
+cp -r $PACKAGE_DIR/*redis* ./ && \
+cp -r $PACKAGE_DIR/*requests* ./ && \
+cp -r $PACKAGE_DIR/*salsa20* ./ && \
+cp -r $PACKAGE_DIR/*socks* ./ && \
+cp -r $PACKAGE_DIR/*urllib3* ./ && \
+cp -r $PACKAGE_DIR/*werkzeug* ./ && \
+cp -r $PACKAGE_DIR/*Werkzeug* ./ && \
+cp -r $PACKAGE_DIR/*wrapt* ./ && \
 rm -rf `find ./ -name '__pycache__'` && \
 strip `find ./ -name '*.so'` && \
 cd ../ && tar czf packages.tar.gz ./packages/ && \
@@ -241,14 +265,16 @@ cd /tmp/packages/ && \
 tar xf ssr-python.tar.bz2 && rm -f ./ssr-python.tar.bz2 && \
 tar xf ss-python.tar.bz2 && rm -f ./ss-python.tar.bz2 && \
 tar xf ss-python-legacy.tar.bz2 && rm -f ./ss-python-legacy.tar.bz2 && \
-PYTHON_NAME=`ls /usr/lib/ | grep ^python` && \
-mkdir -p /tmp/lib/$PYTHON_NAME/ && \
-mv /tmp/packages/ /tmp/lib/$PYTHON_NAME/site-packages/
+PYTHON_DIR=`ls /usr/lib/ | grep ^python` && \
+mkdir -p /tmp/lib/$PYTHON_DIR/ && \
+mv /tmp/packages/ /tmp/lib/$PYTHON_DIR/site-packages/
 
 FROM alpine:3.15
+COPY . /usr/local/share/ProxyC
 COPY --from=asset /tmp/bin/ /usr/bin/
 COPY --from=asset /tmp/lib/ /usr/lib/
-RUN apk add --no-cache c-ares glib libev libsodium mbedtls pcre python3 udns && \
+RUN apk add --no-cache c-ares glib libev libsodium mbedtls pcre python3 redis udns && \
+echo "daemonize yes" >> /etc/redis.conf && \
 PKG_DIR=/usr/lib/`ls /usr/lib/ | grep ^python`/site-packages && \
 rm -rf `find /usr/lib/ -name '__pycache__'` && \
 ln -s $PKG_DIR/ssr-python/local.py /usr/bin/ssr-local && \
@@ -258,3 +284,4 @@ ln -s $PKG_DIR/ss-python/server.py /usr/bin/ss-python-server && \
 ln -s $PKG_DIR/ss-python-legacy/local.py /usr/bin/ss-python-legacy-local && \
 ln -s $PKG_DIR/ss-python-legacy/server.py /usr/bin/ss-python-legacy-server && \
 ln -s /usr/bin/python3 /usr/bin/python
+EXPOSE 43581
