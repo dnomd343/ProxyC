@@ -81,28 +81,22 @@ cp -r $PACKAGE_DIR/*certifi* ./ && \
 cp -r $PACKAGE_DIR/*charset* ./ && \
 cp -r $PACKAGE_DIR/*click* ./ && \
 cp -r $PACKAGE_DIR/*deprecated* ./ && \
-cp -r $PACKAGE_DIR/*Deprecated* ./ && \
 cp -r $PACKAGE_DIR/*flask* ./ && \
-cp -r $PACKAGE_DIR/*Flask* ./ && \
 cp -r $PACKAGE_DIR/*idna* ./ && \
 cp -r $PACKAGE_DIR/*IPy* ./ && \
 cp -r $PACKAGE_DIR/*itsdangerous* ./ && \
-cp -r $PACKAGE_DIR/*Jinja2* ./ && \
 cp -r $PACKAGE_DIR/*jinja2* ./ && \
-cp -r $PACKAGE_DIR/*Jinja2* ./ && \
 cp -r $PACKAGE_DIR/*markupsafe* ./ && \
-cp -r $PACKAGE_DIR/*MarkupSafe* ./ && \
 cp -r $PACKAGE_DIR/*numpy* ./ && \
 cp -r $PACKAGE_DIR/*packaging* ./ && \
-cp -r $PACKAGE_DIR/*PySocks* ./ && \
 cp -r $PACKAGE_DIR/*redis* ./ && \
 cp -r $PACKAGE_DIR/*requests* ./ && \
 cp -r $PACKAGE_DIR/*salsa20* ./ && \
 cp -r $PACKAGE_DIR/*socks* ./ && \
 cp -r $PACKAGE_DIR/*urllib3* ./ && \
 cp -r $PACKAGE_DIR/*werkzeug* ./ && \
-cp -r $PACKAGE_DIR/*Werkzeug* ./ && \
 cp -r $PACKAGE_DIR/*wrapt* ./ && \
+rm -rf `ls ./ | grep '\-info'` && \
 rm -rf `find ./ -name '__pycache__'` && \
 strip `find ./ -name '*.so'` && \
 cd ../ && tar czf packages.tar.gz ./packages/ && \
@@ -119,7 +113,10 @@ chmod +x ./ssr-python/local.py ./ssr-python/server.py && \
 BZIP2=-9 tar cjf /tmp/release/ssr-python.tar.bz2 ./ssr-python/ && \
 \
 # Package shadowsocks-python
-cd /tmp/shadowsocks/ && git checkout master && rm -rf ./.git && \
+cd /tmp/shadowsocks/ && git checkout master && \
+sed -i 's/if addr is/if addr ==/g' shadowsocks/common.py && \
+sed -i 's/and ip is not/and ip !=/g' shadowsocks/common.py && \
+sed -i 's/if len(block) is/if len(block) ==/g' shadowsocks/common.py && \
 python3 setup.py build && cd ./build/ && mv ./lib/ ./ss-python/ && \
 mv ./ss-python/shadowsocks/local.py ./ss-python/shadowsocks/server.py ./ss-python/ && \
 chmod +x ./ss-python/local.py ./ss-python/server.py && \
@@ -273,7 +270,8 @@ FROM alpine:3.15
 COPY . /usr/local/share/ProxyC
 COPY --from=asset /tmp/bin/ /usr/bin/
 COPY --from=asset /tmp/lib/ /usr/lib/
-RUN apk add --no-cache c-ares glib libev libsodium mbedtls pcre python3 redis udns && \
+RUN apk add --no-cache c-ares ca-certificates glib \
+        libev libsodium mbedtls pcre python3 redis udns && \
 echo "daemonize yes" >> /etc/redis.conf && \
 PKG_DIR=/usr/lib/`ls /usr/lib/ | grep ^python`/site-packages && \
 rm -rf `find /usr/lib/ -name '__pycache__'` && \
