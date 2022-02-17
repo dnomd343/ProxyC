@@ -9,6 +9,7 @@ ENV XRAY_VERSION="v1.5.3"
 ENV V2FLY_VERSION="v4.44.0"
 
 ENV GO_VERSION="1.17.6"
+ENV DNSPROXY_VERSION="v0.41.1"
 
 RUN \
 apk add asciidoc autoconf automake build-base curl c-ares-dev cmake \
@@ -44,9 +45,10 @@ git clone https://github.com/ihciah/rabbit-tcp.git && \
 git clone https://github.com/shadowsocks/qtun.git && \
 git clone https://github.com/Qv2ray/gun.git && \
 \
-# Get source code of Xray-core and v2fly-core
+# Get source code
 git clone https://github.com/XTLS/Xray-core && \
 git clone https://github.com/v2fly/v2ray-core && \
+git clone https://github.com/AdguardTeam/dnsproxy && \
 \
 # Install rust environment (nightly version)
 sh -c "$(curl -sL https://sh.rustup.rs)" @ -y --no-modify-path --default-toolchain nightly && \
@@ -192,6 +194,12 @@ env CGO_ENABLED=0 go build -o v2ray -trimpath -ldflags "-s -w" ./main && \
 env CGO_ENABLED=0 go build -o v2ctl -trimpath -ldflags "-s -w" -tags confonly ./infra/control/main && \
 mv ./v2ctl ./v2ray /tmp/release/ && \
 \
+# Compile dnsproxy
+cd /tmp/dnsproxy/ && \
+git checkout $DNSPROXY_VERSION && VERSION=`git describe --tags` && \
+env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.VersionString=$VERSION -s -w" && \
+mv ./dnsproxy /tmp/release/ && \
+\
 # Switch to go 1.16.13
 export PATH=/usr/local/go-1.16.13/bin:$PATH && \
 \
@@ -251,25 +259,25 @@ mv ./target/release/qtun-server /tmp/release/
 FROM alpine:3.15 as asset
 COPY --from=build /tmp/release/ /tmp/release/
 RUN apk add gcc python3 upx && \
-cd /tmp/ && mkdir ./bin/ && mkdir ./lib/ && \
-mv ./release/packages.tar.gz ./ && tar xf packages.tar.gz && \
+mkdir -p /tmp/asset/bin/ && mkdir -p /tmp/asset/lib/ && \
+mv /tmp/release/packages.tar.gz /tmp/ && \
+cd /tmp/ && tar xf packages.tar.gz && \
 mv /tmp/release/*.tar.bz2 /tmp/packages/ && \
-mv /tmp/release/*.so* /tmp/lib/ && \
-mv /tmp/release/* /tmp/bin && \
-cd /tmp/bin/ && strip * && upx -9 * && \
-cd /tmp/lib/ && strip * && \
+mv /tmp/release/*.so* /tmp/asset/lib/ && \
+mv /tmp/release/* /tmp/asset/bin/ && \
+cd /tmp/asset/bin/ && strip * && upx -9 * && \
+cd /tmp/asset/lib/ && strip * && \
 cd /tmp/packages/ && \
 tar xf ssr-python.tar.bz2 && rm -f ./ssr-python.tar.bz2 && \
 tar xf ss-python.tar.bz2 && rm -f ./ss-python.tar.bz2 && \
 tar xf ss-python-legacy.tar.bz2 && rm -f ./ss-python-legacy.tar.bz2 && \
 PYTHON_DIR=`ls /usr/lib/ | grep ^python` && \
-mkdir -p /tmp/lib/$PYTHON_DIR/ && \
-mv /tmp/packages/ /tmp/lib/$PYTHON_DIR/site-packages/
+mkdir -p /tmp/asset/lib/$PYTHON_DIR/ && \
+mv /tmp/packages/ /tmp/asset/lib/$PYTHON_DIR/site-packages/
 
 FROM alpine:3.15
 COPY . /usr/local/share/ProxyC
-COPY --from=asset /tmp/bin/ /usr/bin/
-COPY --from=asset /tmp/lib/ /usr/lib/
+COPY --from=asset /tmp/asset/ /usr/
 RUN apk add --no-cache c-ares ca-certificates glib \
         libev libsodium mbedtls pcre python3 redis udns && \
 echo "daemonize yes" >> /etc/redis.conf && \
@@ -281,5 +289,7 @@ ln -s $PKG_DIR/ss-python/local.py /usr/bin/ss-python-local && \
 ln -s $PKG_DIR/ss-python/server.py /usr/bin/ss-python-server && \
 ln -s $PKG_DIR/ss-python-legacy/local.py /usr/bin/ss-python-legacy-local && \
 ln -s $PKG_DIR/ss-python-legacy/server.py /usr/bin/ss-python-legacy-server && \
-ln -s /usr/bin/python3 /usr/bin/python
+ln -s /usr/bin/python3 /usr/bin/python && \
+cp /usr/local/share/ProxyC/docker/init.sh /usr/bin/
 EXPOSE 43581
+CMD ["sh","/usr/bin/init.sh"]

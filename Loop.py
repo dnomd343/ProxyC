@@ -17,25 +17,24 @@ redisObject = redis.StrictRedis(
     port = redisPort
 )
 
+runScript = '/usr/local/share/ProxyC/Run.py'
+
 processList = []
 while True:
     spareNum = min(
         maxThread - len(processList), # 空余进程数
         len(redisObject.keys(redisPrefix + 'check-*')) # 待检测个数
     )
-    if spareNum < 0:
+    if spareNum < 0: # 待运行进程数 > 0
         spareNum = 0
-    print("spareNum = " + str(spareNum))
-
     for i in range(spareNum): # 运行检测进程
         processList.append(
-            subprocess.Popen(['python','Run.py'])
+            subprocess.Popen(['python', runScript])
         )
         time.sleep(0.2)
 
     for process in processList: # 遍历子进程
         if process.poll() != None: # 进程已退出
-            print("remove subprocess")
             processList.remove(process)
 
     time.sleep(0.5)
