@@ -234,7 +234,7 @@ def isUserToken(token: str) -> bool:
     except:
         return False
 
-def addUser(priority: str, remain: int):
+def addUser(priority: str, remain):
     '''
     添加账号
 
@@ -248,6 +248,7 @@ def addUser(priority: str, remain: int):
         userId = genRandomId(length = 24)
         if not priority in ['a','b','c','d','e']: # 优先级无效
             return False, 'invalid priority'
+        remain = int(remain)
         if remain < 0:
             remain = -1 # 不限次数
         userInfo = {
@@ -263,6 +264,26 @@ def addUser(priority: str, remain: int):
             json.dumps(userInfo)
         )
         return True, userId # 返回userId
+    except:
+        return False, 'server error'
+
+def delUser(userId: str):
+    '''
+    删除账号
+
+        删除成功:
+            return True, userId
+
+        删除失败:
+            return False, {reason}
+    '''
+    try:
+        if isUserToken(userId) == False:
+            return False, 'invalid user id'
+        # TODO: check remain task before delete it
+        redisObject.srem(redisPrefix + 'users', userId)
+        redisObject.delete(redisPrefix + 'user-' + userId)
+        return True, userId
     except:
         return False, 'server error'
 
@@ -327,6 +348,38 @@ def getUserList():
     except:
         return None
 
+def modifyUserInfo(userId: str, priority: str = None, remain = None):
+    '''
+    修改账号信息
+
+        修改成功:
+            return True
+
+        修改失败:
+            return False
+    '''
+
+    try:
+        userInfo = getUserInfo(userId)
+        if userInfo == None: # 账号不存在
+            return False
+        if priority != None: # 优先级变动
+            if not priority in ['a','b','c','d','e']: # 优先级无效
+                return False
+            userInfo['priority'] = priority
+        if remain != None: # 剩余次数变动
+            remain = int(remain)
+            if remain < 0:
+                remain = -1 # 不限次数
+            userInfo['remain'] = remain
+        redisObject.set(
+            redisPrefix + 'user-' + userId, # 记录账号信息
+            json.dumps(userInfo)
+        )
+        return True
+    except:
+        return False
+
 @api.route(apiPath + '/user', methods = ['GET','POST'])
 def apiUser():
     if request.method == 'GET': # 获取账号列表
@@ -346,7 +399,7 @@ def apiUser():
             priority = 'c' # 默认优先级
         remain = httpPostArg('remain')
         if remain == None:
-            remain = -1 # 默认剩余次数
+            remain = '-1' # 默认剩余次数
         status, userId = addUser(priority, remain) # 创建新账号
         if status == False:
             return genError(userId) # 创建错误
@@ -361,13 +414,28 @@ def apiUserId(userId):
         if userInfo == None:
             return genError('invalid user id')
         return genSuccess(userInfo)
-    elif request.method == 'PUT': # 更新账号信息
-        pass
-    elif request.method == 'PATCH': # 修改账号信息
-        pass
+    elif request.method == 'PUT' or request.method == 'PATCH': # 更新账号信息
+        if isAdminToken(httpPostArg('token')) == False: # 非管理员token
+            return genError('invalid admin token')
+        priority = httpPostArg('priority')
+        remain = httpPostArg('remain')
+        if request.method == 'PUT':
+            if priority == None or remain == None: # 参数不全
+                return genError('missing parameter')
+        if modifyUserInfo(userId, priority = priority, remain = remain) == False: # 更新账号信息
+            return genError('server error')
+        return genSuccess(
+            getUserInfo(userId) # 更新成功
+        )
     elif request.method == 'DELETE': # 销毁账号
-        pass
-    return genError('wait for develop')
+        if isAdminToken(httpPostArg('token')) == False: # 非管理员token
+            return genError('invalid admin token')
+        status, reason = delUser(userId)
+        if status == False:
+            return genError(reason)
+        return genSuccess({
+            'userId': userId # 删除成功
+        })
 
 @api.route(apiPath + '/check', methods = ['GET','POST'])
 def apiCheck():
