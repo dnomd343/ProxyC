@@ -37,11 +37,15 @@ def genRandomId(length = 24): # 生成随机ID
             tag += str(tmp) # 0 ~ 9
     return tag
 
-def genError(message: str): # 生成JSON错误回复
+def genError(message: str): # 生成错误回复
     return {
         'success': False,
         'message': message
     }
+
+def genSuccess(data: dict): # 生成成功返回
+    data['success'] = True
+    return data
 
 def addCheckTask(priority, checkList, proxyList): # 检测任务加入数据库
     try:
@@ -201,18 +205,182 @@ def deleteTask(checkId): # 删除任务
     except:
         return genError('server error')
 
+def isAdminToken(token: str) -> bool:
+    '''
+    是否为管理员token
+
+        验证成功:
+            return True
+
+        验证失败:
+            return False
+    '''
+    adminToken = accessToken
+    return (token == adminToken)
+
+def isUserToken(token: str) -> bool:
+    '''
+    是否为有效token
+
+        token有效:
+            return True
+
+        token无效:
+            return False
+    '''
+    try:
+        if token.encode('utf-8') in redisObject.smembers(redisPrefix + 'users'):
+            return True
+    except:
+        return False
+
+def addUser(priority: str, remain: int):
+    '''
+    添加账号
+
+        添加异常:
+            return False, {reason}
+
+        添加成功:
+            return True, userId
+    '''
+    try:
+        userId = genRandomId(length = 24)
+        if not priority in ['a','b','c','d','e']: # 优先级无效
+            return False, 'invalid priority'
+        if remain < 0:
+            remain = -1 # 不限次数
+        userInfo = {
+            'token': userId,
+            'priority': priority,
+            'remain': remain
+        }
+        redisObject.sadd( # 添加账号token
+            redisPrefix + 'users', userId
+        )
+        redisObject.set( # 记录账号信息
+            redisPrefix + 'user-' + userId,
+            json.dumps(userInfo)
+        )
+        return True, userId # 返回userId
+    except:
+        return False, 'server error'
+
+def getUserInfo(userId: str, minus: bool = False):
+    '''
+    获取账号信息 (minus = True: 剩余次数 - 1)
+
+        获取异常:
+            return None
+
+        获取成功:
+            return {
+                'token': '...'
+                'priority': '...',
+                'remain': ...
+            }
+    '''
+    try:
+        if isUserToken(userId) == False: # userId不存在
+            return None
+        userInfo = json.loads(
+            redisObject.get(redisPrefix + 'user-' + userId) # 账号信息
+        )
+        if minus == True and userInfo['remain'] > 0:
+            userInfo['remain'] -= 1 # 剩余次数 - 1
+            redisObject.set(
+                redisPrefix + 'user-' + token, # 记入数据库
+                json.dumps(userInfo)
+            )
+        return userInfo
+    except:
+        return None # 异常
+
+def getUserList():
+    '''
+    获取所有账号信息
+
+        获取异常:
+            return None
+
+        获取成功:
+            return {
+                'token_1': {
+                    'priority': '...',
+                    'working': ...,
+                    'remain': ...,
+                },
+                'token_2': {
+                    ...
+                }
+                ...
+            }
+    '''
+    try:
+        userList = {}
+        for userId in redisObject.smembers(redisPrefix + 'users'): # 遍历全部账号
+            userId = str(userId, encoding = 'utf-8')
+            userInfo = getUserInfo(userId)
+            userInfo.pop('token')
+            userList[userId] = userInfo # 记录账号信息
+        return userList
+    except:
+        return None
+
+@api.route(apiPath + '/user', methods = ['GET','POST'])
+def apiUser():
+    if request.method == 'GET': # 获取账号列表
+        if isAdminToken(request.args.get('token')) == False: # 非管理员token
+            return genError('invalid admin token')
+        userList = getUserList()
+        if userList == None: # 获取失败
+            return genError('server error')
+        return genSuccess({
+            'user': userList
+        })
+    elif request.method == 'POST': # 添加账号
+        if isAdminToken(httpPostArg('token')) == False: # 非管理员token
+            return genError('invalid admin token')
+        priority = httpPostArg('priority')
+        if priority == None:
+            priority = 'c' # 默认优先级
+        remain = httpPostArg('remain')
+        if remain == None:
+            remain = -1 # 默认剩余次数
+        status, userId = addUser(priority, remain) # 创建新账号
+        if status == False:
+            return genError(userId) # 创建错误
+        return genSuccess({
+            'userId': userId # 创建成功
+        })
+
+@api.route(apiPath + '/user/<userId>', methods = ['GET','PUT','PATCH','DELETE'])
+def apiUserId(userId):
+    if request.method == 'GET': # 获取账号信息
+        userInfo = getUserInfo(userId)
+        if userInfo == None:
+            return genError('invalid user id')
+        return genSuccess(userInfo)
+    elif request.method == 'PUT': # 更新账号信息
+        pass
+    elif request.method == 'PATCH': # 修改账号信息
+        pass
+    elif request.method == 'DELETE': # 销毁账号
+        pass
+    return genError('wait for develop')
+
 @api.route(apiPath + '/check', methods = ['GET','POST'])
 def apiCheck():
-    if request.method == 'GET':
+    if request.method == 'GET': # 获取检测任务列表
         return getCheckList()
-    elif request.method == 'POST':
+    elif request.method == 'POST': # 添加检测任务
         return newCheckTask()
 
 @api.route(apiPath + '/check/<checkId>', methods = ['GET','DELETE'])
 def apiCheckId(checkId):
-    if request.method == 'GET':
+    if request.method == 'GET': # 获取检测任务状态
         return getTaskInfo(checkId)
-    elif request.method == 'DELETE':
+    elif request.method == 'DELETE': # 删除检测任务
         return deleteTask(checkId)
 
 redisObject = redis.StrictRedis(
