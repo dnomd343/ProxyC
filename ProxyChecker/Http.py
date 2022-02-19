@@ -79,6 +79,6 @@ def httpCheck(port, url = 'http://gstatic.com/generate_204', timeout = 30):
         for ret in result:
             if ret > 0:
                 sum += ret
-        return False, sum / 2 # 返回成功延迟均值
+        return False, round(sum / 2, 2) # 返回成功延迟均值
     else: # 全部成功
         return True, min(min(result[0], result[1]), result[2]) # 返回最低延迟

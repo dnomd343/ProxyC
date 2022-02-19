@@ -72,11 +72,11 @@ def main(startDelay, httpCheckUrl, httpCheckTimeout):
     elif checkResult['success'] == False:
         print("error proxy info")
         return
+    print(checkTag + ' -> ', end = '')
     print(checkResult)
     if __setCheckResult(checkTag, checkResult, redisObject, redisPrefix) == False:
         print("redis write error")
         return
-    print("ok")
 
 defaultStartDelay = 1.5
 defaultHttpCheckTimeout = 20
