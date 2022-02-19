@@ -27,7 +27,7 @@ def httpPostArg(field: str): # 获取HTTP POST参数
         pass
     return None
 
-def genRandomId(length = 24): # 生成随机ID
+def genRandomId(length: int = 24): # 生成随机ID
     tag = ''
     for i in range(0, length):
         tmp = random.randint(0, 15)
@@ -47,8 +47,34 @@ def genSuccess(data: dict): # 生成成功返回
     data['success'] = True
     return data
 
-def addCheckTask(priority, checkList, proxyList): # 检测任务加入数据库
+def getCheckList(userId: str): # 获取检测任务列表
     try:
+        taskList = []
+        rawTaskList = redisObject.keys(redisPrefix + 'task-' + userId + '*')
+        for task in rawTaskList: # 获取任务ID
+            taskList.append(str(task[len(redisPrefix) + 5:], encoding = 'utf-8'))
+        return taskList
+    except:
+        return None
+
+def addCheckTask(checkList, proxyList, priority: str, userId: str): # 新增检测任务
+    try:
+        import ProxyDecoder as Decoder
+        import ProxyFilter as Filter
+
+        checkList = list(set(checkList)) # 检测方式去重
+        for checkMethod in checkList:
+            if not checkMethod in ['http']:
+                return genError('unknown check method `' + checkMethod + '`')
+
+        for i in range(0, len(proxyList)):
+            proxyList[i] = Decoder.decode(proxyList[i]) # 解码分享链接
+            if proxyList[i] == None:
+                return genError('could not decode index ' + str(i))
+            status, proxyList[i] = Filter.filter(proxyList[i]) # 节点信息检查
+            if status == False: # 节点不合法
+                return genError('index ' + str(i) + ': ' + proxyList[i])
+
         tagList = []
         for proxyInfo in proxyList:
             tag = genRandomId(32) # 32位检测ID
@@ -61,7 +87,8 @@ def addCheckTask(priority, checkList, proxyList): # 检测任务加入数据库
                     'info': proxyInfo
                 })
             )
-        checkId = genRandomId(24) # 24位任务ID
+
+        checkId = userId + genRandomId(8) # 24位userId + 8位随机 -> 32位任务ID
         redisObject.set( # 记录任务
             redisPrefix + 'task-' + checkId,
             json.dumps({
@@ -72,65 +99,9 @@ def addCheckTask(priority, checkList, proxyList): # 检测任务加入数据库
                 'complete': False
             })
         )
-        return checkId
-    except: # 异常错误
-        return None
-
-def getCheckList(): # 获取检测任务列表
-    try:
-        if request.args.get('token') != accessToken: # token无效
-            return genError('invalid token')
-        taskList = []
-        rawTaskList = redisObject.keys(redisPrefix + 'task-*')
-        for task in rawTaskList: # 获取任务ID
-            taskList.append(str(task[len(redisPrefix) + 5:], encoding = 'utf-8'))
-        return {
-            'success': True,
-            'taskList': taskList
-        }
-    except:
-        return genError('server error')
-
-def newCheckTask(): # 新增检测任务
-    try:
-        import ProxyDecoder as Decoder
-        import ProxyFilter as Filter
-
-        if httpPostArg('token') != accessToken: # token无效
-            return genError('invalid token')
-
-        priority = httpPostArg('priority') # 优先级选项
-        if not priority in ['a','b','c','d','e']:
-            priority = 'c' # 默认优先级
-
-        checkList = httpPostArg('check') # 检测列表
-        if checkList == None:
-            return genError('missing check list')
-        for checkMethod in checkList:
-            if not checkMethod in ['http']:
-                return genError('unknown check method `' + checkMethod + '`')
-
-        proxyList = httpPostArg('proxy') # 代理列表
-        if proxyList == None:
-            return genError('missing proxy list')
-        if isinstance(proxyList, str): # 单项任务
-            proxyList = [ proxyList ]
-        for i in range(0, len(proxyList)):
-            if isinstance(proxyList[i], str): # 解码分享链接
-                proxyList[i] = Decoder.decode(proxyList[i])
-                if proxyList[i] == None:
-                    return genError('could not decode index ' + str(i))
-            status, proxyList[i] = Filter.filter(proxyList[i]) # 节点信息检查
-            if status == False: # 节点不合法
-                return genError('index ' + str(i) + ': ' + proxyList[i])
-
-        checkId = addCheckTask(priority, checkList, proxyList) # 任务加入数据库
-        if checkId == None: # 异常错误
-            return genError('server error')
-        return {
-            'success': True,
+        return genSuccess({
             'checkId': checkId
-        }
+        })
     except:
         return genError('server error')
 
@@ -232,7 +203,8 @@ def isUserToken(token: str) -> bool:
         if token.encode('utf-8') in redisObject.smembers(redisPrefix + 'users'):
             return True
     except:
-        return False
+        pass
+    return False
 
 def addUser(priority: str, remain):
     '''
@@ -280,7 +252,11 @@ def delUser(userId: str):
     try:
         if isUserToken(userId) == False:
             return False, 'invalid user id'
-        # TODO: check remain task before delete it
+
+        taskList = redisObject.keys(redisPrefix + 'task-' + userId + '*')
+        if taskList != []:
+            return False, 'task list not empty'
+
         redisObject.srem(redisPrefix + 'users', userId)
         redisObject.delete(redisPrefix + 'user-' + userId)
         return True, userId
@@ -310,7 +286,7 @@ def getUserInfo(userId: str, minus: bool = False):
         if minus == True and userInfo['remain'] > 0:
             userInfo['remain'] -= 1 # 剩余次数 - 1
             redisObject.set(
-                redisPrefix + 'user-' + token, # 记入数据库
+                redisPrefix + 'user-' + userId, # 记入数据库
                 json.dumps(userInfo)
             )
         return userInfo
@@ -440,9 +416,29 @@ def apiUserId(userId):
 @api.route(apiPath + '/check', methods = ['GET','POST'])
 def apiCheck():
     if request.method == 'GET': # 获取检测任务列表
-        return getCheckList()
+        token = request.args.get('token')
+        if isUserToken(token) == False:
+            return genError('invalid user token')
+        taskList = getCheckList(token)
+        if taskList == None:
+            return genError('server error')
+        return genSuccess({
+            'taskList': taskList
+        })
     elif request.method == 'POST': # 添加检测任务
-        return newCheckTask()
+        token = httpPostArg('token')
+        if isUserToken(token) == False:
+            return genError('invalid user token')
+        checkList = httpPostArg('check') # 检测列表
+        if checkList == None:
+            return genError('missing check list')
+        proxyList = httpPostArg('proxy') # 代理列表
+        if proxyList == None:
+            return genError('missing proxy list')
+        priority = getUserInfo(token, minus = True)['priority'] # 获取账号优先级
+        if priority == None:
+            return genError('server error')
+        return addCheckTask(checkList, proxyList, priority, token)
 
 @api.route(apiPath + '/check/<checkId>', methods = ['GET','DELETE'])
 def apiCheckId(checkId):
