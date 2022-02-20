@@ -3,4 +3,4 @@
 
 from ProxyDecoder.decoder import *
 
-__all__ = [ 'decode' ]
+__all__ = ['decode']
