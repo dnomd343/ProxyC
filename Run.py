@@ -5,11 +5,12 @@ import json
 import redis
 import Checker
 
-def __loadRedis(redisHost = 'localhost', redisPort = 6379): # 连接Redis数据库
-    return redis.StrictRedis(host = redisHost, port = redisPort, db = 0)
+redisPort = 6379
+redisHost = 'localhost'
+redisPrefix = 'proxyc-'
 
-def __getCheckInfo(redisObject, redisPrefix):
-    '''
+def __getCheckInfo() -> tuple[str or None, dict or None]:
+    """
     获取检测任务
 
         无任务或发生异常:
@@ -20,7 +21,7 @@ def __getCheckInfo(redisObject, redisPrefix):
 
         任务获取成功:
             return tag, {...}
-    '''
+    """
     try:
         checkList = redisObject.keys(redisPrefix + 'check-a-*') # 优先级排序
         if len(checkList) == 0:
@@ -44,7 +45,7 @@ def __getCheckInfo(redisObject, redisPrefix):
     except: # JSON解码失败
         return tag, None
 
-def __setCheckResult(checkTag, checkResult, redisObject, redisPrefix): # 写入检测结果
+def __setCheckResult(checkTag: str, checkResult: dict) -> bool: # 写入检测结果
     try:
         key = redisPrefix + 'result-' + checkTag
         redisObject.set(key, json.dumps(checkResult))
@@ -52,11 +53,9 @@ def __setCheckResult(checkTag, checkResult, redisObject, redisPrefix): # 写入�
     except:
         return False
 
-def main(startDelay, httpCheckUrl, httpCheckTimeout):
-    redisPrefix = 'proxyc-'
-    redisObject = __loadRedis()
-    checkTag, checkInfo = __getCheckInfo(redisObject, redisPrefix) # 获取检测任务
-    if checkTag == None:
+def main(startDelay: float, httpCheckUrl: str, httpCheckTimeout: int) -> None:
+    checkTag, checkInfo = __getCheckInfo() # 获取检测任务
+    if checkTag is None:
         print("no task found")
         return
     print(checkInfo)
@@ -66,20 +65,22 @@ def main(startDelay, httpCheckUrl, httpCheckTimeout):
         httpCheckUrl = httpCheckUrl,
         httpCheckTimeout = httpCheckTimeout
     )
-    if checkResult == None:
+    if checkResult is None:
         print("some bad things happen")
         return
-    elif checkResult['success'] == False:
+    elif not checkResult['success']:
         print("error proxy info")
         return
     print(checkTag + ' -> ', end = '')
     print(checkResult)
-    if __setCheckResult(checkTag, checkResult, redisObject, redisPrefix) == False:
+    if not __setCheckResult(checkTag, checkResult):
         print("redis write error")
         return
 
 defaultStartDelay = 1.5
 defaultHttpCheckTimeout = 20
 defaultHttpCheckUrl = 'http://gstatic.com/generate_204'
+
+redisObject = redis.StrictRedis(host = redisHost, port = redisPort, db = 0) # 连接Redis数据库
 
 main(defaultStartDelay, defaultHttpCheckUrl, defaultHttpCheckTimeout)

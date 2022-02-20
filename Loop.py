@@ -17,9 +17,10 @@ redisObject = redis.StrictRedis(
     port = redisPort
 )
 
-runScript = '/usr/local/share/ProxyC/Run.py'
-
 processList = []
+runScript = '/root/ProxyC/Run.py'
+# runScript = '/usr/local/share/ProxyC/Run.py'
+
 while True:
     spareNum = min(
         maxThread - len(processList), # 空余进程数
@@ -34,7 +35,7 @@ while True:
         time.sleep(0.2)
 
     for process in processList: # 遍历子进程
-        if process.poll() != None: # 进程已退出
+        if process.poll() is not None: # 进程已退出
             processList.remove(process)
 
     time.sleep(0.5)

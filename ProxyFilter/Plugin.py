@@ -112,7 +112,7 @@ pluginAlias = { # 插件别名
     ]
 }
 
-def pluginFormat(plugin): # 插件格式化
+def pluginFormat(plugin: str) -> str: # 插件格式化
     plugin = plugin.replace('_', '-').lower().strip()
     if plugin not in pluginList: # 非标插件名
         for pluginName in pluginAlias:

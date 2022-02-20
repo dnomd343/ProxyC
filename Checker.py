@@ -7,7 +7,7 @@ import time
 import ProxyBuilder as Builder
 import ProxyChecker as Checker
 
-def __loadDir(folderPath): # 创建文件夹
+def __loadDir(folderPath: str) -> bool: # 创建文件夹
     try:
         if os.path.exists(folderPath): # 文件 / 文件夹 存在
             if not os.path.isdir(folderPath): # 文件
@@ -18,14 +18,14 @@ def __loadDir(folderPath): # 创建文件夹
     except:
         return False
 
-def __proxyHttpCheck(socksPort, httpCheckUrl, httpCheckTimeout): # Http检测
+def __proxyHttpCheck(socksPort: int, httpCheckUrl: str, httpCheckTimeout: float) -> dict or None: # Http检测
     try:
         health, httpDelay = Checker.httpCheck(
             socksPort,
             url = httpCheckUrl,
             timeout = httpCheckTimeout
         )
-        if health == None: # 连接失败
+        if health is None: # 连接失败
             return None
         return {
             'delay': httpDelay,
@@ -35,13 +35,12 @@ def __proxyHttpCheck(socksPort, httpCheckUrl, httpCheckTimeout): # Http检测
         return None
 
 def proxyTest(
-    rawInfo,
-    startDelay = 1,
-    workDir = '/tmp/ProxyC',
-    httpCheckUrl = 'http://gstatic.com/generate_204',
-    httpCheckTimeout = 20,
-    ):
-    '''
+        rawInfo: dict,
+        startDelay: float = 1,
+        workDir: str = '/tmp/ProxyC',
+        httpCheckUrl: str = 'http://gstatic.com/generate_204',
+        httpCheckTimeout: float = 20) -> dict or None:
+    """
     代理检测入口
 
         程序异常:
@@ -58,37 +57,38 @@ def proxyTest(
                 'result': checkResult
             }
 
-    '''
-    if __loadDir(workDir) == False: # 工作文件夹无效
+    """
+    if not __loadDir(workDir): # 工作文件夹无效
         return None
-    if not 'info' in rawInfo: # 缺少代理服务器信息
+    if 'info' not in rawInfo: # 缺少代理服务器信息
         return None
 
+    client = None
     try:
         status, client = Builder.build(rawInfo['info'], workDir)
     except: # 构建发生未知错误
         Builder.destroy(client)
         return None
-    if status == None: # 构建错误
+    if status is None: # 构建错误
         Builder.destroy(client)
         return None
-    elif status == False: # 节点信息有误
+    elif not status: # 节点信息有误
         return {
             'success': False
         }
 
     time.sleep(startDelay) # 延迟等待客户端启动
     status = Builder.check(client) # 检查客户端状态
-    if status == None: # 检测失败
+    if status is None: # 检测失败
         Builder.destroy(client)
         return None
-    elif status == False: # 客户端异常退出
+    elif not status: # 客户端异常退出
         Builder.destroy(client)
         return {
             'success': False
         }
 
-    if not 'check' in rawInfo: # 缺少检测项目
+    if 'check' not in rawInfo: # 缺少检测项目
         return None
     checkItem = rawInfo['check']
     checkResult = {}
@@ -97,7 +97,7 @@ def proxyTest(
             result = __proxyHttpCheck(client['port'], httpCheckUrl, httpCheckTimeout)
         else: # 未知检测项目
             result = None
-        if result == None: # 检测出错
+        if result is None: # 检测出错
             Builder.destroy(client)
             return None
         checkResult[item] = result
@@ -105,5 +105,6 @@ def proxyTest(
     Builder.destroy(client) # 销毁客户端
     return {
         'success': True,
-        'result': checkResult
+        'check': checkResult,
+        'proxy': rawInfo['info']
     }
