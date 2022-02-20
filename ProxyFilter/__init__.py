@@ -3,4 +3,4 @@
 
 from ProxyFilter.filter import *
 
-__all__ = [ 'filter' ]
+__all__ = ['filte']

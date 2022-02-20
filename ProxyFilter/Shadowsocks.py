@@ -1,10 +1,41 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
+"""
+
+{
+    'server': '...',
+    'port': ...,
+    'method': '...',
+    'passwd': '...',
+    'plugin': pluginObject
+}
+
+server (str) -> required
+
+port (int or str) -> required
+
+method (str) -> required
+
+passwd (str) -> required
+
+plugin (None or dict) -> optional
+
+pluginObject: {
+    'type': '...',
+    'param': '...'
+}
+
+type (str) -> optional
+
+param (str) -> optional
+
+"""
+
 from ProxyFilter import baseFunc
 from ProxyFilter import Plugin as sip003
 
-ssMethodList = [
+ssMethodList = [ # Shadowsocks加密方式
     'aes-128-gcm',
     'aes-192-gcm',
     'aes-256-gcm',
@@ -56,7 +87,7 @@ ssMethodList = [
     'xchacha20-ietf-poly1305'
 ]
 
-pluginList = [
+pluginList = [ # SIP003插件列表
     'obfs-local',
     'simple-tls',
     'v2ray-plugin',
@@ -71,18 +102,32 @@ pluginList = [
     'gun-plugin'
 ]
 
-def __ssFormat(raw): # 容错性格式化
+def __ssFill(raw: dict) -> dict: # 补全可选值
     try:
-        raw['server'] = raw['server'].strip()
-        raw['port'] = int(raw['port'])
-        raw['method'] = raw['method'].replace('_', '-').lower().strip()
-        raw['plugin'] = sip003.pluginFormat(raw['plugin'])
+        if 'plugin' not in raw:
+            raw['plugin'] = None
+        if raw['plugin'] is not None:
+            if 'type' not in raw['plugin']:
+                raw['plugin']['type'] = ''
+            if 'param' not in raw['plugin']:
+                raw['plugin']['param'] = ''
     except:
         pass
     return raw
 
-def ssFilter(raw):
-    '''
+def __ssFormat(raw: dict) -> dict: # 容错性格式化
+    try:
+        raw['server'] = raw['server'].strip()
+        raw['port'] = int(raw['port'])
+        raw['method'] = raw['method'].replace('_', '-').lower().strip()
+        if raw['plugin'] is not None:
+            raw['plugin']['type'] = sip003.pluginFormat(raw['plugin']['type'])
+    except:
+        pass
+    return raw
+
+def ssFilter(raw: dict) -> tuple[bool, str or dict]:
+    """
     Shadowsocks节点合法性检查
 
         不合法:
@@ -91,51 +136,46 @@ def ssFilter(raw):
         合法:
             return True, {
                 'type': 'ss',
-                'server': '...',
-                'port': ...,
-                'password': '...',
-                'method": '...',
-                'plugin": '...',
-                'pluginParam": '...'
+                ...
             }
-    '''
+    """
     try:
-        result = {}
-        result['type'] = 'ss'
-        raw = __ssFormat(raw)
-
-        if not 'server' in raw:
+        if 'server' not in raw: # 必选值检查
             return False, 'Missing `server` option'
-        if not 'port' in raw:
+        if 'port' not in raw:
             return False, 'Missing `port` option'
-        if not 'password' in raw:
-            return False, 'Missing `password` option'
-        if not 'method' in raw:
+        if 'method' not in raw:
             return False, 'Missing `method` option'
+        if 'passwd' not in raw:
+            return False, 'Missing `passwd` option'
+        raw = __ssFormat(__ssFill(raw)) # 预处理
 
+        result = {'type': 'ss'}
         if baseFunc.isHost(raw['server']):
-            result['server'] = raw['server']
+            result['server'] = raw['server'] # server
         else:
             return False, 'Illegal `server` option'
         if baseFunc.isPort(raw['port']):
-            result['port'] = raw['port']
+            result['port'] = raw['port'] # port
         else:
             return False, 'Illegal `port` option'
-        result['password'] = raw['password']
         if raw['method'] in ssMethodList:
-            result['method'] = raw['method']
+            result['method'] = raw['method'] # method
         else:
             return False, 'Unknown Shadowsocks method'
+        result['passwd'] = raw['passwd'] # passwd
 
-        if (not 'plugin' in raw) or raw['plugin'] == '':
-            result['plugin'] = ''
-            result['pluginParam'] = ''
+        if raw['plugin'] is None or raw['plugin']['type'] in [None, '']:
+            plugin = None
         else:
-            if raw['plugin'] in pluginList:
-                result['plugin'] = raw['plugin']
-                result['pluginParam'] = raw['pluginParam']
+            if raw['plugin']['type'] in pluginList:
+                plugin = {
+                    'type': raw['plugin']['type'],
+                    'param': raw['plugin']['param']
+                }
             else:
                 return False, 'Unknown sip003 plugin'
+        result['plugin'] = plugin
     except:
         return False, 'Unknown error'
     return True, result

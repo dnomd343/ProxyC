@@ -114,8 +114,8 @@ pluginAlias = { # 插件别名
 
 def pluginFormat(plugin): # 插件格式化
     plugin = plugin.replace('_', '-').lower().strip()
-    if not plugin in pluginList: # 非标插件名
+    if plugin not in pluginList: # 非标插件名
         for pluginName in pluginAlias:
             if plugin in pluginAlias[pluginName]: # 匹配别名列表
                 return pluginName
-    return plugin
+    return plugin # 匹配不到时返回原值
