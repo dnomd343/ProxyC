@@ -3,4 +3,4 @@
 
 from ProxyBuilder.builder import *
 
-__all__ = [ 'build', 'check', 'destroy' ]
+__all__ = ['build', 'check', 'destroy']

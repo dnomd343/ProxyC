@@ -1,185 +1,226 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
+"""
+# Shadowsocks构建器
+
+## 节点格式
+
+```json
+{
+    "server": "...",
+    "port": ...,
+    "method": "...",
+    "passwd": "...",
+    "plugin": pluginObject
+}
+```
+
++ server (str) -> 必选, 服务器地址 (IPv4 / IPv6 / Domain)
+
++ port (int) -> 必选, 服务器端口 (1 ~ 65535)
+
++ method (str) -> 必选, Shadowsocks加密方式 (`aes-128-gcm`,`aes-192-gcm`,`aes-256-gcm`,
+                                            `aes-128-ctr`,`aes-192-ctr`,`aes-256-ctr`,
+                                            `aes-128-ocb`,`aes-192-ocb`,`aes-256-ocb`,
+                                            `aes-128-ofb`,`aes-192-ofb`,`aes-256-ofb`,
+                                            `aes-128-cfb`,`aes-192-cfb`,`aes-256-cfb`,
+                                            `aes-128-cfb1`,`aes-192-cfb1`,`aes-256-cfb1`,
+                                            `aes-128-cfb8`,`aes-192-cfb8`,`aes-256-cfb8`,
+                                            `aes-128-cfb128`,`aes-192-cfb128`,`aes-256-cfb128`,
+                                            `camellia-128-cfb`,`camellia-192-cfb`,`camellia-256-cfb`,
+                                            `camellia-128-cfb128`,`camellia-192-cfb128`,`camellia-256-cfb128`,
+                                            `plain`,`none`,`table`,`rc4`,`rc4-md5`,`rc2-cfb`,`bf-cfb`,
+                                            `cast5-cfb`,`des-cfb`,`idea-cfb`,`seed-cfb`,`salsa20`,`salsa20-ctr`,
+                                            `xchacha20`,`chacha20`,`chacha20-ietf`,`chacha20-poly1305`,
+                                            `chacha20-ietf-poly1305`,`xchacha20-ietf-poly1305`)
+
++ passwd (str) -> 必选, Shadowsocks连接密码
+
++ plugin (pluginObject) -> 必选, Shadowsocks连接插件
+
+### pluginObject (None / dict)
+
+无插件: None
+
+带插件:
+
+```json
+{
+    "type": "...",
+    "param": "..."
+}
+```
+
++ type (str) -> 插件名称
+
++ param (str) -> 插件参数
+
+"""
+
 import json
 
-ssMethodList = { # shadowsocks各版本支持的加密方式
-    "ss-python": [
-        "aes-128-gcm",
-        "aes-192-gcm",
-        "aes-256-gcm",
-        "aes-128-ctr",
-        "aes-192-ctr",
-        "aes-256-ctr",
-        "aes-128-ocb",
-        "aes-192-ocb",
-        "aes-256-ocb",
-        "aes-128-ofb",
-        "aes-192-ofb",
-        "aes-256-ofb",
-        "aes-128-cfb",
-        "aes-192-cfb",
-        "aes-256-cfb",
-        "aes-128-cfb1",
-        "aes-192-cfb1",
-        "aes-256-cfb1",
-        "aes-128-cfb8",
-        "aes-192-cfb8",
-        "aes-256-cfb8",
-        "aes-128-cfb128",
-        "aes-192-cfb128",
-        "aes-256-cfb128",
-        "camellia-128-cfb",
-        "camellia-192-cfb",
-        "camellia-256-cfb",
-        "camellia-128-cfb128",
-        "camellia-192-cfb128",
-        "camellia-256-cfb128",
-        "table",
-        "rc4",
-        "rc4-md5",
-        "rc2-cfb",
-        "bf-cfb",
-        "cast5-cfb",
-        "des-cfb",
-        "idea-cfb",
-        "seed-cfb",
-        "salsa20",
-        "xchacha20",
-        "chacha20",
-        "chacha20-ietf",
-        "chacha20-poly1305",
-        "chacha20-ietf-poly1305",
-        "xchacha20-ietf-poly1305",
+ssMethodList = { # Shadowsocks各版本加密方式支持
+    'ss-python': [
+        'aes-128-gcm',
+        'aes-192-gcm',
+        'aes-256-gcm',
+        'aes-128-ctr',
+        'aes-192-ctr',
+        'aes-256-ctr',
+        'aes-128-ocb',
+        'aes-192-ocb',
+        'aes-256-ocb',
+        'aes-128-ofb',
+        'aes-192-ofb',
+        'aes-256-ofb',
+        'aes-128-cfb',
+        'aes-192-cfb',
+        'aes-256-cfb',
+        'aes-128-cfb1',
+        'aes-192-cfb1',
+        'aes-256-cfb1',
+        'aes-128-cfb8',
+        'aes-192-cfb8',
+        'aes-256-cfb8',
+        'aes-128-cfb128',
+        'aes-192-cfb128',
+        'aes-256-cfb128',
+        'camellia-128-cfb',
+        'camellia-192-cfb',
+        'camellia-256-cfb',
+        'camellia-128-cfb128',
+        'camellia-192-cfb128',
+        'camellia-256-cfb128',
+        'table',
+        'rc4',
+        'rc4-md5',
+        'rc2-cfb',
+        'bf-cfb',
+        'cast5-cfb',
+        'des-cfb',
+        'idea-cfb',
+        'seed-cfb',
+        'salsa20',
+        'xchacha20',
+        'chacha20',
+        'chacha20-ietf',
+        'chacha20-poly1305',
+        'chacha20-ietf-poly1305',
+        'xchacha20-ietf-poly1305',
     ],
-    "ss-python-legacy": [
-        "aes-128-ctr",
-        "aes-192-ctr",
-        "aes-256-ctr",
-        "aes-128-ofb",
-        "aes-192-ofb",
-        "aes-256-ofb",
-        "aes-128-cfb",
-        "aes-192-cfb",
-        "aes-256-cfb",
-        "aes-128-cfb1",
-        "aes-192-cfb1",
-        "aes-256-cfb1",
-        "aes-128-cfb8",
-        "aes-192-cfb8",
-        "aes-256-cfb8",
-        "camellia-128-cfb",
-        "camellia-192-cfb",
-        "camellia-256-cfb",
-        "table",
-        "rc4",
-        "rc4-md5",
-        "rc2-cfb",
-        "bf-cfb",
-        "cast5-cfb",
-        "des-cfb",
-        "idea-cfb",
-        "seed-cfb",
-        "salsa20",
-        "salsa20-ctr",
-        "chacha20",
+    'ss-python-legacy': [
+        'aes-128-ctr',
+        'aes-192-ctr',
+        'aes-256-ctr',
+        'aes-128-ofb',
+        'aes-192-ofb',
+        'aes-256-ofb',
+        'aes-128-cfb',
+        'aes-192-cfb',
+        'aes-256-cfb',
+        'aes-128-cfb1',
+        'aes-192-cfb1',
+        'aes-256-cfb1',
+        'aes-128-cfb8',
+        'aes-192-cfb8',
+        'aes-256-cfb8',
+        'camellia-128-cfb',
+        'camellia-192-cfb',
+        'camellia-256-cfb',
+        'table',
+        'rc4',
+        'rc4-md5',
+        'rc2-cfb',
+        'bf-cfb',
+        'cast5-cfb',
+        'des-cfb',
+        'idea-cfb',
+        'seed-cfb',
+        'salsa20',
+        'salsa20-ctr',
+        'chacha20',
     ],
-    "ss-libev": [
-        "aes-128-gcm",
-        "aes-192-gcm",
-        "aes-256-gcm",
-        "aes-128-ctr",
-        "aes-192-ctr",
-        "aes-256-ctr",
-        "aes-128-cfb",
-        "aes-192-cfb",
-        "aes-256-cfb",
-        "camellia-128-cfb",
-        "camellia-192-cfb",
-        "camellia-256-cfb",
-        "rc4",
-        "rc4-md5",
-        "bf-cfb",
-        "salsa20",
-        "chacha20",
-        "chacha20-ietf",
-        "chacha20-ietf-poly1305",
-        "xchacha20-ietf-poly1305",
+    'ss-libev': [
+        'aes-128-gcm',
+        'aes-192-gcm',
+        'aes-256-gcm',
+        'aes-128-ctr',
+        'aes-192-ctr',
+        'aes-256-ctr',
+        'aes-128-cfb',
+        'aes-192-cfb',
+        'aes-256-cfb',
+        'camellia-128-cfb',
+        'camellia-192-cfb',
+        'camellia-256-cfb',
+        'rc4',
+        'rc4-md5',
+        'bf-cfb',
+        'salsa20',
+        'chacha20',
+        'chacha20-ietf',
+        'chacha20-ietf-poly1305',
+        'xchacha20-ietf-poly1305',
     ],
-    "ss-libev-legacy": [
-        "aes-128-ctr",
-        "aes-192-ctr",
-        "aes-256-ctr",
-        "aes-128-cfb",
-        "aes-192-cfb",
-        "aes-256-cfb",
-        "camellia-128-cfb",
-        "camellia-192-cfb",
-        "camellia-256-cfb",
-        "table",
-        "rc4",
-        "rc4-md5",
-        "rc2-cfb",
-        "bf-cfb",
-        "cast5-cfb",
-        "des-cfb",
-        "idea-cfb",
-        "seed-cfb",
-        "salsa20",
-        "chacha20",
-        "chacha20-ietf",
+    'ss-libev-legacy': [
+        'aes-128-ctr',
+        'aes-192-ctr',
+        'aes-256-ctr',
+        'aes-128-cfb',
+        'aes-192-cfb',
+        'aes-256-cfb',
+        'camellia-128-cfb',
+        'camellia-192-cfb',
+        'camellia-256-cfb',
+        'table',
+        'rc4',
+        'rc4-md5',
+        'rc2-cfb',
+        'bf-cfb',
+        'cast5-cfb',
+        'des-cfb',
+        'idea-cfb',
+        'seed-cfb',
+        'salsa20',
+        'chacha20',
+        'chacha20-ietf',
     ],
-    "ss-rust": [
-        "aes-128-gcm",
-        "aes-256-gcm",
-        "plain",
-        "none",
-        "chacha20-ietf-poly1305",
+    'ss-rust': [
+        'aes-128-gcm',
+        'aes-256-gcm',
+        'plain',
+        'none',
+        'chacha20-ietf-poly1305',
     ]
 }
 
-def __baseJSON(proxyInfo, socksPort): # 生成JSON基本结构
-    jsonContent = {
+def __baseConfig(proxyInfo: dict, socksPort: int) -> dict: # 生成基本配置
+    config = {
         'server': proxyInfo['server'],
-        'server_port': int(proxyInfo['port']),
+        'server_port': proxyInfo['port'],
         'local_address': '127.0.0.1',
-        'local_port': int(socksPort),
-        'password': proxyInfo['password'],
+        'local_port': socksPort,
         'method': proxyInfo['method'],
+        'password': proxyInfo['passwd'],
     }
-    if proxyInfo['plugin'] != '':
-        jsonContent['plugin'] = proxyInfo['plugin']
-        jsonContent['plugin_opts'] = proxyInfo['pluginParam']
-    return jsonContent
+    if proxyInfo['plugin'] is not None: # 带插件
+        config['plugin'] = proxyInfo['plugin']['type']
+        config['plugin_opts'] = proxyInfo['plugin']['param']
+    return config
 
-def __pluginUdpCheck(plugin, pluginParam): # 插件是否使用UDP通讯
-    if plugin == '': # 无插件
+def __pluginWithUdp(plugin: str, pluginParam: str) -> bool: # 插件是否使用UDP通讯
+    if plugin in ['obfs-local', 'simple-tls', 'ck-client', 'gq-client',
+                  'mtt-client', 'rabbit-plugin', 'gun-plugin']: # 不使用UDP通讯的插件
         return False
-    noUdpPlugin = [ # 不使用UDP通讯的插件
-        'obfs-local',
-        'simple-tls',
-        'ck-client',
-        'gq-client',
-        'mtt-client',
-        'rabbit-plugin',
-        'gun-plugin',
-    ]
-    onlyUdpPlugin = [ # 仅使用UDP通讯的插件
-        'kcptun-client',
-        'qtun-client',
-    ]
-    if plugin in noUdpPlugin:
-        return False
-    if plugin in onlyUdpPlugin:
-        return True
-    if plugin == 'v2ray-plugin' or plugin == 'xray-plugin' or plugin == 'gost-plugin':
-        if not 'mode=quic' in pluginParam.split(';'):
+    if plugin in ['v2ray-plugin', 'xray-plugin', 'gost-plugin']:
+        if 'mode=quic' not in pluginParam.split(';'): # 非quic模式不使用UDP通讯
             return False
     return True # 默认假定占用UDP
 
-def __ssPython(proxyInfo, socksPort, isLegacy = False): # ss-python配置文件生成
-    jsonContent = __baseJSON(proxyInfo, socksPort)
-    specialMethods = [
+def __ssPython(proxyInfo: dict, socksPort: int, isLegacy: bool = False) -> tuple[dict, str]: # ss-python配置生成
+    config = __baseConfig(proxyInfo, socksPort)
+    mbedtlsMethods = [
         'aes-128-cfb128',
         'aes-192-cfb128',
         'aes-256-cfb128',
@@ -187,46 +228,80 @@ def __ssPython(proxyInfo, socksPort, isLegacy = False): # ss-python配置文件�
         'camellia-192-cfb128',
         'camellia-256-cfb128',
     ]
-    if isLegacy == False: # 仅新版本支持
-        if jsonContent['method'] in specialMethods:
-            jsonContent['method'] = 'mbedtls:' + jsonContent['method']
-        if jsonContent['method'] == 'idea-cfb' or jsonContent['method'] == 'seed-cfb':
-            jsonContent['extra_opts'] = '--libopenssl=libcrypto.so.1.0.0'
-    if proxyInfo['udp'] != True:
-        jsonContent['no_udp'] = True
-    if isLegacy == True:
-        jsonContent['shadowsocks'] = 'ss-python-legacy-local'
-    else:
-        jsonContent['shadowsocks'] = 'ss-python-local'
-    return jsonContent, 'ss-bootstrap-local'
+    if not isLegacy: # 新版本特性
+        if config['method'] in mbedtlsMethods: # mbedtls库流加密
+            config['method'] = 'mbedtls:' + config['method']
+        if config['method'] in ['idea-cfb', 'seed-cfb']: # 仅openssl旧版本支持
+            config['extra_opts'] = '--libopenssl=libcrypto.so.1.0.0'
+    if not proxyInfo['udp']:
+        config['no_udp'] = True # 关闭UDP代理
+    config['shadowsocks'] = 'ss-python-legacy-local' if isLegacy else 'ss-python-local'
+    return config, 'ss-bootstrap-local'
 
-def __ssLibev(proxyInfo, socksPort, isLegacy = False): # ss-libev配置文件生成
-    jsonContent = __baseJSON(proxyInfo, socksPort)
-    if proxyInfo['udp'] == True:
-        jsonContent['mode'] = 'tcp_and_udp'
-    if isLegacy == True:
-        return jsonContent, 'ss-libev-legacy-local'
-    else:
-        return jsonContent, 'ss-libev-local'
+def __ssLibev(proxyInfo: dict, socksPort: int, isLegacy: bool = False) -> tuple[dict, str]: # ss-libev配置生成
+    config = __baseConfig(proxyInfo, socksPort)
+    if proxyInfo['udp']:
+        config['mode'] = 'tcp_and_udp'
+    return config, 'ss-libev-legacy-local' if isLegacy else 'ss-libev-local'
     
-def __ssRust(proxyInfo, socksPort): # ss-rust配置文件生成
-    jsonContent = __baseJSON(proxyInfo, socksPort)
-    if proxyInfo['udp'] == True:
-        jsonContent['mode'] = 'tcp_and_udp'
-    return jsonContent, 'ss-rust-local'
+def __ssRust(proxyInfo: dict, socksPort: int) -> tuple[dict, str]: # ss-rust配置生成
+    config = __baseConfig(proxyInfo, socksPort)
+    if proxyInfo['udp']:
+        config['mode'] = 'tcp_and_udp'
+    return config, 'ss-rust-local'
 
-def load(proxyInfo, socksPort, configFile): # Shadowsocks配置载入
-    proxyInfo['udp'] = not __pluginUdpCheck(proxyInfo['plugin'], proxyInfo['pluginParam'])
-    if proxyInfo['method'] in ssMethodList['ss-libev']:
-        jsonContent, ssFile = __ssLibev(proxyInfo, socksPort)
-    elif proxyInfo['method'] in ssMethodList['ss-libev-legacy']:
-        jsonContent, ssFile = __ssLibev(proxyInfo, socksPort, isLegacy = True)
-    elif proxyInfo['method'] in ssMethodList['ss-python']:
-        jsonContent, ssFile = __ssPython(proxyInfo, socksPort)
-    elif proxyInfo['method'] in ssMethodList['ss-python-legacy']:
-        jsonContent, ssFile = __ssPython(proxyInfo, socksPort, isLegacy = True)
-    elif proxyInfo['method'] in ssMethodList['ss-rust']:
-        jsonContent, ssFile = __ssRust(proxyInfo, socksPort)
+def __ssFormatCheck(proxyInfo: dict) -> bool: # Shadowsocks参数检查
+    if 'server' not in proxyInfo or not isinstance(proxyInfo['server'], str): # server -> str
+        return False
+    if 'port' not in proxyInfo or not isinstance(proxyInfo['port'], int): # port -> int
+        return False
+    if 'method' not in proxyInfo or not isinstance(proxyInfo['method'], str): # method -> str
+        return False
+    if 'passwd' not in proxyInfo or not isinstance(proxyInfo['passwd'], str): # passwd -> str
+        return False
+    if 'plugin' not in proxyInfo:
+        return False
+    plugin = proxyInfo['plugin']
+    if isinstance(plugin, dict): # plugin -> dict / None
+        if 'type' not in plugin or not isinstance(plugin['type'], str): # plugin.type -> str
+            return False
+        if 'param' not in plugin or not isinstance(plugin['param'], str): # plugin.param -> str
+            return False
+    elif plugin is not None:
+        return False
+    return True
+
+def load(proxyInfo: dict, socksPort: int, configFile: str) -> tuple[list or None, str or None, dict or None]:
+    """
+    Shadowsocks配置载入
+        proxyInfo: 节点信息
+        socksPort: 本地通讯端口
+        configFile: 配置文件路径
+
+        节点有误:
+            return None, None, None
+
+        载入成功:
+            return startCommand, fileContent, envVar
+    """
+    if not __ssFormatCheck(proxyInfo): # 参数有误
+        return None, None, None
+    if proxyInfo['plugin'] is None: # 无插件时启用UDP
+        proxyInfo['udp'] = True
     else:
-        return None, None # 匹配不到加密方式
-    return [ ssFile, '-c', configFile ], json.dumps(jsonContent)
+        proxyInfo['udp'] = not __pluginWithUdp( # 获取插件UDP冲突状态
+            proxyInfo['plugin']['type'], proxyInfo['plugin']['param']
+        )
+    if proxyInfo['method'] in ssMethodList['ss-libev']: # 按序匹配客户端
+        config, ssFile = __ssLibev(proxyInfo, socksPort)
+    elif proxyInfo['method'] in ssMethodList['ss-libev-legacy']:
+        config, ssFile = __ssLibev(proxyInfo, socksPort, isLegacy = True)
+    elif proxyInfo['method'] in ssMethodList['ss-python']:
+        config, ssFile = __ssPython(proxyInfo, socksPort)
+    elif proxyInfo['method'] in ssMethodList['ss-python-legacy']:
+        config, ssFile = __ssPython(proxyInfo, socksPort, isLegacy = True)
+    elif proxyInfo['method'] in ssMethodList['ss-rust']:
+        config, ssFile = __ssRust(proxyInfo, socksPort)
+    else:
+        return None, None, None # 无匹配加密方式
+    return [ssFile, '-c', configFile], json.dumps(config), {}
