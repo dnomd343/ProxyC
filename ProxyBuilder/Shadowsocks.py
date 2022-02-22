@@ -218,7 +218,8 @@ def __pluginWithUdp(plugin: str, pluginParam: str) -> bool: # 插件是否使用
             return False
     return True # 默认假定占用UDP
 
-def __ssPython(proxyInfo: dict, socksPort: int, isLegacy: bool = False) -> tuple[dict, str]: # ss-python配置生成
+def __ssPython(proxyInfo: dict, socksPort: int,
+               isUdp: bool, isLegacy: bool = False) -> tuple[dict, str]: # ss-python配置生成
     config = __baseConfig(proxyInfo, socksPort)
     mbedtlsMethods = [
         'aes-128-cfb128',
@@ -233,20 +234,21 @@ def __ssPython(proxyInfo: dict, socksPort: int, isLegacy: bool = False) -> tuple
             config['method'] = 'mbedtls:' + config['method']
         if config['method'] in ['idea-cfb', 'seed-cfb']: # 仅openssl旧版本支持
             config['extra_opts'] = '--libopenssl=libcrypto.so.1.0.0'
-    if not proxyInfo['udp']:
+    if not isUdp:
         config['no_udp'] = True # 关闭UDP代理
     config['shadowsocks'] = 'ss-python-legacy-local' if isLegacy else 'ss-python-local'
     return config, 'ss-bootstrap-local'
 
-def __ssLibev(proxyInfo: dict, socksPort: int, isLegacy: bool = False) -> tuple[dict, str]: # ss-libev配置生成
+def __ssLibev(proxyInfo: dict, socksPort: int,
+              isUdp: bool, isLegacy: bool = False) -> tuple[dict, str]: # ss-libev配置生成
     config = __baseConfig(proxyInfo, socksPort)
-    if proxyInfo['udp']:
+    if isUdp:
         config['mode'] = 'tcp_and_udp'
     return config, 'ss-libev-legacy-local' if isLegacy else 'ss-libev-local'
     
-def __ssRust(proxyInfo: dict, socksPort: int) -> tuple[dict, str]: # ss-rust配置生成
+def __ssRust(proxyInfo: dict, socksPort: int, isUdp: bool) -> tuple[dict, str]: # ss-rust配置生成
     config = __baseConfig(proxyInfo, socksPort)
-    if proxyInfo['udp']:
+    if isUdp:
         config['mode'] = 'tcp_and_udp'
     return config, 'ss-rust-local'
 
@@ -287,21 +289,21 @@ def load(proxyInfo: dict, socksPort: int, configFile: str) -> tuple[list or None
     if not __ssFormatCheck(proxyInfo): # 参数有误
         return None, None, None
     if proxyInfo['plugin'] is None: # 无插件时启用UDP
-        proxyInfo['udp'] = True
+        isUdp = True
     else:
-        proxyInfo['udp'] = not __pluginWithUdp( # 获取插件UDP冲突状态
+        isUdp = not __pluginWithUdp( # 获取插件UDP冲突状态
             proxyInfo['plugin']['type'], proxyInfo['plugin']['param']
         )
     if proxyInfo['method'] in ssMethodList['ss-libev']: # 按序匹配客户端
-        config, ssFile = __ssLibev(proxyInfo, socksPort)
+        config, ssFile = __ssLibev(proxyInfo, socksPort, isUdp)
     elif proxyInfo['method'] in ssMethodList['ss-libev-legacy']:
-        config, ssFile = __ssLibev(proxyInfo, socksPort, isLegacy = True)
+        config, ssFile = __ssLibev(proxyInfo, socksPort, isUdp, isLegacy = True)
     elif proxyInfo['method'] in ssMethodList['ss-python']:
-        config, ssFile = __ssPython(proxyInfo, socksPort)
+        config, ssFile = __ssPython(proxyInfo, socksPort, isUdp)
     elif proxyInfo['method'] in ssMethodList['ss-python-legacy']:
-        config, ssFile = __ssPython(proxyInfo, socksPort, isLegacy = True)
+        config, ssFile = __ssPython(proxyInfo, socksPort, isUdp, isLegacy = True)
     elif proxyInfo['method'] in ssMethodList['ss-rust']:
-        config, ssFile = __ssRust(proxyInfo, socksPort)
+        config, ssFile = __ssRust(proxyInfo, socksPort, isUdp)
     else:
         return None, None, None # 无匹配加密方式
     return [ssFile, '-c', configFile], json.dumps(config), {}

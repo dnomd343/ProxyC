@@ -96,12 +96,9 @@ def build(proxyInfo: dict, configDir: str,
     socksPort = __getAvailablePort(portRangeStart, portRangeEnd) # 获取Socks5测试端口
     if 'type' not in proxyInfo: # 未指定节点类型
         return False, 'Proxy type not specified'
-    proxyType = proxyInfo['type'] # 节点类型
-    proxyInfo.pop('type')
-
-    if proxyType == 'ss': # Shadowsocks节点
+    if proxyInfo['type'] == 'ss': # Shadowsocks节点
         clientObj = Shadowsocks
-    elif proxyType == 'ssr': # ShadowsocksR节点
+    elif proxyInfo['type'] == 'ssr': # ShadowsocksR节点
         clientObj = ShadowsocksR
     else: # 未知类型
         return False, 'Unknown proxy type'
@@ -109,7 +106,7 @@ def build(proxyInfo: dict, configDir: str,
     configFile = configDir + '/' + taskFlag + '.json' # 配置文件路径
     startCommand, fileContent, envVar = clientObj.load(proxyInfo, socksPort, configFile) # 载入配置
     if startCommand is None: # 格式出错
-        return False, 'Format error with ' + str(proxyType)
+        return False, 'Format error with ' + str(proxyInfo['type'])
     try:
         with open(configFile, 'w') as fileObject: # 保存配置文件
             fileObject.write(fileContent)

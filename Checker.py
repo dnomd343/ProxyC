@@ -48,13 +48,15 @@ def proxyTest(
 
         启动失败:
             return {
-                'success': False
+                'success': False,
+                'info': proxyInfo
             }
 
         测试完成:
             return {
                 'success': True,
-                'result': checkResult
+                'check': checkResult,
+                'info': proxyInfo
             }
 
     """
@@ -74,7 +76,8 @@ def proxyTest(
         return None
     elif not status: # 节点信息有误
         return {
-            'success': False
+            'success': False,
+            'info': rawInfo['info']
         }
 
     time.sleep(startDelay) # 延迟等待客户端启动
@@ -85,7 +88,8 @@ def proxyTest(
     elif not status: # 客户端异常退出
         Builder.destroy(client)
         return {
-            'success': False
+            'success': False,
+            'info': rawInfo['info']
         }
 
     if 'check' not in rawInfo: # 缺少检测项目
@@ -106,5 +110,5 @@ def proxyTest(
     return {
         'success': True,
         'check': checkResult,
-        'proxy': rawInfo['info']
+        'info': rawInfo['info']
     }
