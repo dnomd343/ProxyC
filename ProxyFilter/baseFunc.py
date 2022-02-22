@@ -83,7 +83,7 @@ def __dictCheck(data: dict, objectList: dict, limitRules: dict, keyPrefix: str) 
             result[key] = data[key]
     return result
 
-def rulesFilter(rawData: dict, rulesList: dict) -> tuple[bool, dict or str]:
+def rulesFilter(rawData: dict, rulesList: dict, header: dict) -> tuple[bool, dict or str]:
     """
     规则参数
         optional -> 必选
@@ -100,6 +100,6 @@ def rulesFilter(rawData: dict, rulesList: dict) -> tuple[bool, dict or str]:
     except filterException as reason: # 节点格式错误
         return False, str(reason)
     except:
-        return False, 'Filter error'
+        return False, 'Format error'
     else:
-        return True, data
+        return True, {**header, **data}

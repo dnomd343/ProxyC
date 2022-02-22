@@ -127,6 +127,8 @@ def ssFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
     try:
         if not isExtra:
             ssFilterRules['rootObject'].pop('remark')
-        return baseFunc.rulesFilter(rawInfo, ssFilterRules)
+        return baseFunc.rulesFilter(rawInfo, ssFilterRules, {
+            'type': 'ss'
+        })
     except:
         return False, 'Unknown error'
