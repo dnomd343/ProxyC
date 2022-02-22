@@ -54,7 +54,7 @@ def __checkPortAvailable(port: int) -> bool: # 检测端口可用性
             ipv6_udp.close()
         except: pass
 
-def __genTaskFlag(length: int = 16) -> str: # 生成任务代号
+def __genTaskFlag(length: int = 16) -> str: # 生成任务标志
     flag = ''
     for i in range(0, length):
         tmp = random.randint(0, 15)
@@ -64,14 +64,14 @@ def __genTaskFlag(length: int = 16) -> str: # 生成任务代号
             flag += str(tmp) # 0 ~ 9
     return flag
 
-def __getAvailablePort(rangeStart: int, rangeEnd: int) -> int or None: # 获取一个空闲端口
-    if rangeStart > rangeEnd or rangeStart < 0 or rangeEnd > 65535:
+def __getAvailablePort(rangeStart: int = 41952, rangeEnd: int = 65535) -> int or None: # 获取一个空闲端口
+    if rangeStart > rangeEnd or rangeStart < 1 or rangeEnd > 65535:
         return None
     while True:
         port = random.randint(rangeStart, rangeEnd) # 随机选取
         if __checkPortAvailable(port):
             return port
-        time.sleep(0.1) # 100ms
+        time.sleep(0.1) # wait for 100ms
 
 def build(proxyInfo: dict, configDir: str,
           portRangeStart: int = 1024, portRangeEnd: int = 65535) -> tuple[bool or None, str or dict]:

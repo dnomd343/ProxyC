@@ -111,16 +111,20 @@ def __sip002Decode(url: str) -> dict or None:
                 plugin = baseFunc.urlDecode(field.group(2)) # plugin参数
                 break
         if plugin.find(';') == -1: # plugin=... (无参数)
-            info['plugin'] = {
+            pluginField = {
                 'type': plugin,
                 'param': ''
             }
         else: # plugin=...;... (带参数)
             plugin = re.search(r'^([\S]*?);([\S]*)$', plugin) # 插件名;插件参数
-            info['plugin'] = {
+            pluginField = {
                 'type': plugin.group(1),
                 'param': plugin.group(2)
             }
+        if pluginField['type'] == '': # 无插件情况
+            info['plugin'] = None
+        else:
+            info['plugin'] = pluginField
         return info
     except:
         return None

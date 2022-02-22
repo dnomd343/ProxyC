@@ -206,8 +206,8 @@ def __ssFormatCheck(proxyInfo: dict) -> bool: # Shadowsocks参数检查
         return False
     if 'plugin' not in proxyInfo:
         return False
-    plugin = proxyInfo['plugin']
-    if isinstance(plugin, dict): # plugin -> dict / None
+    plugin = proxyInfo['plugin'] # plugin -> dict / None
+    if isinstance(plugin, dict):
         if 'type' not in plugin or not isinstance(plugin['type'], str): # plugin.type -> str
             return False
         if 'param' not in plugin or not isinstance(plugin['param'], str): # plugin.param -> str

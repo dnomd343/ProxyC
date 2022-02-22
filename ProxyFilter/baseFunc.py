@@ -18,10 +18,15 @@ def isHost(host: str) -> bool:
         IPy.IP(host)
         if host.find('/') != -1: # filter CIDR
             return False
-        return True
-    except: # not IP address
+        return True # IP地址合法
+    except:
         pass
-    return re.search(r'^(?=^.{3,255}$)[a-zA-Z0-9_][a-zA-Z0-9_-]{0,62}(\.[a-zA-Z0-9_][a-zA-Z0-9_-]{0,62})+$', host) is not None
+    try:
+        return re.search( # 域名匹配
+            r'^(?=^.{3,255}$)[a-zA-Z0-9_][a-zA-Z0-9_-]{0,62}(\.[a-zA-Z0-9_][a-zA-Z0-9_-]{0,62})+$', host
+        ) is not None
+    except: # 异常错误
+        return False
 
 def isPort(port: int) -> bool:
     """
@@ -34,7 +39,7 @@ def isPort(port: int) -> bool:
         不合法: return False
     """
     try:
-        if 1 <= port <= 65535:
+        if 1 <= port <= 65535: # 1 ~ 65535
             return True
     except: # illegal
         pass

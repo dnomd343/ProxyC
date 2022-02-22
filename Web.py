@@ -71,7 +71,7 @@ def addCheckTask(checkList: dict, proxyList: dict, priority: str, userId: str) -
             proxyList[i] = Decoder.decode(proxyList[i]) # 解码分享链接
             if proxyList[i] is None:
                 return genError('could not decode index ' + str(i))
-            status, proxyList[i] = Filter.filte(proxyList[i]) # 节点信息检查
+            status, proxyList[i] = Filter.filte(proxyList[i], isExtra = True) # 节点信息检查
             if not status: # 节点不合法
                 return genError('index ' + str(i) + ': ' + proxyList[i])
 
