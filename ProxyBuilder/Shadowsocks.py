@@ -1,63 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-"""
-# Shadowsocks构建器
-
-## 节点格式
-
-```json
-{
-    "server": "...",
-    "port": ...,
-    "method": "...",
-    "passwd": "...",
-    "plugin": pluginObject
-}
-```
-
-+ server (str) -> 必选, 服务器地址 (IPv4 / IPv6 / Domain)
-
-+ port (int) -> 必选, 服务器端口 (1 ~ 65535)
-
-+ method (str) -> 必选, Shadowsocks加密方式 (`aes-128-gcm`,`aes-192-gcm`,`aes-256-gcm`,
-                                            `aes-128-ctr`,`aes-192-ctr`,`aes-256-ctr`,
-                                            `aes-128-ocb`,`aes-192-ocb`,`aes-256-ocb`,
-                                            `aes-128-ofb`,`aes-192-ofb`,`aes-256-ofb`,
-                                            `aes-128-cfb`,`aes-192-cfb`,`aes-256-cfb`,
-                                            `aes-128-cfb1`,`aes-192-cfb1`,`aes-256-cfb1`,
-                                            `aes-128-cfb8`,`aes-192-cfb8`,`aes-256-cfb8`,
-                                            `aes-128-cfb128`,`aes-192-cfb128`,`aes-256-cfb128`,
-                                            `camellia-128-cfb`,`camellia-192-cfb`,`camellia-256-cfb`,
-                                            `camellia-128-cfb128`,`camellia-192-cfb128`,`camellia-256-cfb128`,
-                                            `plain`,`none`,`table`,`rc4`,`rc4-md5`,`rc2-cfb`,`bf-cfb`,
-                                            `cast5-cfb`,`des-cfb`,`idea-cfb`,`seed-cfb`,`salsa20`,`salsa20-ctr`,
-                                            `xchacha20`,`chacha20`,`chacha20-ietf`,`chacha20-poly1305`,
-                                            `chacha20-ietf-poly1305`,`xchacha20-ietf-poly1305`)
-
-+ passwd (str) -> 必选, Shadowsocks连接密码
-
-+ plugin (pluginObject) -> 必选, Shadowsocks连接插件
-
-### pluginObject (None / dict)
-
-无插件: None
-
-带插件:
-
-```json
-{
-    "type": "...",
-    "param": "..."
-}
-```
-
-+ type (str) -> 插件名称
-
-+ param (str) -> 插件参数
-
-"""
-
 import json
 
 ssMethodList = { # Shadowsocks各版本加密方式支持

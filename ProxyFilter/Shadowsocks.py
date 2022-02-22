@@ -1,37 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-"""
-
-{
-    'server': '...',
-    'port': ...,
-    'method': '...',
-    'passwd': '...',
-    'plugin': pluginObject
-}
-
-server (str) -> required
-
-port (int or str) -> required
-
-method (str) -> required
-
-passwd (str) -> required
-
-plugin (None or dict) -> optional
-
-pluginObject: {
-    'type': '...',
-    'param': '...'
-}
-
-type (str) -> optional
-
-param (str) -> optional
-
-"""
-
 from ProxyFilter import baseFunc
 from ProxyFilter import Plugin as sip003
 

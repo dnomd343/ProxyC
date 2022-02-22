@@ -1,56 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-"""
-# ShadowsocksR构建器
-
-## 节点格式
-
-```json
-{
-    "server": "...",
-    "port": ...,
-    "method": "...",
-    "passwd": "...",
-    "protocol": "...",
-    "protocolParam": "...",
-    "obfs": "...",
-    "obfsParam": "..."
-}
-```
-
-+ server (str) -> 必选, 服务器地址 (IPv4 / IPv6 / Domain)
-
-+ port (int) -> 必选, 服务器端口 (1 ~ 65535)
-
-+ method (str) -> 必选, ShadowsocksR加密方式 (`aes-128-cfb`,`aes-192-cfb`,`aes-256-cfb`,
-                                             `aes-128-cfb1`,`aes-192-cfb1`,`aes-256-cfb1`,
-                                             `aes-128-cfb8`,`aes-192-cfb8`,`aes-256-cfb8`,
-                                             `aes-128-ctr`,`aes-192-ctr`,`aes-256-ctr`,
-                                             `aes-128-gcm`,`aes-192-gcm`,`aes-256-gcm`,
-                                             `aes-128-ofb`,`aes-192-ofb`,`aes-256-ofb`,
-                                             `camellia-128-cfb`,`camellia-192-cfb`,`camellia-256-cfb`,
-                                             `none`,`table`,`rc4`,`rc4-md5`,`rc4-md5-6`,`bf-cfb`,
-                                             `cast5-cfb`,`des-cfb`,`idea-cfb`,`seed-cfb`,`rc2-cfb`,
-                                             `salsa20`,`xsalsa20`,`chacha20`,`xchacha20`,`chacha20-ietf`)
-
-+ passwd (str) -> 必选, ShadowsocksR连接密码
-
-+ protocol (str) -> 必选, ShadowsocksR连接协议 (`origin`,`verify_sha1`,`verify_simple`,`verify_deflate`,
-                                               `auth_simple`,`auth_sha1`,`auth_sha1_v2`,`auth_sha1_v4`,
-                                               `auth_aes128`,`auth_aes128_md5`,`auth_aes128_sha1`,
-                                               `auth_chain_a`,`auth_chain_b`,`auth_chain_c`,
-                                               `auth_chain_d`,`auth_chain_e`,`auth_chain_f`)
-
-+ protocolParam (str) -> 必选, ShadowsocksR协议参数
-
-+ obfs (str) -> 必选, ShadowsocksR混淆方式 (`plain`,`http_post`,`http_simple`,`tls_simple`,
-                                           `tls1.2_ticket_auth`,`tls1.2_ticket_fastauth`,`random_head`)
-
-+ obfsParam (str) -> 必选, ShadowsocksR混淆参数
-
-"""
-
 import json
 
 ssrMethodList = [ # ShadowsocksR加密方式

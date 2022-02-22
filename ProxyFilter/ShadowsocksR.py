@@ -1,36 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-"""
-{
-    'server': '...',
-    'port': ...,
-    'method': '...',
-    'passwd': '...',
-    'protocol': '...',
-    'protocolParam': '...',
-    'obfs': '...',
-    'obfsParam': '...'
-}
-
-server (str) -> required
-
-port (int or str) -> required
-
-method (str) -> required
-
-passwd (str) -> required
-
-protocol (str) -> optional
-
-protocolParam (str) -> optional
-
-obfs (str) -> optional
-
-obfsParam (str) -> optional
-
-"""
-
 from ProxyFilter import baseFunc
 
 ssrMethodList = [ # ShadowsocksR加密方式
