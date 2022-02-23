@@ -61,8 +61,6 @@ def load(proxyInfo: dict, socksPort: int, configFile: str) -> tuple[list or None
         载入成功:
             return startCommand, fileContent, envVar
     """
-    # if not __vmessFormatCheck(proxyInfo): # 参数有误
-    #     return None, None, None
 
     config = __baseConfig(socksPort, __vmessConfig(proxyInfo))
 

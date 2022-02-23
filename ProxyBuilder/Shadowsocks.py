@@ -195,27 +195,6 @@ def __ssRust(proxyInfo: dict, socksPort: int, isUdp: bool) -> tuple[dict, str]: 
         config['mode'] = 'tcp_and_udp'
     return config, 'ss-rust-local'
 
-def __ssFormatCheck(proxyInfo: dict) -> bool: # Shadowsocks参数检查
-    if 'server' not in proxyInfo or not isinstance(proxyInfo['server'], str): # server -> str
-        return False
-    if 'port' not in proxyInfo or not isinstance(proxyInfo['port'], int): # port -> int
-        return False
-    if 'method' not in proxyInfo or not isinstance(proxyInfo['method'], str): # method -> str
-        return False
-    if 'passwd' not in proxyInfo or not isinstance(proxyInfo['passwd'], str): # passwd -> str
-        return False
-    if 'plugin' not in proxyInfo:
-        return False
-    plugin = proxyInfo['plugin'] # plugin -> dict / None
-    if isinstance(plugin, dict):
-        if 'type' not in plugin or not isinstance(plugin['type'], str): # plugin.type -> str
-            return False
-        if 'param' not in plugin or not isinstance(plugin['param'], str): # plugin.param -> str
-            return False
-    elif plugin is not None:
-        return False
-    return True
-
 def load(proxyInfo: dict, socksPort: int, configFile: str) -> tuple[list or None, str or None, dict or None]:
     """
     Shadowsocks配置载入
@@ -229,24 +208,25 @@ def load(proxyInfo: dict, socksPort: int, configFile: str) -> tuple[list or None
         载入成功:
             return startCommand, fileContent, envVar
     """
-    if not __ssFormatCheck(proxyInfo): # 参数有误
-        return None, None, None
-    if proxyInfo['plugin'] is None: # 无插件时启用UDP
-        isUdp = True
-    else:
-        isUdp = not __pluginWithUdp( # 获取插件UDP冲突状态
-            proxyInfo['plugin']['type'], proxyInfo['plugin']['param']
-        )
-    if proxyInfo['method'] in ssMethodList['ss-libev']: # 按序匹配客户端
-        config, ssFile = __ssLibev(proxyInfo, socksPort, isUdp)
-    elif proxyInfo['method'] in ssMethodList['ss-libev-legacy']:
-        config, ssFile = __ssLibev(proxyInfo, socksPort, isUdp, isLegacy = True)
-    elif proxyInfo['method'] in ssMethodList['ss-python']:
-        config, ssFile = __ssPython(proxyInfo, socksPort, isUdp)
-    elif proxyInfo['method'] in ssMethodList['ss-python-legacy']:
-        config, ssFile = __ssPython(proxyInfo, socksPort, isUdp, isLegacy = True)
-    elif proxyInfo['method'] in ssMethodList['ss-rust']:
-        config, ssFile = __ssRust(proxyInfo, socksPort, isUdp)
-    else:
-        return None, None, None # 无匹配加密方式
-    return [ssFile, '-c', configFile], json.dumps(config), {}
+    try:
+        if proxyInfo['plugin'] is None: # 无插件时启用UDP
+            isUdp = True
+        else:
+            isUdp = not __pluginWithUdp( # 获取插件UDP冲突状态
+                proxyInfo['plugin']['type'], proxyInfo['plugin']['param']
+            )
+        if proxyInfo['method'] in ssMethodList['ss-libev']: # 按序匹配客户端
+            config, ssFile = __ssLibev(proxyInfo, socksPort, isUdp)
+        elif proxyInfo['method'] in ssMethodList['ss-libev-legacy']:
+            config, ssFile = __ssLibev(proxyInfo, socksPort, isUdp, isLegacy = True)
+        elif proxyInfo['method'] in ssMethodList['ss-python']:
+            config, ssFile = __ssPython(proxyInfo, socksPort, isUdp)
+        elif proxyInfo['method'] in ssMethodList['ss-python-legacy']:
+            config, ssFile = __ssPython(proxyInfo, socksPort, isUdp, isLegacy = True)
+        elif proxyInfo['method'] in ssMethodList['ss-rust']:
+            config, ssFile = __ssRust(proxyInfo, socksPort, isUdp)
+        else:
+            return None, None, None # 无匹配加密方式
+        return [ssFile, '-c', configFile], json.dumps(config), {}
+    except:
+        return None, None, None # 节点配置错误
