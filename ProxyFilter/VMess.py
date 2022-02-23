@@ -29,7 +29,7 @@ quicMethodList = [
 vmessFilterRules = {
     'rootObject': {
         'remark': {
-            'optional': True,
+            'optional': False,
             'default': '',
             'type': str,
             'format': baseFunc.toStr
@@ -66,7 +66,6 @@ vmessFilterRules = {
             'default': 0,
             'type': int,
             'format': baseFunc.toInt,
-            # 'filter': 123,
             'filter': lambda aid: aid in range(0, 65536), # 0 ~ 65535
             'errMsg': 'Illegal alter Id'
         },
@@ -89,9 +88,10 @@ vmessFilterRules = {
         'type': {
             'optional': True,
             'type': str,
+            'indexKey': True,
             'format': baseFunc.toStrTidy,
             'filter': lambda streamType: streamType == 'tcp',
-            'errMsg': 'Unknown stream type'
+            'errMsg': 'Unexpected stream type'
         },
         'obfs': {
             'optional': False,
@@ -110,9 +110,10 @@ vmessFilterRules = {
         'type': {
             'optional': True,
             'type': str,
+            'indexKey': True,
             'format': baseFunc.toStrTidy,
             'filter': lambda streamType: streamType == 'kcp',
-            'errMsg': 'Unknown stream type'
+            'errMsg': 'Unexpected stream type'
         },
         'seed': {
             'optional': False,
@@ -140,9 +141,10 @@ vmessFilterRules = {
         'type': {
             'optional': True,
             'type': str,
+            'indexKey': True,
             'format': baseFunc.toStrTidy,
             'filter': lambda streamType: streamType == 'ws',
-            'errMsg': 'Unknown stream type'
+            'errMsg': 'Unexpected stream type'
         },
         'host': {
             'optional': False,
@@ -158,7 +160,8 @@ vmessFilterRules = {
         },
         'ed': {
             'optional': False,
-            'default': 2048,
+            'default': None,
+            'allowNone': True,
             'type': int,
             'format': baseFunc.toInt,
             'filter': lambda ed: ed > 0,
@@ -175,9 +178,10 @@ vmessFilterRules = {
         'type': {
             'optional': True,
             'type': str,
+            'indexKey': True,
             'format': baseFunc.toStrTidy,
             'filter': lambda streamType: streamType == 'h2',
-            'errMsg': 'Unknown stream type'
+            'errMsg': 'Unexpected stream type'
         },
         'host': {
             'optional': False,
@@ -202,9 +206,10 @@ vmessFilterRules = {
         'type': {
             'optional': True,
             'type': str,
+            'indexKey': True,
             'format': baseFunc.toStrTidy,
             'filter': lambda streamType: streamType == 'quic',
-            'errMsg': 'Unknown stream type'
+            'errMsg': 'Unexpected stream type'
         },
         'method': {
             'optional': False,
@@ -238,9 +243,10 @@ vmessFilterRules = {
         'type': {
             'optional': True,
             'type': str,
+            'indexKey': True,
             'format': baseFunc.toStrTidy,
             'filter': lambda streamType: streamType == 'grpc',
-            'errMsg': 'Unknown stream type'
+            'errMsg': 'Unexpected stream type'
         },
         'service': {
             'optional': True,
@@ -279,7 +285,7 @@ vmessFilterRules = {
             'optional': False,
             'default': 'h2,http/1.1',
             'type': str,
-            'format': baseFunc.toStr,
+            'format': baseFunc.toStrTidy,
             'filter': lambda alpn: alpn in ['h2', 'http/1.1', 'h2,http/1.1'],
             'errMsg': 'Illegal alpn option'
         },
@@ -287,7 +293,7 @@ vmessFilterRules = {
             'optional': False,
             'default': True,
             'type': bool,
-            'format': lambda b: b
+            'format': baseFunc.toBool
         }
     }
 }
@@ -308,8 +314,14 @@ def vmessFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
     try:
         if not isExtra:
             vmessFilterRules['rootObject'].pop('remark')
-        return baseFunc.ruleFilter(rawInfo, vmessFilterRules, {
+        status, result = baseFunc.ruleFilter(rawInfo, vmessFilterRules, {
             'type': 'vmess'
         })
+        if not status:
+            return False, result
+
+        # TODO: host -> sni
+
+        return True, result
     except:
         return False, 'Unknown error'
