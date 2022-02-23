@@ -10,6 +10,7 @@ import subprocess
 
 from ProxyBuilder import Shadowsocks
 from ProxyBuilder import ShadowsocksR
+from ProxyBuilder import VMess
 
 libcPaths = [
     '/usr/lib64/libc.so.6', # CentOS
@@ -100,6 +101,8 @@ def build(proxyInfo: dict, configDir: str,
         clientObj = Shadowsocks
     elif proxyInfo['type'] == 'ssr': # ShadowsocksR节点
         clientObj = ShadowsocksR
+    elif proxyInfo['type'] == 'vmess': # VMess节点
+        clientObj = VMess
     else: # 未知类型
         return False, 'Unknown proxy type'
 
