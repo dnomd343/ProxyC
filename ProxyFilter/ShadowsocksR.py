@@ -73,68 +73,85 @@ ssrObfsList = [ # ShadowsocksR混淆方式
     'random_head',
 ]
 
+def __ssrProtocol(protocol) -> str:
+    protocol = baseFunc.toStrTidy(protocol).replace('-', '_')
+    if protocol == '':
+        return 'origin'
+    return protocol
+
+def __ssrObfs(obfs) -> str:
+    obfs = baseFunc.toStrTidy(obfs).replace('-', '_')
+    if obfs == '':
+        return 'plain'
+    return obfs
+
 ssrFilterRules = {
     'rootObject': {
         'remark': {
             'optional': False,
             'default': '',
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         },
         'group': {
             'optional': False,
             'default': '',
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         },
         'server': {
             'optional': True,
             'type': str,
-            'format': lambda s: s.lower().strip(),
+            'format': baseFunc.toStrTidy,
             'filter': baseFunc.isHost,
             'errMsg': 'Illegal server address'
         },
         'port': {
             'optional': True,
             'type': int,
-            'format': lambda i: int(i),
+            'format': baseFunc.toInt,
             'filter': baseFunc.isPort,
             'errMsg': 'Illegal port number'
         },
         'method': {
             'optional': True,
             'type': str,
-            'format': lambda s: s.replace('_', '-').lower().strip(),
+            'format': lambda s: baseFunc.toStrTidy(s).replace('_', '-'),
             'filter': lambda method: method in ssrMethodList,
             'errMsg': 'Unknown ShadowsocksR method'
         },
         'passwd': {
             'optional': True,
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         },
         'protocol': {
             'optional': False,
             'default': 'origin',
             'type': str,
-            'format': lambda s: s.replace('-', '_').lower().strip(),
-            'filter': lambda method: method in ssrProtocolList,
+            'format': __ssrProtocol,
+            'filter': lambda protocol: protocol in ssrProtocolList,
             'errMsg': 'Unknown ShadowsocksR protocol'
         },
         'protocolParam': {
             'optional': False,
             'default': '',
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         },
         'obfs': {
             'optional': False,
             'default': 'plain',
             'type': str,
-            'format': lambda s: s.replace('-', '_').lower().strip(),
-            'filter': lambda method: method in ssrObfsList,
+            'format': __ssrObfs,
+            'filter': lambda obfs: obfs in ssrObfsList,
             'errMsg': 'Unknown ShadowsocksR obfs'
         },
         'obfsParam': {
             'optional': False,
             'default': '',
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         }
     }
 }
@@ -153,11 +170,18 @@ def ssrFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
             }
     """
     try:
-        if not isExtra:
+        if not isExtra: # 去除非必要参数
             ssrFilterRules['rootObject'].pop('remark')
             ssrFilterRules['rootObject'].pop('group')
-        return baseFunc.rulesFilter(rawInfo, ssrFilterRules, {
+        status, result = baseFunc.ruleFilter(rawInfo, ssrFilterRules, {
             'type': 'ssr'
         })
+        if not status: # 节点格式错误
+            return False, result
+        if result['protocol'] == 'origin': # origin无参数
+            result['protocolParam'] = ''
+        if result['obfs'] == 'plain': # plain无参数
+            result['obfsParam'] = ''
+        return True, result
     except:
         return False, 'Unknown error'

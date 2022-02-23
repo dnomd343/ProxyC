@@ -5,7 +5,6 @@ import re
 import IPy
 import copy
 
-
 def isHost(host: str) -> bool:
     """
     判断host是否合法
@@ -70,7 +69,7 @@ def toStr(raw) -> str: # change to str
     elif isinstance(raw, str):
         return raw
     elif isinstance(raw, bytes):
-        return str(raw, encoding='utf-8')
+        return str(raw, encoding = 'utf-8')
     else:
         raise Exception('type not allowed')
 
@@ -81,7 +80,7 @@ def toBool(raw) -> bool: # change to bool
     if isinstance(raw, int):
         raw = str(raw)
     elif isinstance(raw, bytes):
-        raw = str(raw, encoding='utf-8')
+        raw = str(raw, encoding = 'utf-8')
     elif not isinstance(raw, str):
         raise Exception('type not allowed')
     raw = raw.strip().lower()

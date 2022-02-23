@@ -312,16 +312,21 @@ def vmessFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
             }
     """
     try:
-        if not isExtra:
+        if not isExtra: # 去除非必要参数
             vmessFilterRules['rootObject'].pop('remark')
         status, result = baseFunc.ruleFilter(rawInfo, vmessFilterRules, {
             'type': 'vmess'
         })
-        if not status:
+        if not status: # 节点格式错误
             return False, result
-
-        # TODO: host -> sni
-
+        stream = result['stream']
+        if stream['secure'] is not None and stream['secure']['sni'] == '': # 未指定SNI
+            if stream['type'] == 'tcp' and stream['obfs'] is not None:
+                stream['secure']['sni'] = stream['obfs']['host'].split(',')[0]
+            elif stream['type'] == 'ws':
+                stream['secure']['sni'] = stream['host']
+            elif stream['type'] == 'h2':
+                stream['secure']['sni'] = stream['host'].split(',')[0]
         return True, result
     except:
         return False, 'Unknown error'

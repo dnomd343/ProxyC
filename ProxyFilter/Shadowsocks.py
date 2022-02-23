@@ -61,32 +61,34 @@ ssFilterRules = {
         'remark': {
             'optional': False,
             'default': '',
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         },
         'server': {
             'optional': True,
             'type': str,
-            'format': lambda s: s.lower().strip(),
+            'format': baseFunc.toStrTidy,
             'filter': baseFunc.isHost,
             'errMsg': 'Illegal server address'
         },
         'port': {
             'optional': True,
             'type': int,
-            'format': lambda i: int(i),
+            'format': baseFunc.toInt,
             'filter': baseFunc.isPort,
             'errMsg': 'Illegal port number'
         },
         'method': {
             'optional': True,
             'type': str,
-            'format': lambda s: s.replace('_', '-').lower().strip(),
+            'format': lambda s: baseFunc.toStrTidy(s).replace('_', '-'),
             'filter': lambda method: method in ssMethodList,
             'errMsg': 'Unknown Shadowsocks method'
         },
         'passwd': {
             'optional': True,
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         },
         'plugin': {
             'optional': False,
@@ -99,14 +101,15 @@ ssFilterRules = {
         'type': {
             'optional': True,
             'type': str,
-            'format': Plugin.pluginFormat,
+            'format': lambda pluginType: Plugin.pluginFormat(baseFunc.toStrTidy(pluginType)),
             'filter': Plugin.isPlugin,
             'errMsg': 'Unknown SIP003 plugin'
         },
         'param': {
             'optional': False,
             'default': '',
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         }
     }
 }
@@ -125,9 +128,9 @@ def ssFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
             }
     """
     try:
-        if not isExtra:
+        if not isExtra: # 去除非必要参数
             ssFilterRules['rootObject'].pop('remark')
-        return baseFunc.rulesFilter(rawInfo, ssFilterRules, {
+        return baseFunc.ruleFilter(rawInfo, ssFilterRules, {
             'type': 'ss'
         })
     except:
