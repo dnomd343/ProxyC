@@ -3,6 +3,7 @@
 
 import re
 import IPy
+import copy
 
 def isHost(host: str) -> bool:
     """
@@ -72,15 +73,33 @@ def __dictCheck(data: dict, objectList: dict, limitRules: dict, keyPrefix: str) 
         else:
             if isinstance(option['type'], str):
                 result[key] = __dictCheck(data[key], objectList, objectList[option['type']], keyName) # 检查子对象
+            elif isinstance(option['type'], list):
+                temp = None
+                errMsg = None
+                for valueType in option['type']: # 遍历子Object
+                    try:
+                        subObject = copy.deepcopy(data[key])
+                        temp = __dictCheck(subObject, objectList, objectList[valueType], keyName) # 尝试检查子对象
+                    except filterException as reason:
+                        errMsg = reason # 捕获抛出信息
+                        temp = None
+                        continue
+                    except:
+                        temp = None
+                        continue
+                    break
+                if temp is None: # 无匹配子级
+                    if errMsg is not None: # 存在子级异常信息
+                        raise filterException(errMsg)
+                    raise filterException('Error in `' + keyName + '` option')
+                result[key] = temp
             elif not isinstance(data[key], option['type']): # 类型不匹配
                 raise filterException('Illegal `' + keyName + '` option')
             else:
-                result[key] = data[key]
+                result[key] = copy.deepcopy(data[key])
 
         if 'filter' in option and not option['filter'](data[key]): # 格式检查
             raise filterException(option['errMsg'])
-        else:
-            result[key] = data[key]
     return result
 
 def rulesFilter(rawData: dict, rulesList: dict, header: dict) -> tuple[bool, dict or str]:

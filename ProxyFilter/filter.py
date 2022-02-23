@@ -3,6 +3,7 @@
 
 from ProxyFilter import Shadowsocks
 from ProxyFilter import ShadowsocksR
+from ProxyFilter import VMess
 
 def filte(raw: dict, isExtra: bool = False) -> tuple[bool, str]:
     """
@@ -25,6 +26,8 @@ def filte(raw: dict, isExtra: bool = False) -> tuple[bool, str]:
             return Shadowsocks.ssFilter(raw, isExtra)
         elif raw['type'] == 'ssr':
             return ShadowsocksR.ssrFilter(raw, isExtra)
+        elif raw['type'] == 'vmess':
+            return VMess.vmessFilter(raw, isExtra)
         else:
             return False, 'Unknown proxy type'
     except:

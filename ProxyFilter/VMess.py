@@ -3,132 +3,277 @@
 
 from ProxyFilter import baseFunc
 
-def __vmessFill(raw: dict) -> dict: # 补全可选值
-    try:
-        pass
-    except:
-        pass
-    return raw
+vmessMethodList = [
+    'aes-128-gcm',
+    'chacha20-poly1305',
+    'auto',
+    'none',
+    'zero',
+]
 
-def __vmessFormat(raw: dict) -> dict: # 容错性格式化
-    try:
-        pass
-    except:
-        pass
-    return raw
+udpObfsList = [
+    'none',
+    'srtp',
+    'utp',
+    'wechat-video',
+    'dtls',
+    'wireguard'
+]
 
-def __obfsParamCheck(obfs: dict or None) -> tuple[bool, str or None]: # obfs参数检查
-    pass
+quicMethodList = [
+    'none',
+    'aes-128-gcm',
+    'chacha20-poly1305',
+]
 
-def __secureParamCheck(secure: dict or None) -> tuple[bool, str or None]: # secure参数检查
-    pass
-
-def __streamParamCheck(stream: dict) -> tuple[bool, str or None]: # stream参数检查
-    if 'type' not in stream:
-        return False, 'Missing `type` option'
-    if stream['type'] == 'tcp':
-        if 'obfs' not in stream:
-            return False, 'Missing `stream.obfs` option'
-        if 'secure' not in stream:
-            return False, 'Missing `stream.secure` option'
-
-        if (stream['obfs'] is not None) and (not isinstance(stream['obfs'], dict)):
-            return False, 'Illegal `stream.obfs` option'
-        if (stream['secure'] is not None) and (not isinstance(stream['secure'], dict)):
-            return False, 'Illegal `stream.secure` option'
-
-        status, reason = __obfsParamCheck(stream['obfs'])
-        if not status:
-            return False, reason
-        status, reason = __secureParamCheck(stream['secure'])
-        if not status:
-            return False, reason
-
-    elif stream['type'] == 'kcp':
-        if 'seed' not in stream:
-            return False, 'Missing `stream.seed` option'
-        if 'obfs' not in stream:
-            return False, 'Missing `stream.obfs` option'
-        if 'secure' not in stream:
-            return False, 'Missing `stream.secure` option'
-        pass
-
-    elif stream['type'] == 'ws':
-        if 'host' not in stream:
-            return False, 'Missing `stream.host` option'
-        if 'path' not in stream:
-            return False, 'Missing `stream.path` option'
-        if 'ed' not in stream:
-            return False, 'Missing `stream.ed` option'
-        if 'secure' not in stream:
-            return False, 'Missing `stream.secure` option'
-        pass
-
-    elif stream['type'] == 'h2':
-        if 'host' not in stream:
-            return False, 'Missing `stream.host` option'
-        if 'path' not in stream:
-            return False, 'Missing `stream.path` option'
-        if 'secure' not in stream:
-            return False, 'Missing `stream.secure` option'
-        pass
-
-    elif stream['type'] == 'quic':
-        if 'method' not in stream:
-            return False, 'Missing `stream.method` option'
-        if 'passwd' not in stream:
-            return False, 'Missing `stream.passwd` option'
-        if 'obfs' not in stream:
-            return False, 'Missing `stream.obfs` option'
-        if 'secure' not in stream:
-            return False, 'Missing `stream.secure` option'
-        pass
-
-    elif stream['type'] == 'grpc':
-        if 'service' not in stream:
-            return False, 'Missing `stream.service` option'
-        if 'secure' not in stream:
-            return False, 'Missing `stream.secure` option'
-        pass
-
-    else:
-        return False, 'Unknown stream type'
-    return True, None
-
-def __vmessParamCheck(raw: dict) -> tuple[bool, str or None]: # VMess节点参数检查
-    try:
-        if 'server' not in raw:
-            return False, 'Missing `server` option'
-        if 'port' not in raw:
-            return False, 'Missing `port` option'
-        if 'method' not in raw:
-            return False, 'Missing `method` option'
-        if 'id' not in raw:
-            return False, 'Missing `id` option'
-        if 'aid' not in raw:
-            return False, 'Missing `aid` option'
-        if 'stream' not in raw:
-            return False, 'Missing `stream` option'
-
-        if not isinstance(raw['server'], str):
-            return False, 'Illegal `server` option'
-        if not isinstance(raw['port'], int):
-            return False, 'Illegal `port` option'
-        if not isinstance(raw['method'], str):
-            return False, 'Illegal `method` option'
-        if not isinstance(raw['id'], str):
-            return False, 'Illegal `id` option'
-        if not isinstance(raw['aid'], str):
-            return False, 'Illegal `aid` option'
-        if not isinstance(raw['stream'], dict):
-            return False, 'Illegal `stream` option'
-
-        status, reason = __streamParamCheck(raw['stream'])
-        if not status:
-            return False, reason
-    except:
-        return False, 'Unknown error'
-    return True, None
+vmessFilterRules = {
+    'rootObject': {
+        'remark': {
+            'optional': False,
+            'default': '',
+            'type': str
+        },
+        'server': {
+            'optional': True,
+            'type': str,
+            'format': lambda s: s.lower().strip(),
+            'filter': baseFunc.isHost,
+            'errMsg': 'Illegal server address'
+        },
+        'port': {
+            'optional': True,
+            'type': int,
+            'format': lambda i: int(i),
+            'filter': baseFunc.isPort,
+            'errMsg': 'Illegal port number'
+        },
+        'method': {
+            'optional': False,
+            'default': 'auto',
+            'type': str,
+            'format': lambda s: s.replace('_', '-').lower().strip(),
+            'filter': lambda method: method in vmessMethodList,
+            'errMsg': 'Unknown VMess method'
+        },
+        'id': {
+            'optional': True,
+            'type': str
+        },
+        'aid': {
+            'optional': False,
+            'default': 0,
+            'type': int,
+            'format': lambda i: int(i),
+            'filter': lambda aid: aid in range(0, 65536),
+            'errMsg': 'Illegal alter Id'
+        },
+        'stream': {
+            'optional': False,
+            'default': {
+                'type': 'tcp'
+            },
+            'type': [
+                'tcpObject',
+                'kcpObject',
+                'wsObject',
+                'h2Object',
+                'quicObject',
+                'grpcObject',
+            ]
+        }
+    },
+    'tcpObject': {
+        'type': {
+            'optional': True,
+            'type': str,
+            'format': lambda s: s.lower().strip(),
+            'filter': lambda streamType: streamType == 'tcp',
+            'method': 'Unknown stream type'
+        },
+        'obfs': {
+            'optional': False,
+            'default': None,
+            'allowNone': True,
+            'type': 'obfsObject'
+        },
+        'secure': {
+            'optional': False,
+            'default': None,
+            'allowNone': True,
+            'type': 'secureObject'
+        }
+    },
+    'kcpObject': {
+        'type': {
+            'optional': True,
+            'type': str,
+            'format': lambda s: s.lower().strip(),
+            'filter': lambda streamType: streamType == 'kcp',
+            'method': 'Unknown stream type'
+        },
+        'seed': {
+            'optional': False,
+            'default': None,
+            'allowNone': True,
+            'type': str
+        },
+        'obfs': {
+            'optional': False,
+            'default': 'none',
+            'type': str,
+            'format': lambda s: s.replace('_', '-').lower().strip(),
+            'filter': lambda obfs: obfs in udpObfsList,
+            'errMsg': 'Unknown mKCP obfs method'
+        },
+        'secure': {
+            'optional': False,
+            'default': None,
+            'allowNone': True,
+            'type': 'secureObject'
+        }
+    },
+    'wsObject': {
+        'type': {
+            'optional': True,
+            'type': str,
+            'format': lambda s: s.lower().strip(),
+            'filter': lambda streamType: streamType == 'ws',
+            'method': 'Unknown stream type'
+        },
+        'host': {
+            'optional': False,
+            'default': '',
+            'type': str
+        },
+        'path': {
+            'optional': False,
+            'default': '/',
+            'type': str
+        },
+        'ed': {
+            'optional': False,
+            'default': 2048,
+            'format': lambda i: int(i),
+            'filter': lambda ed: ed > 0,
+            'errMsg': 'Illegal Max-Early-Data length'
+        },
+        'secure': {
+            'optional': False,
+            'default': None,
+            'allowNone': True,
+            'type': 'secureObject'
+        }
+    },
+    'h2Object': {
+        'type': {
+            'optional': True,
+            'type': str,
+            'format': lambda s: s.lower().strip(),
+            'filter': lambda streamType: streamType == 'h2',
+            'method': 'Unknown stream type'
+        },
+        'host': {
+            'optional': False,
+            'default': '',
+            'type': str
+        },
+        'path': {
+            'optional': False,
+            'default': '/',
+            'type': str
+        },
+        'secure': {
+            'optional': False,
+            'default': None,
+            'allowNone': True,
+            'type': 'secureObject'
+        }
+    },
+    'quicObject': {
+        'type': {
+            'optional': True,
+            'type': str,
+            'format': lambda s: s.lower().strip(),
+            'filter': lambda streamType: streamType == 'quic',
+            'method': 'Unknown stream type'
+        },
+        'method': {
+            'optional': False,
+            'default': 'none',
+            'type': str,
+            'format': lambda s: s.replace('_', '-').lower().strip(),
+            'filter': lambda method: method in quicMethodList,
+            'errMsg': 'Unknown QUIC method'
+        },
+        'passwd': {
+            'optional': False,
+            'default': '',
+            'type': str
+        },
+        'obfs': {
+            'optional': False,
+            'default': 'none',
+            'type': str,
+            'format': lambda s: s.replace('_', '-').lower().strip(),
+            'filter': lambda obfs: obfs in udpObfsList,
+            'errMsg': 'Unknown QUIC obfs method'
+        },
+        'secure': {
+            'optional': True,
+            'type': 'secureObject'
+        }
+    },
+    'grpcObject': {
+        'type': {
+            'optional': True,
+            'type': str,
+            'format': lambda s: s.lower().strip(),
+            'filter': lambda streamType: streamType == 'grpc',
+            'method': 'Unknown stream type'
+        },
+        'service': {
+            'optional': True,
+            'type': str
+        },
+        'secure': {
+            'optional': False,
+            'default': None,
+            'allowNone': True,
+            'type': 'secureObject'
+        }
+    },
+    'obfsObject': {
+        'host': {
+            'optional': False,
+            'default': '',
+            'type': str
+        },
+        'path': {
+            'optional': False,
+            'default': '/',
+            'type': str
+        }
+    },
+    'secureObject': {
+        'sni': {
+            'optional': False,
+            'default': '',
+            'type': str
+        },
+        'alpn': {
+            'optional': False,
+            'default': 'h2,http/1.1',
+            'type': str,
+            'filter': lambda alpn: alpn in ['h2', 'http/1.1', 'h2,http/1.1'],
+            'errMsg': 'Illegal alpn option'
+        },
+        'verify': {
+            'optional': False,
+            'default': True,
+            'type': bool
+        }
+    }
+}
 
 def vmessFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
     """
@@ -144,23 +289,10 @@ def vmessFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
             }
     """
     try:
-        raw = rawInfo
-        raw = __vmessFormat(__vmessFill(raw))  # 预处理
-        status, reason = __vmessParamCheck(raw) # 参数检查
-        if not status: # 参数有误
-            return False, reason
-
-        result = {'type': 'vmess'}
-        if isExtra: # 携带额外参数
-            if 'remark' not in raw: # 补全默认值
-                raw['remark'] = ''
-            if raw['remark'] is None: # 容错格式化
-                raw['remark'] = ''
-            if not isinstance(raw['remark'], str): # 参数检查
-                return False, 'Illegal `remark` option'
-            result['remark'] = raw['remark']
-
-        pass
+        if not isExtra:
+            vmessFilterRules['rootObject'].pop('remark')
+        return baseFunc.rulesFilter(rawInfo, vmessFilterRules, {
+            'type': 'vmess'
+        })
     except:
         return False, 'Unknown error'
-    return True, result
