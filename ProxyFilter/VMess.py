@@ -29,21 +29,22 @@ quicMethodList = [
 vmessFilterRules = {
     'rootObject': {
         'remark': {
-            'optional': False,
+            'optional': True,
             'default': '',
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         },
         'server': {
             'optional': True,
             'type': str,
-            'format': lambda s: s.lower().strip(),
+            'format': baseFunc.toStrTidy,
             'filter': baseFunc.isHost,
             'errMsg': 'Illegal server address'
         },
         'port': {
             'optional': True,
             'type': int,
-            'format': lambda i: int(i),
+            'format': baseFunc.toInt,
             'filter': baseFunc.isPort,
             'errMsg': 'Illegal port number'
         },
@@ -51,20 +52,22 @@ vmessFilterRules = {
             'optional': False,
             'default': 'auto',
             'type': str,
-            'format': lambda s: s.replace('_', '-').lower().strip(),
+            'format': lambda s: baseFunc.toStrTidy(s).replace('_', '-'),
             'filter': lambda method: method in vmessMethodList,
             'errMsg': 'Unknown VMess method'
         },
         'id': {
             'optional': True,
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         },
         'aid': {
             'optional': False,
             'default': 0,
             'type': int,
-            'format': lambda i: int(i),
-            'filter': lambda aid: aid in range(0, 65536),
+            'format': baseFunc.toInt,
+            # 'filter': 123,
+            'filter': lambda aid: aid in range(0, 65536), # 0 ~ 65535
             'errMsg': 'Illegal alter Id'
         },
         'stream': {
@@ -86,9 +89,9 @@ vmessFilterRules = {
         'type': {
             'optional': True,
             'type': str,
-            'format': lambda s: s.lower().strip(),
+            'format': baseFunc.toStrTidy,
             'filter': lambda streamType: streamType == 'tcp',
-            'method': 'Unknown stream type'
+            'errMsg': 'Unknown stream type'
         },
         'obfs': {
             'optional': False,
@@ -107,21 +110,22 @@ vmessFilterRules = {
         'type': {
             'optional': True,
             'type': str,
-            'format': lambda s: s.lower().strip(),
+            'format': baseFunc.toStrTidy,
             'filter': lambda streamType: streamType == 'kcp',
-            'method': 'Unknown stream type'
+            'errMsg': 'Unknown stream type'
         },
         'seed': {
             'optional': False,
             'default': None,
             'allowNone': True,
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         },
         'obfs': {
             'optional': False,
             'default': 'none',
             'type': str,
-            'format': lambda s: s.replace('_', '-').lower().strip(),
+            'format': lambda s: baseFunc.toStrTidy(s).replace('_', '-'),
             'filter': lambda obfs: obfs in udpObfsList,
             'errMsg': 'Unknown mKCP obfs method'
         },
@@ -136,24 +140,27 @@ vmessFilterRules = {
         'type': {
             'optional': True,
             'type': str,
-            'format': lambda s: s.lower().strip(),
+            'format': baseFunc.toStrTidy,
             'filter': lambda streamType: streamType == 'ws',
-            'method': 'Unknown stream type'
+            'errMsg': 'Unknown stream type'
         },
         'host': {
             'optional': False,
             'default': '',
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         },
         'path': {
             'optional': False,
             'default': '/',
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         },
         'ed': {
             'optional': False,
             'default': 2048,
-            'format': lambda i: int(i),
+            'type': int,
+            'format': baseFunc.toInt,
             'filter': lambda ed: ed > 0,
             'errMsg': 'Illegal Max-Early-Data length'
         },
@@ -168,19 +175,21 @@ vmessFilterRules = {
         'type': {
             'optional': True,
             'type': str,
-            'format': lambda s: s.lower().strip(),
+            'format': baseFunc.toStrTidy,
             'filter': lambda streamType: streamType == 'h2',
-            'method': 'Unknown stream type'
+            'errMsg': 'Unknown stream type'
         },
         'host': {
             'optional': False,
             'default': '',
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         },
         'path': {
             'optional': False,
             'default': '/',
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         },
         'secure': {
             'optional': False,
@@ -193,33 +202,35 @@ vmessFilterRules = {
         'type': {
             'optional': True,
             'type': str,
-            'format': lambda s: s.lower().strip(),
+            'format': baseFunc.toStrTidy,
             'filter': lambda streamType: streamType == 'quic',
-            'method': 'Unknown stream type'
+            'errMsg': 'Unknown stream type'
         },
         'method': {
             'optional': False,
             'default': 'none',
             'type': str,
-            'format': lambda s: s.replace('_', '-').lower().strip(),
+            'format': lambda s: baseFunc.toStrTidy(s).replace('_', '-'),
             'filter': lambda method: method in quicMethodList,
             'errMsg': 'Unknown QUIC method'
         },
         'passwd': {
             'optional': False,
             'default': '',
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         },
         'obfs': {
             'optional': False,
             'default': 'none',
             'type': str,
-            'format': lambda s: s.replace('_', '-').lower().strip(),
+            'format': lambda s: baseFunc.toStrTidy(s).replace('_', '-'),
             'filter': lambda obfs: obfs in udpObfsList,
             'errMsg': 'Unknown QUIC obfs method'
         },
         'secure': {
-            'optional': True,
+            'optional': False,
+            'default': {},
             'type': 'secureObject'
         }
     },
@@ -227,13 +238,14 @@ vmessFilterRules = {
         'type': {
             'optional': True,
             'type': str,
-            'format': lambda s: s.lower().strip(),
+            'format': baseFunc.toStrTidy,
             'filter': lambda streamType: streamType == 'grpc',
-            'method': 'Unknown stream type'
+            'errMsg': 'Unknown stream type'
         },
         'service': {
             'optional': True,
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         },
         'secure': {
             'optional': False,
@@ -246,31 +258,36 @@ vmessFilterRules = {
         'host': {
             'optional': False,
             'default': '',
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         },
         'path': {
             'optional': False,
             'default': '/',
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         }
     },
     'secureObject': {
         'sni': {
             'optional': False,
             'default': '',
-            'type': str
+            'type': str,
+            'format': baseFunc.toStr
         },
         'alpn': {
             'optional': False,
             'default': 'h2,http/1.1',
             'type': str,
+            'format': baseFunc.toStr,
             'filter': lambda alpn: alpn in ['h2', 'http/1.1', 'h2,http/1.1'],
             'errMsg': 'Illegal alpn option'
         },
         'verify': {
             'optional': False,
             'default': True,
-            'type': bool
+            'type': bool,
+            'format': lambda b: b
         }
     }
 }
@@ -291,7 +308,7 @@ def vmessFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
     try:
         if not isExtra:
             vmessFilterRules['rootObject'].pop('remark')
-        return baseFunc.rulesFilter(rawInfo, vmessFilterRules, {
+        return baseFunc.ruleFilter(rawInfo, vmessFilterRules, {
             'type': 'vmess'
         })
     except:
