@@ -5,7 +5,7 @@ from ProxyFilter import Shadowsocks
 from ProxyFilter import ShadowsocksR
 from ProxyFilter import VMess
 
-def filte(raw: dict, isExtra: bool = False) -> tuple[bool, str]:
+def filte(raw: dict, isExtra: bool = False) -> tuple[bool, str or dict]:
     """
     代理信息过滤并格式化
 

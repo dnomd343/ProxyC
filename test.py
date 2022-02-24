@@ -1,55 +1,66 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-import sys
+import os
 import time
 import subprocess
+import Checker
+import ProxyTester as Tester
 
-import test as Tester
-import ProxyBuilder as Builder
-import ProxyChecker as Checker
+def testBuild(config: dict):
+    if config['filePath'] is not None:
+        with open(config['filePath'], 'w') as fileObject:  # 保存文件
+            fileObject.write(config['fileContent'])
+    return subprocess.Popen( # 进程启动
+        config['startCommand'],
+        env = config['envVar'],
+        stdout = subprocess.DEVNULL,
+        stderr = subprocess.DEVNULL
+    )
 
-defaultPort = 10808
-defaultPasswd = 'dnomd343'
+def testDestroy(config: dict, process):
+    if process.poll() is None:  # 未死亡
+        while process.poll() is None:  # 等待退出
+            process.terminate()  # SIGTERM
+            time.sleep(0.2)
+    if config['filePath'] is not None:
+        os.remove(config['filePath']) # 删除文件
 
-def startTest(testList):
-    for field in testList:
-        serverProcess = subprocess.Popen(
-            field['serverCommand'],
-            stdout = subprocess.DEVNULL,
-            stderr = subprocess.DEVNULL)
-        time.sleep(0.1) # 等待进程启动
-        if serverProcess.poll() != None: # 服务端启动失败
-            print("server unexpected exit")
-            continue
-        print(field['caption'] + ' => ', end = '')
-        status, client = Builder.build(field['proxyInfo'], '/tmp/ProxyC')
-        time.sleep(0.5) # 等待初始化完成
-        if Builder.check(client) != True:
-            print("client unexpected exit") # 客户端启动失败
-        else:
-            status, delay = Checker.httpPing(client['port'])
-            if status == True:
-                print(format(delay, '.2f') + 'ms')
-            else:
-                print(delay)
-            Builder.destroy(client) # 关闭客户端
-            time.sleep(0.1)
-        serverProcess.terminate() # 关闭服务端
-        time.sleep(0.1)
-        print()
+testList = Tester.test('ss')
 
-if len(sys.argv) <= 1:
-    print("no param")
-    sys.exit(0)
+aiderProcess = None
+serverProcess = None
+for testMethod in testList:
+    # print()
+    # print()
+    # print(testMethod)
+    # continue
+    print(testMethod['caption'], end = ' -> ')
 
-testName = sys.argv[1]
-if testName == 'ss':
-    testList = Tester.Shadowsocks(defaultPort, defaultPasswd)
-elif testName == 'ssr':
-    testList = Tester.ShadowsocksR(defaultPort, defaultPasswd)
-else:
-    print("unknown test name")
-    sys.exit(1)
+    serverProcess = testBuild(testMethod['server'])
+    if testMethod['aider'] is not None:
+        aiderProcess = testBuild(testMethod['aider'])
 
-startTest(testList)
+    ret = Checker.proxyTest({
+        'check': ['http'],
+        'info': testMethod['proxy']
+    })
+    if not ret['success']:
+        print('check error')
+    delay = ret['check']['http']['delay']
+    print(str(delay) + 'ms')
+
+    testDestroy(testMethod['server'], serverProcess)
+    if testMethod['aider'] is not None:
+        testDestroy(testMethod['aider'], aiderProcess)
+
+# testName = sys.argv[1]
+# if testName == 'ss':
+#     testList = Tester.Shadowsocks(defaultPort, defaultPasswd)
+# elif testName == 'ssr':
+#     testList = Tester.ShadowsocksR(defaultPort, defaultPasswd)
+# else:
+#     print("unknown test name")
+#     sys.exit(1)
+#
+# startTest(testList)

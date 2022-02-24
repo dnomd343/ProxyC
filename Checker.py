@@ -6,6 +6,7 @@ import time
 
 import ProxyBuilder as Builder
 import ProxyChecker as Checker
+import ProxyFilter as Filter
 
 def __loadDir(folderPath: str) -> bool: # 创建文件夹
     try:
@@ -66,8 +67,14 @@ def proxyTest(
         return None
 
     client = None
+    status, proxyInfo = Filter.filte(rawInfo['info'], isExtra = True)
+    if not status: # 输入节点错误
+        return {
+            'success': False,
+            'info': None
+        }
     try:
-        status, client = Builder.build(rawInfo['info'], workDir)
+        status, client = Builder.build(proxyInfo, workDir)
     except: # 构建发生未知错误
         Builder.destroy(client)
         return None
@@ -77,7 +84,7 @@ def proxyTest(
     elif not status: # 节点信息有误
         return {
             'success': False,
-            'info': rawInfo['info']
+            'info': proxyInfo
         }
 
     time.sleep(startDelay) # 延迟等待客户端启动
@@ -89,7 +96,7 @@ def proxyTest(
         Builder.destroy(client)
         return {
             'success': False,
-            'info': rawInfo['info']
+            'info': proxyInfo
         }
 
     if 'check' not in rawInfo: # 缺少检测项目
@@ -110,5 +117,5 @@ def proxyTest(
     return {
         'success': True,
         'check': checkResult,
-        'info': rawInfo['info']
+        'info': proxyInfo
     }
