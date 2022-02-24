@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
+config = {}
+
 ssrMethodList = [
     "aes-128-cfb",
     "aes-192-cfb",
@@ -71,57 +73,43 @@ ssrObfsList = [
     "random_head",
 ]
 
-def test(port, password):
-    testList = []
-    for method in ssrMethodList:
-        proxyInfo = {
-            'type': 'ssr',
-            'server': '127.0.0.1',
-            'port': int(port),
-            'password': password,
-            'method': method,
-            'protocol': 'origin',
-            'protocolParam': '',
-            'obfs': 'plain',
-            'obfsParam': ''
-        }
-        serverCommand = [
-            'ssr-server',
-            '-p', str(port),
-            '-k', password,
-            '-m', method,
-            '-O', 'origin',
-            '-o', 'plain'
-        ]
-        testList.append({
-            'caption': 'ShadowsocksR method ' + method,
-            'proxyInfo': proxyInfo,
-            'serverCommand': serverCommand
-        })
-    for protocol in ssrProtocolList:
+def __ssrServerConfig(method: str, protocol: str, obfs: str, caption: str) -> list:
+    proxyInfo = {
+        'type': 'ssr',
+        'server': '127.0.0.1',
+        'port': config['port'],
+        'passwd': config['passwd'],
+        'method': method,
+        'protocol': protocol,
+        'obfs': obfs
+    }
+    serverCommand = [
+        'ssr-server',
+        '-p', str(config['port']),
+        '-k', config['passwd'],
+        '-m', method,
+        '-O', protocol,
+        '-o', obfs
+    ]
+    return [{
+        'caption': caption,
+        'proxy': proxyInfo,
+        'server': {
+            'startCommand': serverCommand,
+            'fileContent': None,
+            'filePath': None,
+            'envVar': {}
+        },
+        'aider': None
+    }]
+
+def ssrTest(ssrConfig: dict) -> list:
+    result = []
+    for key, value in ssrConfig.items(): # ssrConfig -> config
+        config[key] = value
+    for method in ssrMethodList: # all ShadowsocksR methods
+        result += __ssrServerConfig(method, 'origin', 'plain', 'ShadowsocksR method ' + method)
+    for protocol in ssrProtocolList: # all ShadowsocksR protocol and obfs
         for obfs in ssrObfsList:
-            proxyInfo = {
-                'type': 'ssr',
-                'server': '127.0.0.1',
-                'port': int(port),
-                'password': password,
-                'method': 'table',
-                'protocol': protocol,
-                'protocolParam': '',
-                'obfs': obfs,
-                'obfsParam': ''
-            }
-            serverCommand = [
-                'ssr-server',
-                '-p', str(port),
-                '-k', password,
-                '-m', 'table',
-                '-O', protocol,
-                '-o', obfs
-            ]
-            testList.append({
-                'caption': 'ShadowsocksR protocol ' + protocol + ' obfs ' + obfs,
-                'proxyInfo': proxyInfo,
-                'serverCommand': serverCommand
-            })
-    return testList
+            result += __ssrServerConfig('table', protocol, obfs, 'ShadowsocksR protocol ' + protocol + ' obfs ' + obfs)
+    return result
