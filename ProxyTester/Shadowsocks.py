@@ -4,9 +4,7 @@
 import copy
 import ProxyTester.Plugin as sip003
 
-defaultHost = 'dns.343.re'
-defaultCert = '/etc/ssl/certs/dns.343.re/certificate.crt'
-defaultKey = '/etc/ssl/certs/dns.343.re/private.key'
+config = {}
 
 ssMethodList = [
     'aes-128-gcm',
@@ -76,32 +74,28 @@ sip003PluginList = [ # SIP003插件列表
 ]
 
 def __ssServerConfig(method: str, plugin: str or None) -> list:
-    port = 12345
     rabbitPort = 20191
-    passwd = 'dnomd343'
-
     proxyInfo = {
         'type': 'ss',
         'server': '127.0.0.1',
-        'port': port,
-        'passwd': passwd,
+        'port': config['port'],
+        'passwd': config['passwd'],
         'method': method
     }
-    serverCommand = []
     caption = 'Shadowsocks method ' + method
     if method in ['plain', 'none']: # plain / none -> ss-rust
         serverCommand = [
             'ss-rust-server',
-            '-s', '0.0.0.0:' + str(port),
-            '-k', passwd,
+            '-s', '0.0.0.0:' + str(config['port']),
+            '-k', config['passwd'],
             '-m', method
         ]
     elif method == 'salsa20-ctr': # salsa20-ctr -> ss-python-legacy
         serverCommand = [
             'ss-bootstrap-server', '--no-udp',
             '--shadowsocks', 'ss-python-legacy-server',
-            '-p', str(port),
-            '-k', passwd,
+            '-p', str(config['port']),
+            '-k', config['passwd'],
             '-m', method
         ]
     else: # others -> ss-python
@@ -118,8 +112,8 @@ def __ssServerConfig(method: str, plugin: str or None) -> list:
         serverCommand = [
             'ss-bootstrap-server', '--no-udp',
             '--shadowsocks', 'ss-python-server',
-            '-p', str(port),
-            '-k', passwd,
+            '-p', str(config['port']),
+            '-k', config['passwd'],
             '-m', method
         ]
         if method == 'idea-cfb' or method == 'seed-cfb':
@@ -142,7 +136,7 @@ def __ssServerConfig(method: str, plugin: str or None) -> list:
         proxyInfo['port'] = rabbitPort
         proxyInfo['plugin'] = {
             'type': 'rabbit-plugin',
-            'param': 'serviceAddr=127.0.0.1:' + str(port) + ';password=' + passwd
+            'param': 'serviceAddr=127.0.0.1:' + str(config['port']) + ';password=' + config['passwd']
         }
         return [{
             'proxy': proxyInfo,
@@ -157,7 +151,7 @@ def __ssServerConfig(method: str, plugin: str or None) -> list:
                 'startCommand': [
                     'rabbit',
                     '-mode', 's',
-                    '-password', passwd,
+                    '-password', config['passwd'],
                     '-rabbit-addr', ':' + str(rabbitPort)
                 ],
                 'fileContent': None,
@@ -168,7 +162,7 @@ def __ssServerConfig(method: str, plugin: str or None) -> list:
 
     # others plugin
     result = []
-    pluginConfig = sip003.loadPluginConfig(plugin, defaultHost, defaultCert, defaultKey) # 载入插件配置
+    pluginConfig = sip003.loadPluginConfig(plugin, config['host'], config['cert'], config['key']) # 载入插件配置
     serverBaseCommand = copy.deepcopy(serverCommand)
     for pluginOption in pluginConfig:
         serverCommand = copy.deepcopy(serverBaseCommand)
@@ -190,11 +184,12 @@ def __ssServerConfig(method: str, plugin: str or None) -> list:
         }))
     return result
 
-def ssTest() -> list:
+def ssTest(ssConfig: dict) -> list:
     result = []
-    for method in ssMethodList:
+    for key, value in ssConfig.items(): # ssConfig -> config
+        config[key] = value
+    for method in ssMethodList: # all Shadowsocks methods
         result += __ssServerConfig(method, None)
-    for plugin in sip003PluginList:
+    for plugin in sip003PluginList: # all SIP003 plugin
         result += __ssServerConfig('aes-256-ctr', plugin)
-    # result += __ssServerConfig('aes-256-gcm', None)
     return result

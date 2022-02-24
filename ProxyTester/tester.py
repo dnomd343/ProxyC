@@ -3,15 +3,9 @@
 
 from ProxyTester import Shadowsocks
 
-testInfo = {
-    'type': 'ss',
-    'method': 'aes-256-ctr',
-    'plugin': None
-}
-
-def test(key: str) -> list:
+def test(key: str, config: dict) -> list:
     if key == 'ss':
-        return Shadowsocks.ssTest()
+        return Shadowsocks.ssTest(config)
     elif key == 'ssr':
         pass
     elif key == 'vmess':

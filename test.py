@@ -2,65 +2,75 @@
 # -*- coding:utf-8 -*-
 
 import os
+import sys
 import time
 import subprocess
+
 import Checker
 import ProxyTester as Tester
 
-def testBuild(config: dict):
+testConfig = {
+    'port': 12345,
+    'passwd': 'dnomd343',
+    'host': 'dns.343.re',
+    'cert': '/etc/ssl/certs/dns.343.re/certificate.crt',
+    'key': '/etc/ssl/certs/dns.343.re/private.key'
+}
+
+def testBuild(config: dict): # load file and start process
     if config['filePath'] is not None:
-        with open(config['filePath'], 'w') as fileObject:  # 保存文件
+        with open(config['filePath'], 'w') as fileObject:  # save file
             fileObject.write(config['fileContent'])
-    return subprocess.Popen( # 进程启动
+    return subprocess.Popen( # start process
         config['startCommand'],
         env = config['envVar'],
         stdout = subprocess.DEVNULL,
         stderr = subprocess.DEVNULL
     )
 
-def testDestroy(config: dict, process):
-    if process.poll() is None:  # 未死亡
-        while process.poll() is None:  # 等待退出
+def testDestroy(config: dict, process): # remove file and kill process
+    if process.poll() is None:  # still alive
+        while process.poll() is None:  # wait for exit
             process.terminate()  # SIGTERM
             time.sleep(0.2)
     if config['filePath'] is not None:
-        os.remove(config['filePath']) # 删除文件
+        os.remove(config['filePath']) # remove file
 
-testList = Tester.test('ss')
+def testObject(option: dict) -> None: # test target object
+    aiderProcess = None
+    serverProcess = testBuild(option['server']) # start server process
+    if option['aider'] is not None:
+        aiderProcess = testBuild(option['aider']) # start aider process
 
-aiderProcess = None
-serverProcess = None
-for testMethod in testList:
-    # print()
-    # print()
-    # print(testMethod)
-    # continue
-    print(testMethod['caption'], end = ' -> ')
-
-    serverProcess = testBuild(testMethod['server'])
-    if testMethod['aider'] is not None:
-        aiderProcess = testBuild(testMethod['aider'])
-
-    ret = Checker.proxyTest({
+    checkResult = Checker.proxyTest({ # http check
         'check': ['http'],
-        'info': testMethod['proxy']
+        'info': option['proxy']
     })
-    if not ret['success']:
-        print('check error')
-    delay = ret['check']['http']['delay']
+    print(option['caption'], end=' -> ')
+    if not checkResult['success']: # client build error
+        print('\n----------------------------------------------------------------')
+        print(option)
+        print('----------------------------------------------------------------\n')
+        raise Exception('check error')
+    delay = checkResult['check']['http']['delay'] # get http delay
     print(str(delay) + 'ms')
 
-    testDestroy(testMethod['server'], serverProcess)
-    if testMethod['aider'] is not None:
-        testDestroy(testMethod['aider'], aiderProcess)
+    testDestroy(option['server'], serverProcess) # destroy server process
+    if option['aider'] is not None:
+        testDestroy(option['aider'], aiderProcess) # destroy aider process
 
-# testName = sys.argv[1]
-# if testName == 'ss':
-#     testList = Tester.Shadowsocks(defaultPort, defaultPasswd)
-# elif testName == 'ssr':
-#     testList = Tester.ShadowsocksR(defaultPort, defaultPasswd)
-# else:
-#     print("unknown test name")
-#     sys.exit(1)
-#
-# startTest(testList)
+if len(sys.argv) == 1: # no param
+    print('Unknown test type')
+    sys.exit(1)
+testList = Tester.test(sys.argv[1], testConfig) # get test list
+
+if len(sys.argv) == 2: # test all
+    for i in range(0, len(testList)):
+        print(str(i), end = ': ')
+        testObject(testList[i])
+    sys.exit(0)
+
+if len(sys.argv) == 3: # test target index
+    testObject(testList[int(sys.argv[2])])
+else:
+    print('Too many options')
