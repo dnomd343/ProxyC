@@ -6,7 +6,7 @@ import sys
 import time
 import subprocess
 
-import Checker
+import Check as Checker
 import ProxyTester as Tester
 
 testConfig = {

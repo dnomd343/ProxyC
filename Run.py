@@ -3,7 +3,7 @@
 
 import json
 import redis
-import Checker
+import Check as Checker
 
 redisPort = 6379
 redisHost = 'localhost'
