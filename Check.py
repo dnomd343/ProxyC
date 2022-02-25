@@ -75,24 +75,23 @@ def proxyTest(
         }
     try:
         status, client = Builder.build(proxyInfo, workDir)
-    except: # 构建发生未知错误
+    except Exception as reason: # 构建发生错误
+        print(str(reason))
         Builder.destroy(client)
         return None
-    if status is None: # 构建错误
-        Builder.destroy(client)
-        return None
-    elif not status: # 节点信息有误
+    if not status: # 节点信息有误
         return {
             'success': False,
             'info': proxyInfo
         }
 
     time.sleep(startDelay) # 延迟等待客户端启动
-    status = Builder.check(client) # 检查客户端状态
-    if status is None: # 检测失败
+    try:
+        status = Builder.check(client) # 检查客户端状态
+    except: # 检测失败
         Builder.destroy(client)
         return None
-    elif not status: # 客户端异常退出
+    if not status: # 客户端异常退出
         Builder.destroy(client)
         return {
             'success': False,

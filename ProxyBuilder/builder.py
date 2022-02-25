@@ -76,12 +76,9 @@ def __getAvailablePort(rangeStart: int = 41952, rangeEnd: int = 65535) -> int or
         time.sleep(0.1) # wait for 100ms
 
 def build(proxyInfo: dict, configDir: str,
-          portRangeStart: int = 1024, portRangeEnd: int = 65535) -> tuple[bool or None, str or dict]:
+          portRangeStart: int = 1024, portRangeEnd: int = 65535) -> tuple[bool, str or dict]:
     """
     创建代理节点客户端
-
-        程序内部错误:
-            return None, {reason}
 
         代理节点无效:
             return False, {reason}
@@ -94,83 +91,72 @@ def build(proxyInfo: dict, configDir: str,
                 'process': process
             }
     """
+    taskFlag = __genTaskFlag() # 生成测试标志
+    socksPort = __getAvailablePort(portRangeStart, portRangeEnd) # 获取Socks5测试端口
+
+    if 'type' not in proxyInfo: # 未指定节点类型
+        return False, 'Proxy type not specified'
+    if proxyInfo['type'] == 'ss': # Shadowsocks节点
+        clientObj = Shadowsocks
+    elif proxyInfo['type'] == 'ssr': # ShadowsocksR节点
+        clientObj = ShadowsocksR
+    elif proxyInfo['type'] == 'vmess': # VMess节点
+        clientObj = VMess
+    elif proxyInfo['type'] == 'vless': # VLESS节点
+        clientObj = VLESS
+    else: # 未知类型
+        return False, 'Unknown proxy type'
+
+    configFile = configDir + '/' + taskFlag + '.json' # 配置文件路径
     try:
-        taskFlag = __genTaskFlag() # 生成测试标志
-        socksPort = __getAvailablePort(portRangeStart, portRangeEnd) # 获取Socks5测试端口
+        startCommand, fileContent, envVar = clientObj.load(proxyInfo, socksPort, configFile) # 载入配置
+    except: # 格式出错
+        return False, 'Format error with ' + str(proxyInfo['type'])
 
-        if 'type' not in proxyInfo: # 未指定节点类型
-            return False, 'Proxy type not specified'
-        if proxyInfo['type'] == 'ss': # Shadowsocks节点
-            clientObj = Shadowsocks
-        elif proxyInfo['type'] == 'ssr': # ShadowsocksR节点
-            clientObj = ShadowsocksR
-        elif proxyInfo['type'] == 'vmess': # VMess节点
-            clientObj = VMess
-        elif proxyInfo['type'] == 'vless': # VLESS节点
-            clientObj = VLESS
-        else: # 未知类型
-            return False, 'Unknown proxy type'
+    try:
+        with open(configFile, 'w') as fileObject: # 保存配置文件
+            fileObject.write(fileContent)
+    except: # 配置文件写入失败
+        raise Exception('Unable write to file ' + str(configFile))
 
-        configFile = configDir + '/' + taskFlag + '.json' # 配置文件路径
-        try:
-            startCommand, fileContent, envVar = clientObj.load(proxyInfo, socksPort, configFile) # 载入配置
-        except: # 格式出错
-            return False, 'Format error with ' + str(proxyInfo['type'])
-
-        try:
-            with open(configFile, 'w') as fileObject: # 保存配置文件
-                fileObject.write(fileContent)
-        except: # 配置文件写入失败
-            return None, "Unable write to file " + str(configFile)
-
-        process = None
-        try: # 子进程形式启动
-            for libcPath in libcPaths:
-                if os.path.exists(libcPath): # 定位libc.so文件
-                    break
-            process = subprocess.Popen( # 启动子进程
-                startCommand,
-                env = envVar,
-                stdout = subprocess.DEVNULL,
-                stderr = subprocess.DEVNULL,
-                preexec_fn = lambda: ctypes.CDLL(libcPath).prctl(1, 15) # 子进程跟随退出
-            )
-        except:
-            try:
-                process = subprocess.Popen( # prctl失败 回退正常启动
-                    startCommand,
-                    env = envVar,
-                    stdout = subprocess.DEVNULL,
-                    stderr = subprocess.DEVNULL
-                )
-            except:
-                pass
-        if process is None: # 启动失败
-            return None, 'Subprocess start failed by `' + ' '.join(startCommand) + '`'
-
-        return True, { # 返回连接参数
-            'flag': taskFlag,
-            'port': socksPort,
-            'file': configFile,
-            'process': process
-        }
+    process = None
+    try: # 子进程形式启动
+        for libcPath in libcPaths:
+            if os.path.exists(libcPath): # 定位libc.so文件
+                break
+        process = subprocess.Popen( # 启动子进程
+            startCommand,
+            env = envVar,
+            stdout = subprocess.DEVNULL,
+            stderr = subprocess.DEVNULL,
+            preexec_fn = lambda: ctypes.CDLL(libcPath).prctl(1, 15) # 子进程跟随退出
+        )
     except:
-        return None, 'Unknown error'
+        process = subprocess.Popen( # prctl失败 回退正常启动
+            startCommand,
+            env = envVar,
+            stdout = subprocess.DEVNULL,
+            stderr = subprocess.DEVNULL
+        )
+    if process is None: # 启动失败
+        raise Exception('Subprocess start failed by `' + ' '.join(startCommand) + '`')
+
+    return True, { # 返回连接参数
+        'flag': taskFlag,
+        'port': socksPort,
+        'file': configFile,
+        'process': process
+    }
 
 def check(client: dict) -> bool or None:
     """
     检查客户端是否正常运行
 
-        检测出错: return None
-
         工作异常: return False
 
         工作正常: return True
     """
-    try:
-        return client['process'].poll() is None
-    except:
-        return None # 异常
+    return client['process'].poll() is None
 
 def destroy(client: dict) -> bool:
     """

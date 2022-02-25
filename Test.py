@@ -14,7 +14,8 @@ testConfig = {
     'passwd': 'dnomd343',
     'host': 'dns.343.re',
     'cert': '/etc/ssl/certs/dns.343.re/certificate.crt',
-    'key': '/etc/ssl/certs/dns.343.re/private.key'
+    'key': '/etc/ssl/certs/dns.343.re/private.key',
+    'id': '1f7aa040-94d8-4b53-ae85-af6946d550bb',
 }
 
 def testBuild(config: dict): # load file and start process

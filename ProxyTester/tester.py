@@ -3,6 +3,7 @@
 
 from ProxyTester import Shadowsocks
 from ProxyTester import ShadowsocksR
+from ProxyTester import VMess
 
 def test(key: str, config: dict) -> list:
     if key == 'ss':
@@ -10,6 +11,6 @@ def test(key: str, config: dict) -> list:
     elif key == 'ssr':
         return ShadowsocksR.ssrTest(config)
     elif key == 'vmess':
-        pass
+        return VMess.vmessTest(config)
     else:
         return []
