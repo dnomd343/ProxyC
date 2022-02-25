@@ -2,17 +2,11 @@
 # -*- coding:utf-8 -*-
 
 from ProxyFilter import baseFunc
-from ProxyFilter import V2ray
+from ProxyFilter import Xray
 
-vmessMethodList = [
-    'aes-128-gcm',
-    'chacha20-poly1305',
-    'auto',
-    'none',
-    'zero',
-]
+vlessMethodList = ['none']
 
-vmessFilterRules = {
+vlessFilterRules = {
     'rootObject': {
         'remark': {
             'optional': False,
@@ -36,24 +30,16 @@ vmessFilterRules = {
         },
         'method': {
             'optional': False,
-            'default': 'auto',
+            'default': 'none',
             'type': str,
-            'format': lambda s: baseFunc.toStrTidy(s).replace('_', '-'),
-            'filter': lambda method: method in vmessMethodList,
-            'errMsg': 'Unknown VMess method'
+            'format': baseFunc.toStrTidy,
+            'filter': lambda method: method in vlessMethodList,
+            'errMsg': 'Unknown VLESS method'
         },
         'id': {
             'optional': True,
             'type': str,
             'format': baseFunc.toStr
-        },
-        'aid': {
-            'optional': False,
-            'default': 0,
-            'type': int,
-            'format': baseFunc.toInt,
-            'filter': lambda aid: aid in range(0, 65536), # 0 ~ 65535
-            'errMsg': 'Illegal alter Id'
         },
         'stream': {
             'optional': False,
@@ -72,26 +58,26 @@ vmessFilterRules = {
     }
 }
 
-def vmessFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
+def vlessFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
     """
-    VMess节点合法性检查
+    VLESS节点合法性检查
 
         不合法:
             return False, {reason}
 
         合法:
             return True, {
-                'type': 'vmess',
+                'type': 'vless',
                 ...
             }
     """
     try:
         if not isExtra: # 去除非必要参数
-            vmessFilterRules['rootObject'].pop('remark')
-        for key, obj in V2ray.v2rayStreamRules.items(): # v2ray.stream -> vmess
-            vmessFilterRules[key] = obj
-        status, result = baseFunc.ruleFilter(rawInfo, vmessFilterRules, {
-            'type': 'vmess'
+            vlessFilterRules['rootObject'].pop('remark')
+        for key, obj in Xray.xrayStreamRules.items(): # xray.stream -> vless
+            vlessFilterRules[key] = obj
+        status, result = baseFunc.ruleFilter(rawInfo, vlessFilterRules, {
+            'type': 'vless'
         })
         if not status: # 节点格式错误
             return False, result

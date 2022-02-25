@@ -147,7 +147,9 @@ def __dictCheck(data: dict, objectList: dict, limitRules: dict, keyPrefix: str) 
                         subResult = __dictCheck(dataValue, objectList, objectList[valueType], keyName) # 尝试检查子对象
                     except filterException as reason:
                         errMsg = str(reason) # 捕获抛出信息
-                    except:
+                    except Exception as reason:
+                        if str(reason)[:10] == 'index-key:': # index-key匹配错误
+                            errMsg = str(reason)[10:]
                         continue
                     else: # 子对象匹配成功
                         break
@@ -161,19 +163,18 @@ def __dictCheck(data: dict, objectList: dict, limitRules: dict, keyPrefix: str) 
             else: # 检查无误
                 result[key] = dataValue
 
-        if result[key] is not None: # allowNone为False
-            if 'filter' in option:
-                errFlag = False
-                try:
-                    if not option['filter'](result[key]): # 格式检查
-                        errFlag = True
-                except:
-                    raise filterException('Filter error in `' + keyName + '`')
-                else:
-                    if errFlag:
-                        if 'indexKey' in option and option['indexKey']:
-                            raise Exception('Filter index key')
-                        raise filterException(option['errMsg'])
+        if result[key] is not None and 'filter' in option: # 值不为None且有检查函数
+            errFlag = False
+            try:
+                if not option['filter'](result[key]): # 格式检查
+                    errFlag = True
+            except:
+                raise filterException('Filter error in `' + keyName + '`')
+            else:
+                if errFlag:
+                    if 'indexKey' in option and option['indexKey']:
+                        raise Exception('index-key:' + option['errMsg'])
+                    raise filterException(option['errMsg'])
     return result
 
 
