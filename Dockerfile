@@ -270,6 +270,7 @@ mv ./target/release/qtun-client /tmp/release/ && \
 mv ./target/release/qtun-server /tmp/release/
 
 FROM alpine:3.15 as asset
+COPY . /tmp/asset/local/share/ProxyC
 COPY --from=build /tmp/release/ /tmp/release/
 RUN apk add gcc python3 upx && \
 mkdir -p /tmp/asset/bin/ && mkdir -p /tmp/asset/lib/ && \
@@ -289,7 +290,6 @@ mkdir -p /tmp/asset/lib/$PYTHON_DIR/ && \
 mv /tmp/packages/ /tmp/asset/lib/$PYTHON_DIR/site-packages/
 
 FROM alpine:3.15
-COPY . /usr/local/share/ProxyC
 COPY --from=asset /tmp/asset/ /usr/
 RUN apk add --no-cache boost-program_options boost-system c-ares ca-certificates \
         glib libev libsodium libstdc++ mbedtls pcre python3 redis udns && \
