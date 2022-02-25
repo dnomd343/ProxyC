@@ -1,15 +1,16 @@
 FROM alpine:3.15 as build
 
+ENV GO_VERSION="1.17.6"
+
 ENV SS_LIBEV="3.3.5"
 ENV SS_RUST="1.12.5"
 ENV SIMPLE_TLS="v0.6.1"
 ENV GOST_PLUGIN="v1.6.3"
 
+ENV GOST_VERSION="v2.11.1"
 ENV XRAY_VERSION="v1.5.3"
 ENV V2FLY_VERSION="v4.44.0"
 ENV TROJAN_VERSION="v1.16.0"
-
-ENV GO_VERSION="1.17.6"
 ENV DNSPROXY_VERSION="v0.41.1"
 
 RUN \
@@ -47,10 +48,11 @@ git clone https://github.com/shadowsocks/qtun.git && \
 git clone https://github.com/Qv2ray/gun.git && \
 \
 # Get source code
-git clone https://github.com/XTLS/Xray-core && \
-git clone https://github.com/v2fly/v2ray-core && \
-git clone https://github.com/AdguardTeam/dnsproxy && \
+git clone https://github.com/ginuerzh/gost.git && \
+git clone https://github.com/XTLS/Xray-core.git && \
+git clone https://github.com/v2fly/v2ray-core.git && \
 git clone https://github.com/trojan-gfw/trojan.git && \
+git clone https://github.com/AdguardTeam/dnsproxy.git && \
 \
 # Install rust environment (nightly version)
 sh -c "$(curl -sL https://sh.rustup.rs)" @ -y --no-modify-path --default-toolchain nightly && \
@@ -189,13 +191,18 @@ env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.version=$VERSION -s -w" .
 env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.version=$VERSION -s -w" ./cmd/ck-server && \
 mv ./ck-client ./ck-server /tmp/release/ && \
 \
+# Compile Gost-v2
+cd /tmp/gost/ && git checkout $GOST_VERSION && \
+cd ./cmd/gost/ && env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" && \
+mv ./gost /tmp/release/ && \
+\
 # Compile Xray-core
-cd /tmp/Xray-core && git checkout $XRAY_VERSION && \
+cd /tmp/Xray-core/ && git checkout $XRAY_VERSION && \
 env CGO_ENABLED=0 go build -o xray -trimpath -ldflags "-s -w" ./main && \
 mv ./xray /tmp/release/ && \
 \
 # Compile v2fly-core
-cd /tmp/v2ray-core && git checkout $V2FLY_VERSION && \
+cd /tmp/v2ray-core/ && git checkout $V2FLY_VERSION && \
 env CGO_ENABLED=0 go build -o v2ray -trimpath -ldflags "-s -w" ./main && \
 env CGO_ENABLED=0 go build -o v2ctl -trimpath -ldflags "-s -w" -tags confonly ./infra/control/main && \
 mv ./v2ctl ./v2ray /tmp/release/ && \
