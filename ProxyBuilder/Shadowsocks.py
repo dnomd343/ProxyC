@@ -202,31 +202,24 @@ def load(proxyInfo: dict, socksPort: int, configFile: str) -> tuple[list or None
         socksPort: 本地通讯端口
         configFile: 配置文件路径
 
-        节点有误:
-            return None, None, None
-
-        载入成功:
             return startCommand, fileContent, envVar
     """
-    try:
-        if proxyInfo['plugin'] is None: # 无插件时启用UDP
-            isUdp = True
-        else:
-            isUdp = not __pluginWithUdp( # 获取插件UDP冲突状态
-                proxyInfo['plugin']['type'], proxyInfo['plugin']['param']
-            )
-        if proxyInfo['method'] in ssMethodList['ss-libev']: # 按序匹配客户端
-            config, ssFile = __ssLibev(proxyInfo, socksPort, isUdp)
-        elif proxyInfo['method'] in ssMethodList['ss-libev-legacy']:
-            config, ssFile = __ssLibev(proxyInfo, socksPort, isUdp, isLegacy = True)
-        elif proxyInfo['method'] in ssMethodList['ss-python']:
-            config, ssFile = __ssPython(proxyInfo, socksPort, isUdp)
-        elif proxyInfo['method'] in ssMethodList['ss-python-legacy']:
-            config, ssFile = __ssPython(proxyInfo, socksPort, isUdp, isLegacy = True)
-        elif proxyInfo['method'] in ssMethodList['ss-rust']:
-            config, ssFile = __ssRust(proxyInfo, socksPort, isUdp)
-        else:
-            return None, None, None # 无匹配加密方式
-        return [ssFile, '-c', configFile], json.dumps(config), {}
-    except:
-        return None, None, None # 节点配置错误
+    if proxyInfo['plugin'] is None: # 无插件时启用UDP
+        isUdp = True
+    else:
+        isUdp = not __pluginWithUdp( # 获取插件UDP冲突状态
+            proxyInfo['plugin']['type'], proxyInfo['plugin']['param']
+        )
+    if proxyInfo['method'] in ssMethodList['ss-libev']: # 按序匹配客户端
+        config, ssFile = __ssLibev(proxyInfo, socksPort, isUdp)
+    elif proxyInfo['method'] in ssMethodList['ss-libev-legacy']:
+        config, ssFile = __ssLibev(proxyInfo, socksPort, isUdp, isLegacy = True)
+    elif proxyInfo['method'] in ssMethodList['ss-python']:
+        config, ssFile = __ssPython(proxyInfo, socksPort, isUdp)
+    elif proxyInfo['method'] in ssMethodList['ss-python-legacy']:
+        config, ssFile = __ssPython(proxyInfo, socksPort, isUdp, isLegacy = True)
+    elif proxyInfo['method'] in ssMethodList['ss-rust']:
+        config, ssFile = __ssRust(proxyInfo, socksPort, isUdp)
+    else:
+        raise Exception('Unknown Shadowsocks method') # 无匹配加密方式
+    return [ssFile, '-c', configFile], json.dumps(config), {}
