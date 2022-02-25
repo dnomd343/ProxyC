@@ -7,14 +7,15 @@ ENV GOST_PLUGIN="v1.6.3"
 
 ENV XRAY_VERSION="v1.5.3"
 ENV V2FLY_VERSION="v4.44.0"
+ENV TROJAN_VERSION="v1.16.0"
 
 ENV GO_VERSION="1.17.6"
 ENV DNSPROXY_VERSION="v0.41.1"
 
 RUN \
-apk add asciidoc autoconf automake build-base curl c-ares-dev cmake \
-        git glib-dev go libev-dev libsodium-dev libtool linux-headers make \
-        mbedtls-dev pcre-dev python3 python3-dev py3-pip udns-dev xmlto zlib-dev && \
+apk add asciidoc autoconf automake boost-dev build-base curl c-ares-dev cmake \
+        git glib-dev go libev-dev libsodium-dev libtool linux-headers make mbedtls-dev \
+        openssl-dev pcre-dev python3 python3-dev py3-pip udns-dev xmlto zlib-dev && \
 \
 # Get source code of Shadowsocks (python/libev/rust)
 cd /tmp/ && mkdir ./release/ && \
@@ -49,31 +50,26 @@ git clone https://github.com/Qv2ray/gun.git && \
 git clone https://github.com/XTLS/Xray-core && \
 git clone https://github.com/v2fly/v2ray-core && \
 git clone https://github.com/AdguardTeam/dnsproxy && \
+git clone https://github.com/trojan-gfw/trojan.git && \
 \
 # Install rust environment (nightly version)
 sh -c "$(curl -sL https://sh.rustup.rs)" @ -y --no-modify-path --default-toolchain nightly && \
 \
 # Install Go environment (v1.16.13)
-wget -O /tmp/go-1.16.13.tar.gz https://dl.google.com/go/go1.16.13.src.tar.gz && \
-tar -C /usr/local/ -xf /tmp/go-1.16.13.tar.gz && \
+wget https://dl.google.com/go/go1.16.13.src.tar.gz -P /tmp/ && \
+tar -C /usr/local/ -xf /tmp/go1.16.13.src.tar.gz && \
 mv /usr/local/go/ /usr/local/go-1.16.13/ && \
 cd /usr/local/go-1.16.13/src/ && ./make.bash && \
 \
 # Install Go environment (latest version)
-wget -O /tmp/go-$GO_VERSION.tar.gz https://dl.google.com/go/go$GO_VERSION.src.tar.gz && \
-tar -C /usr/local/ -xf /tmp/go-$GO_VERSION.tar.gz && \
+wget https://dl.google.com/go/go$GO_VERSION.src.tar.gz -P /tmp/ && \
+tar -C /usr/local/ -xf /tmp/go$GO_VERSION.src.tar.gz && \
 mv /usr/local/go/ /usr/local/go-$GO_VERSION/ && \
 cd /usr/local/go-$GO_VERSION/src/ && ./make.bash && \
 \
 # Switch to latest version of Golang
 apk del go && \
 export PATH=$PATH:/usr/local/go-$GO_VERSION/bin && \
-\
-# Compile and install openssl (version 1.0.2u)
-wget https://www.openssl.org/source/old/1.0.2/openssl-1.0.2u.tar.gz -P /tmp && \
-cd /tmp/ && tar xf openssl-1.0.2u.tar.gz && cd ./openssl-1.0.2u/ && \
-./config --shared --prefix=/usr && make && make install && \
-cp /usr/lib/libcrypto.so.1.0.0 /tmp/release/ && \
 \
 # Install and package numpy / salsa20 / flask / IPy / redis / pysocks / requests
 pip install numpy salsa20 flask IPy redis pysocks && \
@@ -137,6 +133,24 @@ cd /tmp/shadowsocks-bootstrap/ && mkdir ./build/ && \
 cd ./build/ && cmake -DCMAKE_BUILD_TYPE=Release .. && make && \
 mv ../bin/* /tmp/release/ && \
 \
+# Compile trojan
+cd /tmp/trojan && git checkout $TROJAN_VERSION && \
+mkdir ./build/ && cd ./build/ && \
+cmake .. -DENABLE_MYSQL=OFF -DSYSTEMD_SERVICE=OFF && make && \
+mv ./trojan /tmp/release/ && \
+\
+# Compile shadowsocks-libev (latest version)
+cd /tmp/shadowsocks-libev-$SS_LIBEV/ && \
+./configure --prefix=/usr && make && make install && \
+mv /usr/bin/ss-local /tmp/release/ss-libev-local && \
+mv /usr/bin/ss-server /tmp/release/ss-libev-server && \
+\
+# Compile and install openssl (version 1.0.2u)
+wget https://www.openssl.org/source/old/1.0.2/openssl-1.0.2u.tar.gz -P /tmp && \
+cd /tmp/ && tar xf openssl-1.0.2u.tar.gz && cd ./openssl-1.0.2u/ && \
+./config --shared --prefix=/usr && make && make install && \
+cp /usr/lib/libcrypto.so.1.0.0 /tmp/release/ && \
+\
 # Compile shadowsocks-libev-2.6.3
 cd /tmp/shadowsocks-libev-2.6.3/ && \
 sed -i '/ss-nat/d' `grep "ss-nat" -rl src/*` && \
@@ -144,14 +158,6 @@ sed -i 's/^const protocol_t/extern const protocol_t/g' `grep "^const protocol" -
 ./configure --prefix=/usr && make && make install && \
 mv /usr/bin/ss-local /tmp/release/ss-libev-legacy-local && \
 mv /usr/bin/ss-server /tmp/release/ss-libev-legacy-server && \
-\
-# Compile shadowsocks-libev (latest version)
-apk add --no-cache --virtual .build-deps libsodium-dev openssl-dev && \
-cd /tmp/shadowsocks-libev-$SS_LIBEV/ && \
-./configure --prefix=/usr && make && make install && \
-mv /usr/bin/ss-local /tmp/release/ss-libev-local && \
-mv /usr/bin/ss-server /tmp/release/ss-libev-server && \
-apk del .build-deps && \
 \
 # Compile shadowsocks-rust
 cd /tmp/shadowsocks-rust-$SS_RUST/ && \
@@ -278,8 +284,8 @@ mv /tmp/packages/ /tmp/asset/lib/$PYTHON_DIR/site-packages/
 FROM alpine:3.15
 COPY . /usr/local/share/ProxyC
 COPY --from=asset /tmp/asset/ /usr/
-RUN apk add --no-cache c-ares ca-certificates glib \
-        libev libsodium mbedtls pcre python3 redis udns && \
+RUN apk add --no-cache boost-program_options boost-system c-ares ca-certificates \
+        glib libev libsodium libstdc++ mbedtls pcre python3 redis udns && \
 echo "daemonize yes" >> /etc/redis.conf && \
 PKG_DIR=/usr/lib/`ls /usr/lib/ | grep ^python`/site-packages && \
 rm -rf `find /usr/lib/ -name '__pycache__'` && \
