@@ -13,7 +13,7 @@ vmessMethodList = [
     'zero',
 ]
 
-def vmessBasicTest(method: str, alterId: int):
+def vmessBasicTest(method: str, alterId: int) -> dict:
     inboundConfig = {
         'protocol': 'vmess',
         'listen': '127.0.0.1',
@@ -57,7 +57,7 @@ def vmessBasicTest(method: str, alterId: int):
         'aider': None
     }
 
-def loadVmessStream(streamInfo):
+def loadVmessStream(streamInfo: dict) -> dict:
     proxyInfo = {
         'type': 'vmess',
         'server': '127.0.0.1',

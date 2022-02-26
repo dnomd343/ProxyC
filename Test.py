@@ -66,7 +66,7 @@ def testObject(option: dict) -> None: # test target object
 if len(sys.argv) == 1: # no param
     print('Unknown test type')
     sys.exit(1)
-testList = Tester.test(sys.argv[1].lower(), testConfig) # get test list
+testList = Tester.test(sys.argv[1].lower().strip(), testConfig) # get test list
 
 if len(sys.argv) == 2: # test all
     for i in range(0, len(testList)):
