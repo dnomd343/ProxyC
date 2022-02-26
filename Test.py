@@ -13,6 +13,9 @@ testConfig = {
     'port': 12345,
     'passwd': 'dnomd343',
     'host': 'dns.343.re',
+    'path': '/test',
+    'service': 'dnomd343',
+    'file': '/tmp/proxyc-test.json',
     'cert': '/etc/ssl/certs/dns.343.re/certificate.crt',
     'key': '/etc/ssl/certs/dns.343.re/private.key',
     'id': '1f7aa040-94d8-4b53-ae85-af6946d550bb',
@@ -63,7 +66,7 @@ def testObject(option: dict) -> None: # test target object
 if len(sys.argv) == 1: # no param
     print('Unknown test type')
     sys.exit(1)
-testList = Tester.test(sys.argv[1], testConfig) # get test list
+testList = Tester.test(sys.argv[1].lower(), testConfig) # get test list
 
 if len(sys.argv) == 2: # test all
     for i in range(0, len(testList)):

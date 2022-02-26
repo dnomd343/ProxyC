@@ -132,8 +132,7 @@ v2rayStreamRules = {
         },
         'secure': {
             'optional': False,
-            'default': None,
-            'allowNone': True,
+            'default': {},
             'type': 'secureObject'
         }
     },
@@ -218,7 +217,8 @@ v2rayStreamRules = {
         },
         'alpn': {
             'optional': False,
-            'default': 'h2,http/1.1',
+            'default': None,
+            'allowNone': True,
             'type': str,
             'format': baseFunc.toStrTidy,
             'filter': lambda alpn: alpn in ['h2', 'http/1.1', 'h2,http/1.1'],

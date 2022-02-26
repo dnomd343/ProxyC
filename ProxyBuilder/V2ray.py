@@ -41,9 +41,10 @@ def __secureConfig(secureInfo: dict or None) -> dict: # TLS加密传输配置
     if secureInfo is None:
         return {}
     tlsObject = {
-        'allowInsecure': not secureInfo['verify'],
-        'alpn': secureInfo['alpn'].split(',')
+        'allowInsecure': not secureInfo['verify']
     }
+    if secureInfo['alpn'] is not None:
+        tlsObject['alpn'] = secureInfo['alpn'].split(',')
     if secureInfo['sni'] != '':
         tlsObject['serverName'] = secureInfo['sni']
     return {

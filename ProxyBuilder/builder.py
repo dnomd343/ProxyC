@@ -119,7 +119,6 @@ def build(proxyInfo: dict, configDir: str,
     except: # 配置文件写入失败
         raise Exception('Unable write to file ' + str(configFile))
 
-    process = None
     try: # 子进程形式启动
         for libcPath in libcPaths:
             if os.path.exists(libcPath): # 定位libc.so文件

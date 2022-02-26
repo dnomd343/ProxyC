@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
+import copy
+
 from ProxyFilter import baseFunc
 from ProxyFilter import V2ray
 
@@ -10,11 +12,7 @@ xrayFlowList = [
     'xtls-splice',
 ]
 
-def testFunc(raw):
-    print(raw)
-    return False
-
-xrayStreamRules = V2ray.v2rayStreamRules
+xrayStreamRules = copy.deepcopy(V2ray.v2rayStreamRules)
 xrayStreamRules.pop('secureObject')
 xrayStreamRules['tcpObject']['secure']['type'] = ['tlsObject', 'xtlsObject']
 xrayStreamRules['kcpObject']['secure']['type'] = ['tlsObject', 'xtlsObject']
@@ -40,7 +38,8 @@ xrayStreamRules['tlsObject'] = {
     },
     'alpn': {
         'optional': False,
-        'default': 'h2,http/1.1',
+        'default': None,
+        'allowNone': True,
         'type': str,
         'format': baseFunc.toStrTidy,
         'filter': lambda alpn: alpn in ['h2', 'http/1.1', 'h2,http/1.1'],
@@ -71,7 +70,8 @@ xrayStreamRules['xtlsObject'] = {
     },
     'alpn': {
         'optional': False,
-        'default': 'h2,http/1.1',
+        'default': None,
+        'allowNone': True,
         'type': str,
         'format': baseFunc.toStrTidy,
         'filter': lambda alpn: alpn in ['h2', 'http/1.1', 'h2,http/1.1'],

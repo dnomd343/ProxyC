@@ -1,8 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-import copy
-import json
+from ProxyTester import V2ray
 
 config = {}
 
@@ -14,23 +13,8 @@ vmessMethodList = [
     'zero',
 ]
 
-def loadServerConfig(inboundObject: dict) -> str:
-    return json.dumps({
-        'log': {
-            'loglevel': 'warning'
-        },
-        'inbounds': [inboundObject],
-        'outbounds': [
-            {
-                'protocol': 'freedom'
-            }
-        ]
-    })
-
-def basicConfig(method: str, alterId: int):
-    filePath = '/tmp/v2ray.json'
-
-    inboundObject = {
+def vmessBasicTest(method: str, alterId: int):
+    inboundConfig = {
         'protocol': 'vmess',
         'listen': '127.0.0.1',
         'port': config['port'],
@@ -65,10 +49,43 @@ def basicConfig(method: str, alterId: int):
             'aid': alterId
         },
         'server': {
-            'startCommand': ['v2ray', '-c', filePath],
-            'fileContent': loadServerConfig(inboundObject),
-            'filePath': filePath,
+            'startCommand': ['v2ray', '-c', config['file']],
+            'fileContent': V2ray.v2rayConfig(inboundConfig),
+            'filePath': config['file'],
             'envVar': envVar
+        },
+        'aider': None
+    }
+
+def loadVmessStream(streamInfo):
+    proxyInfo = {
+        'type': 'vmess',
+        'server': '127.0.0.1',
+        'port': config['port'],
+        'id': config['id'],
+        'stream': streamInfo['client']
+    }
+    inboundConfig = {
+        'protocol': 'vmess',
+        'listen': '127.0.0.1',
+        'port': config['port'],
+        'settings': {
+            'clients': [
+                {
+                    'id': config['id']
+                }
+            ]
+        },
+        'streamSettings': streamInfo['server']
+    }
+    return {
+        'caption': 'VMess network ' + streamInfo['caption'],
+        'proxy': proxyInfo,
+        'server': {
+            'startCommand': ['v2ray', '-c', config['file']],
+            'fileContent': V2ray.v2rayConfig(inboundConfig),
+            'filePath': config['file'],
+            'envVar': {}
         },
         'aider': None
     }
@@ -77,8 +94,57 @@ def vmessTest(vmessConfig: dict) -> list:
     result = []
     for key, value in vmessConfig.items(): # vmessConfig -> config
         config[key] = value
+
+    # Basic test
     for method in vmessMethodList: # methods and AEAD/MD5+AES test
-        result.append(basicConfig(method, 0))
-        result.append(basicConfig(method, 64))
+        result.append(vmessBasicTest(method, 0))
+        result.append(vmessBasicTest(method, 64))
+
+    # TCP stream
+    streamInfo = V2ray.loadTcpStream(False, '', '')
+    result.append(loadVmessStream(streamInfo))
+    streamInfo = V2ray.addSecureConfig(streamInfo, config['cert'], config['key'], config['host'])
+    result.append(loadVmessStream(streamInfo))
+
+    streamInfo = V2ray.loadTcpStream(True, config['host'], '/')
+    result.append(loadVmessStream(streamInfo))
+    streamInfo = V2ray.addSecureConfig(streamInfo, config['cert'], config['key'], config['host'])
+    result.append(loadVmessStream(streamInfo))
+
+    # mKCP stream
+    for obfs in V2ray.udpObfsList:
+        streamInfo = V2ray.loadKcpStream(config['passwd'], obfs)
+        result.append(loadVmessStream(streamInfo))
+        streamInfo = V2ray.addSecureConfig(streamInfo, config['cert'], config['key'], config['host'])
+        result.append(loadVmessStream(streamInfo))
+
+    # WebSocket stream
+    streamInfo = V2ray.loadWsStream(config['host'], config['path'], False)
+    result.append(loadVmessStream(streamInfo))
+    streamInfo = V2ray.addSecureConfig(streamInfo, config['cert'], config['key'], config['host'])
+    result.append(loadVmessStream(streamInfo))
+
+    streamInfo = V2ray.loadWsStream(config['host'], config['path'], True)
+    result.append(loadVmessStream(streamInfo))
+    streamInfo = V2ray.addSecureConfig(streamInfo, config['cert'], config['key'], config['host'])
+    result.append(loadVmessStream(streamInfo))
+
+    # HTTP/2 stream
+    streamInfo = V2ray.loadH2Stream(config['host'], config['path'])
+    streamInfo = V2ray.addSecureConfig(streamInfo, config['cert'], config['key'], config['host'])
+    result.append(loadVmessStream(streamInfo))
+
+    # QUIC stream
+    for method in V2ray.quicMethodList:
+        for obfs in V2ray.udpObfsList:
+            streamInfo = V2ray.loadQuicStream(method, config['passwd'], obfs)
+            streamInfo = V2ray.addSecureConfig(streamInfo, config['cert'], config['key'], config['host'])
+            result.append(loadVmessStream(streamInfo))
+
+    # GRPC stream
+    streamInfo = V2ray.loadGrpcStream(config['service'])
+    result.append(loadVmessStream(streamInfo))
+    streamInfo = V2ray.addSecureConfig(streamInfo, config['cert'], config['key'], config['host'])
+    result.append(loadVmessStream(streamInfo))
 
     return result

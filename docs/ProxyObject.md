@@ -373,7 +373,7 @@
 
 **secure**
 
-+ 类型：*None* / *secureObject*
++ 类型：*secureObject*
 + 说明：TLS加密
 + 缺省：None
 + 可选值：不限
@@ -488,9 +488,9 @@
 
 **alpn**
 
-+ 类型：*str*
++ 类型：*None* / *str*
 + 说明：TLS握手协商协议
-+ 缺省：'h2,http/1.1'
++ 缺省：None
 + 可选值：`h2`,`http/1.1`,`h2,http/1.1`
 + 建议值：'h2,http/1.1'
 
@@ -687,7 +687,7 @@
 
 **secure**
 
-+ 类型：*None* / *tlsObject*
++ 类型：*tlsObject*
 + 说明：TLS加密
 + 缺省：None
 + 可选值：不限
@@ -803,9 +803,9 @@
 
 **alpn**
 
-+ 类型：*str*
++ 类型：*None* / *str*
 + 说明：TLS握手协商协议
-+ 缺省：'h2,http/1.1'
++ 缺省：None
 + 可选值：`h2`,`http/1.1`,`h2,http/1.1`
 + 建议值：'h2,http/1.1'
 
@@ -840,9 +840,9 @@
 
 **alpn**
 
-+ 类型：*str*
++ 类型：*None* / *str*
 + 说明：TLS握手协商协议
-+ 缺省：'h2,http/1.1'
++ 缺省：None
 + 可选值：`h2`,`http/1.1`,`h2,http/1.1`
 + 建议值：'h2,http/1.1'
 
