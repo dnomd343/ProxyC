@@ -140,4 +140,9 @@ def trojanTest(trojanConfig: dict) -> list:
     streamInfo = Xray.addTlsConfig(streamInfo, config['cert'], config['key'], config['host'])
     result.append(loadTrojanStream(streamInfo, None))
 
+    streamInfo = Xray.loadGrpcStream(config['service'], multiMode = True)
+    result.append(loadTrojanStream(streamInfo, None))
+    streamInfo = Xray.addTlsConfig(streamInfo, config['cert'], config['key'], config['host'])
+    result.append(loadTrojanStream(streamInfo, None))
+
     return result

@@ -24,13 +24,13 @@ httpHeader = {
 }
 
 kcpSetting = {
-    "mtu": 1350,
-    "tti": 20,
-    "uplinkCapacity": 5,
-    "downlinkCapacity": 20,
-    "congestion": False,
-    "readBufferSize": 1,
-    "writeBufferSize": 1,
+    'mtu': 1350,
+    'tti': 20,
+    'uplinkCapacity': 5,
+    'downlinkCapacity': 20,
+    'congestion': False,
+    'readBufferSize': 1,
+    'writeBufferSize': 1,
 }
 
 udpObfsList = [
@@ -165,26 +165,42 @@ def loadQuicStream(method: str, passwd: str, obfs: str) -> dict:
         'server': {
             'network': 'quic',
             'quicSettings': {
-                "security": method,
-                "key": passwd,
-                "header": {
-                    "type": obfs
+                'security': method,
+                'key': passwd,
+                'header': {
+                    'type': obfs
                 }
             }
         }
     }
 
-def loadGrpcStream(service: str) -> dict:
+def loadGrpcStream(service: str, multiMode: bool = False) -> dict:
+    if not multiMode:
+        return {
+            'caption': 'gRPC',
+            'client': {
+                'type': 'grpc',
+                'service': service
+            },
+            'server': {
+                'network': 'grpc',
+                'grpcSettings': {
+                    'serviceName': service
+                }
+            }
+        }
     return {
-        'caption': 'gRPC',
+        'caption': 'gRPC multi-mode',
         'client': {
             'type': 'grpc',
-            'service': service
+            'service': service,
+            'mode': 'multi'
         },
         'server': {
             'network': 'grpc',
             'grpcSettings': {
-                "serviceName": service
+                'serviceName': service,
+                'multiMode': True # gRPC multi-mode not work in v2fly-core
             }
         }
     }

@@ -187,6 +187,14 @@ v2rayStreamRules = {
             'type': str,
             'format': baseFunc.toStr
         },
+        'mode': {
+            'optional': False,
+            'default': 'gun',
+            'type': str,
+            'format': baseFunc.toStrTidy,
+            'filter': lambda mode: mode in ['gun', 'multi'],
+            'errMsg': 'Unknown gRPC mode'
+        },
         'secure': {
             'optional': False,
             'default': None,

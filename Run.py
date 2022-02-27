@@ -37,7 +37,7 @@ def __getCheckInfo() -> tuple[str or None, dict or None]:
         key = checkList[0] # 选取首个任务
         taskContent = redisObject.get(key) # 获取任务信息
         redisObject.delete(key) # 删除任务记录
-        tag = str(key[len(redisPrefix) + 8:], encoding = "utf-8") # {prefix}check-x-{tag}
+        tag = str(key[len(redisPrefix) + 8:], encoding = 'utf-8') # {prefix}check-x-{tag}
     except:
         return None, None
     try:

@@ -73,7 +73,7 @@ def kcpConfig(streamInfo: dict, secureFunc) -> dict: # mKCP传输方式配置
         'kcpSettings': kcpObject
     }, **secureFunc(streamInfo['secure'])}
 
-def wsConfig(streamInfo: dict, edInPath: bool, secureFunc) -> dict: # WebSocket传输方式配置
+def wsConfig(streamInfo: dict, secureFunc) -> dict: # WebSocket传输方式配置
     wsObject = {
         'path': streamInfo['path']
     }
@@ -81,14 +81,8 @@ def wsConfig(streamInfo: dict, edInPath: bool, secureFunc) -> dict: # WebSocket�
         wsObject['headers'] = {}
         wsObject['headers']['Host'] = streamInfo['host']
     if streamInfo['ed'] is not None:
-        if not edInPath:
-            wsObject['maxEarlyData'] = streamInfo['ed']
-            wsObject['earlyDataHeaderName'] = 'Sec-WebSocket-Protocol'
-        else: # ed参数写入路径 -> /...?ed=xxx
-            if wsObject['path'].find('?') == -1: # 原路径不带参数
-                wsObject['path'] += '?ed=' + str(streamInfo['ed'])
-            else:
-                wsObject['path'] += '&ed=' + str(streamInfo['ed'])
+        wsObject['maxEarlyData'] = streamInfo['ed']
+        wsObject['earlyDataHeaderName'] = 'Sec-WebSocket-Protocol'
     return {**{
         'network': 'ws',
         'wsSettings': wsObject
@@ -118,11 +112,14 @@ def quicConfig(streamInfo: dict, secureFunc) -> dict: # QUIC传输方式配置
     }, **secureFunc(streamInfo['secure'])}
 
 def grpcConfig(streamInfo: dict, secureFunc) -> dict: # gRPC传输方式配置
+    grpcObject = {
+        'serviceName': streamInfo['service']
+    }
+    if streamInfo['mode'] == 'multi': # gRPC multi-mode not work in v2fly-core
+        grpcObject['multiMode'] = True
     return {**{
         'network': 'grpc',
-        'grpcSettings': {
-            'serviceName': streamInfo['service']
-        }
+        'grpcSettings': grpcObject
     }, **secureFunc(streamInfo['secure'])}
 
 def v2rayStreamConfig(streamInfo: dict) -> dict: # 生成v2ray传输方式配置
@@ -132,7 +129,7 @@ def v2rayStreamConfig(streamInfo: dict) -> dict: # 生成v2ray传输方式配置
     elif streamType == 'kcp':
         return kcpConfig(streamInfo, __secureConfig)
     elif streamType == 'ws':
-        return wsConfig(streamInfo, False, __secureConfig)
+        return wsConfig(streamInfo, __secureConfig)
     elif streamType == 'h2':
         return h2Config(streamInfo, __secureConfig)
     elif streamType == 'quic':

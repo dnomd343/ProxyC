@@ -101,4 +101,9 @@ def vlessTest(vlessConfig: dict) -> list:
     streamInfo = Xray.addTlsConfig(streamInfo, config['cert'], config['key'], config['host'])
     result.append(loadVlessStream(streamInfo, None))
 
+    streamInfo = Xray.loadGrpcStream(config['service'], multiMode = True)
+    result.append(loadVlessStream(streamInfo, None))
+    streamInfo = Xray.addTlsConfig(streamInfo, config['cert'], config['key'], config['host'])
+    result.append(loadVlessStream(streamInfo, None))
+
     return result
