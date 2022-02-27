@@ -4,6 +4,7 @@
 import re
 from ProxyDecoder import Shadowsocks
 from ProxyDecoder import ShadowsocksR
+from ProxyDecoder import VMess
 
 def decode(url: str) -> dict or None:
     """
@@ -22,9 +23,11 @@ def decode(url: str) -> dict or None:
     try:
         scheme = re.search(r'^([\S]+?)://([\s\S]+)$', url).group(1)
         if scheme == 'ss':
-            return Shadowsocks.ssDecode(url)
+            return Shadowsocks.ssDecode(url, compatible = True)
         elif scheme == 'ssr':
             return ShadowsocksR.ssrDecode(url)
+        elif scheme == 'vmess':
+            return VMess.vmessDecode(url)
     except:
         pass
     return None
