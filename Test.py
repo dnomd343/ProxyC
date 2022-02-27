@@ -52,12 +52,15 @@ def testObject(option: dict) -> None: # test target object
     })
     print(option['caption'], end=' -> ')
     if not checkResult['success']: # client build error
-        print('\n----------------------------------------------------------------')
+        print('\n--------------------------------------------------------------------------------------------------------------------------------')
         print(option)
-        print('----------------------------------------------------------------\n')
+        print('--------------------------------------------------------------------------------------------------------------------------------\n')
+        testDestroy(option['server'], serverProcess)  # destroy and exit
+        if option['aider'] is not None:
+            testDestroy(option['aider'], aiderProcess)
         raise Exception('check error')
     delay = checkResult['check']['http']['delay'] # get http delay
-    print(str(delay) + 'ms')
+    print(format(delay, '.2f') + 'ms')
 
     testDestroy(option['server'], serverProcess) # destroy server process
     if option['aider'] is not None:

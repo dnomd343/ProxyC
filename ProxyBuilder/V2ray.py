@@ -101,7 +101,7 @@ def h2Config(streamInfo: dict, secureFunc) -> dict: # HTTP/2传输方式配置
     if streamInfo['host'] != '':
         h2Object['host'] = streamInfo['host'].split(',')
     return {**{
-        'network': 'h2',
+        'network': 'http',
         'httpSettings': h2Object
     }, **secureFunc(streamInfo['secure'])}
 

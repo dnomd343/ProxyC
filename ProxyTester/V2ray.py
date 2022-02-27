@@ -145,7 +145,7 @@ def loadH2Stream(host: str, path: str) -> dict:
             'path': path
         },
         'server': {
-            'network': 'h2',
+            'network': 'http',
             'httpSettings': {
                 'host': [host],
                 'path': path
