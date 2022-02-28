@@ -589,7 +589,7 @@
 
 + 类型：*None* / *tlsObject* / *xtlsObject*
 + 说明：TLS加密
-+ 缺省：None
++ 缺省：tlsObject
 + 可选值：不限
 
 ### kcpObject
@@ -621,7 +621,7 @@
 
 + 类型：*None* / *tlsObject* / *xtlsObject*
 + 说明：TLS加密
-+ 缺省：None
++ 缺省：tlsObject
 + 可选值：不限
 
 ### wsObject
@@ -664,7 +664,7 @@
 
 + 类型：*None* / *tlsObject*
 + 说明：TLS加密
-+ 缺省：None
++ 缺省：tlsObject
 + 可选值：不限
 
 ### h2Object
@@ -698,7 +698,7 @@
 
 + 类型：*tlsObject*
 + 说明：TLS加密
-+ 缺省：None
++ 缺省：tlsObject
 + 可选值：不限
 
 ### quicObject
@@ -738,7 +738,7 @@
 
 + 类型：*tlsObject*
 + 说明：TLS加密
-+ 缺省：secureObject
++ 缺省：tlsObject
 + 可选值：不限
 
 ### grpcObject
@@ -772,7 +772,7 @@
 
 + 类型：*None* / *tlsObject*
 + 说明：TLS加密
-+ 缺省：None
++ 缺省：tlsObject
 + 可选值：不限
 
 ### obfsObject
@@ -956,7 +956,7 @@
 
 + 类型：*None* / *tlsObject* / *xtlsObject*
 + 说明：TLS加密
-+ 缺省：None
++ 缺省：tlsObject
 + 可选值：不限
 
 ### kcpObject
@@ -988,7 +988,7 @@
 
 + 类型：*None* / *tlsObject* / *xtlsObject*
 + 说明：TLS加密
-+ 缺省：None
++ 缺省：tlsObject
 + 可选值：不限
 
 ### wsObject
@@ -1031,7 +1031,7 @@
 
 + 类型：*None* / *tlsObject*
 + 说明：TLS加密
-+ 缺省：None
++ 缺省：tlsObject
 + 可选值：不限
 
 ### h2Object
@@ -1065,7 +1065,7 @@
 
 + 类型：*tlsObject*
 + 说明：TLS加密
-+ 缺省：None
++ 缺省：tlsObject
 + 可选值：不限
 
 ### quicObject
@@ -1105,7 +1105,7 @@
 
 + 类型：*tlsObject*
 + 说明：TLS加密
-+ 缺省：secureObject
++ 缺省：tlsObject
 + 可选值：不限
 
 ### grpcObject
@@ -1139,7 +1139,7 @@
 
 + 类型：*None* / *tlsObject*
 + 说明：TLS加密
-+ 缺省：None
++ 缺省：tlsObject
 + 可选值：不限
 
 ### obfsObject

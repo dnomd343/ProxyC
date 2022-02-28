@@ -14,12 +14,20 @@ xrayFlowList = [
 
 xrayStreamRules = copy.deepcopy(V2ray.v2rayStreamRules)
 xrayStreamRules.pop('secureObject')
+
 xrayStreamRules['tcpObject']['secure']['type'] = ['tlsObject', 'xtlsObject']
 xrayStreamRules['kcpObject']['secure']['type'] = ['tlsObject', 'xtlsObject']
 xrayStreamRules['wsObject']['secure']['type'] = 'tlsObject'
 xrayStreamRules['h2Object']['secure']['type'] = 'tlsObject'
 xrayStreamRules['quicObject']['secure']['type'] = 'tlsObject'
 xrayStreamRules['grpcObject']['secure']['type'] = 'tlsObject'
+
+xrayStreamRules['tcpObject']['secure']['default'] = {'type': 'tls'}
+xrayStreamRules['kcpObject']['secure']['default'] = {'type': 'tls'}
+xrayStreamRules['wsObject']['secure']['default'] = {'type': 'tls'}
+xrayStreamRules['h2Object']['secure']['default'] = {'type': 'tls'}
+xrayStreamRules['quicObject']['secure']['default'] = {'type': 'tls'}
+xrayStreamRules['grpcObject']['secure']['default'] = {'type': 'tls'}
 
 xrayStreamRules['tlsObject'] = {
     'type': {
