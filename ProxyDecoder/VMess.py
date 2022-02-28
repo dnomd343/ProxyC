@@ -119,6 +119,116 @@ def __vmessV2raynDecode(url: str) -> dict:
     info['stream'] = stream
     return info
 
+def __vmessCommonDecode(url: str) -> dict:
+    """
+    VMess标准分享链接解码 (only VMessAEAD)
+
+    FORMAT: vmess://$(UUID)@server:port?{fields}#$(remark)
+
+        type -> tcp / kcp / ws / http / quic / grpc
+
+        encryption -> auto / aes-128-gcm / chacha20-poly1305
+
+        security -> none / tls
+
+        path -> WebSocket / HTTP/2
+
+        host -> WebSocket / HTTP/2
+
+        headerType -> mKCP / QUIC UDP obfs -> none / srtp / utp / wechat-video / dtls / wireguard
+
+        seed -> mKCP seed
+
+        quicSecurity -> QUIC method
+
+        key -> QUIC key
+
+        serviceName -> gRPC Service Name
+
+        mode -> gRPC transport mode -> gun / multi / guna
+
+        sni -> TLS SNI
+
+        alpn -> TLS ALPN
+
+    """
+    match = re.search(r'^vmess://([\S]+?)(#[\S]*)?$', url) # vmess://...#REMARK
+    remark = baseFunc.urlDecode(
+        match[2][1:] if match[2] is not None else ''
+    )
+    match = re.search(
+        r'^([\S]+)@([a-zA-Z0-9.:\-_\[\]]+):([0-9]+)/?([\S]*)$', match[1]
+    )
+    info = {
+        'server': baseFunc.formatHost(match[2]),
+        'port': int(match[3]),
+        'id': baseFunc.urlDecode(match[1]),
+        'remark': remark
+    }
+    params = baseFunc.paramSplit(match[4])
+    if 'encryption' in params:
+        info['method'] = params['encryption']
+    stream = {
+        'type': params['type']
+    }
+
+    """
+        ?httpObfs
+        path -> WebSocket / HTTP/2
+        host -> WebSocket / HTTP/2
+    """
+    if params['type'] == 'tcp':
+        if 'headerType' in params and params['headerType']:
+            stream['obfs'] = {}
+            if 'host' in params:
+                stream['obfs']['host'] = params['host']
+            if 'path' in params:
+                stream['obfs']['path'] = params['path']
+    elif params['type'] == 'kcp':
+        if 'headerType' in params:
+            stream['obfs'] = params['headerType']
+        if 'seed' in params:
+            stream['seed'] = params['seed']
+    elif params['type'] == 'ws':
+        if 'host' in params:
+            stream['host'] = params['host']
+        if 'path' in params:
+            try:
+                stream['ed'], stream['path'] = __splitEdParam(params['path'])
+            except:
+                stream['path'] = params['path']
+    elif params['type'] == 'http':
+        if 'host' in params:
+            stream['host'] = params['host']
+        if 'path' in params:
+            stream['path'] = params['path']
+    elif params['type'] == 'quic':
+        if 'headerType' in params:
+            stream['obfs'] = params['headerType']
+        if 'quicSecurity' in params:
+            stream['method'] = params['quicSecurity']
+        if 'key' in params:
+            stream['passwd'] = params['key']
+    elif params['type'] == 'grpc':
+        if 'serviceName' in params:
+            stream['service'] = params['serviceName']
+        if 'mode' in params and params['mode'] == 'multi':
+            stream['mode'] = 'multi'
+    else:
+        raise Exception('Unknown network type')
+
+    secure = None
+    if 'security' in params and params['security'] == 'tls':
+        secure = {}
+        if 'sni' in params:
+            secure['sni'] = params['sni']
+        if 'alpn' in params:
+            secure['alpn'] = params['alpn']
+
+    stream['secure'] = secure
+    info['stream'] = stream
+    return info
+
 def vmessDecode(url: str) -> dict or None:
     """
     VMess分享链接解码
@@ -137,6 +247,9 @@ def vmessDecode(url: str) -> dict or None:
     try:
         result = __vmessV2raynDecode(url) # try v2rayN decode
     except:
-        return None
+        try:
+            result = __vmessCommonDecode(url)  # try VMess common decode
+        except:
+            return None
     result['type'] = 'vmess'
     return result

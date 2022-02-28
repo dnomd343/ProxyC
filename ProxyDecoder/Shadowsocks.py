@@ -13,18 +13,22 @@ def __ssPlainDecode(url: str) -> dict:
     EXAMPLE:
         ss://bf-cfb:test@192.168.100.1:8888#EXAMPLE
     """
-    content = re.search(r'^ss://([\s\S]+?)(#[\s\S]*)?$', url) # ...#REMARK
-    info = re.search(
-        r'^([\S]+?):([\S]+)@([a-zA-Z0-9.:_-]+):([0-9]+)$',
-        content.group(1) # method:password@server:port
+    remark = ''
+    match = re.search(r'^ss://([\S]+)$', url) # ss://...
+    if match[1].find('#') != -1: # ...#REMARK
+        match = re.search(r'^([\S]+)#([\S]*)$', match[1])
+        remark = baseFunc.urlDecode(
+            match[2] if match[2] is not None else ''
+        )
+    match = re.search(
+        r'^([\S]+?):([\S]+)@([a-zA-Z0-9.:\-_\[\]]+):([0-9]+)$', match[1] # method:password@server:port
     )
-    remark = content.group(2)[1:] if content.group(2) is not None else ''
     return {
-        'server': info[3],
-        'port': int(info[4]),
-        'passwd': info[2],
-        'method': info[1],
-        'remark': baseFunc.urlDecode(remark)
+        'server': baseFunc.formatHost(match[3]),
+        'port': int(match[4]),
+        'passwd': match[2],
+        'method': match[1],
+        'remark': remark
     }
 
 def __ssCommonDecode(url: str) -> dict:
@@ -38,17 +42,20 @@ def __ssCommonDecode(url: str) -> dict:
         -> YmYtY2ZiOnRlc3QvIUAjOkAxOTIuMTY4LjEwMC4xOjg4ODg
         -> ss://YmYtY2ZiOnRlc3QvIUAjOkAxOTIuMTY4LjEwMC4xOjg4ODg#example-server
     """
-    content = re.search(r'^ss://([a-zA-Z0-9_=+\\-]+)#?([\S]*)?$', url)  # base64#REMARK
-    info = re.search(
-        r'^([\S]+?):([\S]+)@([a-zA-Z0-9.:_-]+):([0-9]+)$',
-        baseFunc.base64Decode(content.group(1)) # method:password@server:port
+    match = re.search(r'^ss://([a-zA-Z0-9\-_+\\=]+)#?([\S]*)?$', url)  # base64#REMARK
+    remark = baseFunc.urlDecode(
+        match[2] if match[2] is not None else ''
+    )
+    match = re.search(
+        r'^([\S]+?):([\S]+)@([a-zA-Z0-9.:\-_\[\]]+):([0-9]+)$',
+        baseFunc.base64Decode(match[1]) # method:password@server:port
     )
     return {
-        'server': info[3],
-        'port': int(info[4]),
-        'passwd': info[2],
-        'method': info[1],
-        'remark': baseFunc.urlDecode(content.group(2))
+        'server': baseFunc.formatHost(match[3]),
+        'port': int(match[4]),
+        'passwd': match[2],
+        'method': match[1],
+        'remark': remark
     }
 
 def __sip002Decode(url: str) -> dict:
@@ -66,55 +73,47 @@ def __sip002Decode(url: str) -> dict:
 
         => ss://cmM0LW1kNTpwYXNzd2Q@192.168.100.1:8888/?plugin=obfs-local%3Bobfs%3Dhttp#Example
     """
-    content = re.search(
-        r'^ss://([a-zA-Z0-9_=+\\-]+)@([a-zA-Z0-9.:_-]+):([0-9]+)'
+    match = re.search(
+        r'^ss://([a-zA-Z0-9\-_+\\=]+)@([a-zA-Z0-9.:\-_\[\]]+):([0-9]+)'
         r'/?([\S]*)$', url  # base64@server:port/... (/可选)
     )
     userInfo = re.search(
         r'^([\S]+?):([\S]+)$',
-        baseFunc.base64Decode(content.group(1)) # method:password
+        baseFunc.base64Decode(match[1]) # method:password
     )
+
     info = {
-        'server': content.group(2),
-        'port': int(content.group(3)),
-        'passwd': userInfo.group(2),
-        'method': userInfo.group(1),
+        'server': baseFunc.formatHost(match[2]),
+        'port': int(match[3]),
+        'passwd': userInfo[2],
+        'method': userInfo[1],
         'remark': ''
     }
-    if content.group(4).find('#') != -1: # ...#REMARK
-        content = re.search(
-            r'^\??([\S]*)#([\S]*)$',
-            content.group(4) # ?...#REMARK (?可选)
+    if match[4].find('#') != -1: # ...#REMARK
+        match = re.search(
+            r'^\??([\S]*)#([\S]*)$', match[4] # ?...#REMARK (?可选)
         )
-        info['remark'] = baseFunc.urlDecode(
-            content.group(2)
-        )
+        info['remark'] = baseFunc.urlDecode(match[2])
     else:
-        content = re.search(
-            r'^\??([\S]*)$',
-            content.group(4) # ?... (?可选)
+        match = re.search(
+            r'^\??([\S]*)$', match[4] # ?... (?可选)
         )
-    plugin = ''
-    for field in content.group(1).split('&'): # /?plugin=...&other1=...&other2=...
-        if field.find('=') == -1: # 缺失xxx=...
-            continue
-        field = re.search(r'^([\S]*?)=([\S]*)$', field) # xxx=...
-        if field.group(1) == 'plugin':
-            plugin = baseFunc.urlDecode(field.group(2)) # plugin参数
-            break
-    if plugin.find(';') == -1: # plugin=... (无参数)
-        pluginField = {
-            'type': plugin,
+
+    params = baseFunc.paramSplit(match[1]) # /?plugin=...&other1=...&other2=...
+    pluginField = params['plugin'] if 'plugin' in params else ''
+    if pluginField.find(';') == -1: # plugin=... (无参数)
+        pluginObject = {
+            'type': pluginField,
             'param': ''
         }
     else: # plugin=...;... (带参数)
-        plugin = re.search(r'^([\S]*?);([\S]*)$', plugin) # 插件名;插件参数
-        pluginField = {
-            'type': plugin.group(1),
-            'param': plugin.group(2)
+        match = re.search(r'^([\S]*?);([\S]*)$', pluginField) # 插件名;插件参数
+        pluginObject = {
+            'type': match[1],
+            'param': match[2]
         }
-    if pluginField['type'] != '': # 带插件情况
-        info['plugin'] = pluginField
+    if pluginObject['type'] != '': # 带插件时配置
+        info['plugin'] = pluginObject
     return info
 
 def ssDecode(url: str, compatible: bool = False) -> dict or None:

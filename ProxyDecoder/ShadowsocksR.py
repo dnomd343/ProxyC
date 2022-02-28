@@ -15,33 +15,30 @@ def __ssrCommonDecode(url: str) -> dict:
         -> server:port:protocol:method:obfs:base64(passwd)/?...
         -> obfsparam=...&protoparam=...&remarks=...&group=...
     """
-    content = re.search(r'^ssr://([\S]+)$', url).group(1) # ssr://{base64}
-    content = re.search(
-        r'^([a-zA-Z0-9.:_-]*):([0-9]*):' # server:p/r
-        r'([0-9a-zA-Z_.-]*):([0-9a-zA-Z_.-]*):([0-9a-zA-Z_.-]*):' # protocol:method:obfs:
-        r'([0-9a-zA-Z_=+\\-]*)(/\?)?([\S]*)?$', # base(passwd)/?...
-        baseFunc.base64Decode(content)
+    match = re.search(r'^ssr://([\S]+)$', url) # ssr://{BASE64}
+    match = re.search(
+        r'^([a-zA-Z0-9.:\-_\[\]]*):([0-9]*):' # server:port:
+        r'([0-9a-zA-Z_.\-]*):([0-9a-zA-Z_.\-]*):([0-9a-zA-Z_.\-]*):' # protocol:method:obfs:
+        r'([a-zA-Z0-9\-_+\\=]*)(/\?)?([\S]*)?$', # BASE64(passwd)/?...
+        baseFunc.base64Decode(match[1])
     )
     info = {
-        'server': content.group(1),
-        'port': int(content.group(2)),
-        'passwd': baseFunc.base64Decode(content.group(6)),
-        'method': content.group(4),
-        'protocol': content.group(3),
-        'obfs': content.group(5),
+        'server': baseFunc.formatHost(match[1]),
+        'port': int(match[2]),
+        'passwd': baseFunc.base64Decode(match[6]),
+        'method': match[4],
+        'protocol': match[3],
+        'obfs': match[5],
     }
-    for field in content.group(8).split('&'): # /?obfsparam=...&protoparam=...&remarks=...&group=...
-        if field.find('=') == -1: # 缺失xxx=...
-            continue
-        field = re.search(r'^([\S]*?)=([\S]*)$', field) # xxx=...
-        if field.group(1) == 'protoparam':
-            info['protocolParam'] = baseFunc.base64Decode(field.group(2))
-        elif field.group(1) == 'obfsparam':
-            info['obfsParam'] = baseFunc.base64Decode(field.group(2))
-        elif field.group(1) == 'remarks':
-            info['remark'] = baseFunc.base64Decode(field.group(2))
-        elif field.group(1) == 'group':
-            info['group'] = baseFunc.base64Decode(field.group(2))
+    params = baseFunc.paramSplit(match[8]) # /?obfsparam=...&protoparam=...&remarks=...&group=...
+    if 'protoparam' in params:
+        info['protocolParam'] = baseFunc.base64Decode(params['protoparam'])
+    if 'obfsparam' in params:
+        info['obfsParam'] = baseFunc.base64Decode(params['obfsparam'])
+    if 'remarks' in params:
+        info['remark'] = baseFunc.base64Decode(params['remarks'])
+    if 'group' in params:
+        info['group'] = baseFunc.base64Decode(params['group'])
     return info
 
 def ssrDecode(url: str) -> dict or None:

@@ -1,6 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
+import re
 import base64
 import urllib.parse
 
@@ -36,3 +37,24 @@ def base64Decode(content: str) -> str or None:
         return base64.b64decode(content).decode()
     except:
         return None
+
+def formatHost(content: str) -> str:
+    try:
+        content = content.lower().strip()
+        if content[:1] == '[' and content[-1:] == ']':
+            return content[1:-1]
+    except:
+        pass
+    return content
+
+def paramSplit(content: str) -> dict:
+    if content.startswith('?'):
+        content = content[1:]
+    result = {}
+    for field in content.split('&'):
+        match = re.search(r'^([\S]*?)=([\S]*)$', field)  # xxx=...
+        try:
+            result[urlDecode(match[1])] = urlDecode(match[2])
+        except:
+            pass
+    return result
