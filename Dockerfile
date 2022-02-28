@@ -210,7 +210,7 @@ env CGO_ENABLED=0 go build -o v2ctl -trimpath -ldflags "-s -w" -tags confonly ./
 mv ./v2ctl ./v2ray /tmp/release/ && \
 \
 # Compile Trojan-Go
-cd /tmp/trojan-go/ && git checkout $TROJAN_GO_VERSION \
+cd /tmp/trojan-go/ && git checkout $TROJAN_GO_VERSION && \
 env CGO_ENABLED=0 go build -trimpath -ldflags "-X github.com/p4gefau1t/trojan-go/constant.Version=`git describe --dirty` \
     -X github.com/p4gefau1t/trojan-go/constant.Commit=`git rev-parse HEAD` -s -w" -tags "full" && \
 mv ./trojan-go /tmp/release/ && \
