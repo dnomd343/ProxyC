@@ -27,7 +27,8 @@ def loadWsStream(host: str, path: str, isEd: bool) -> dict:
             'client': {
                 'type': 'ws',
                 'host': host,
-                'path': path
+                'path': path,
+                'secure': None
             },
             'server': {
                 'network': 'ws',
@@ -45,7 +46,8 @@ def loadWsStream(host: str, path: str, isEd: bool) -> dict:
             'type': 'ws',
             'host': host,
             'path': path,
-            'ed': 2048
+            'ed': 2048,
+            'secure': None
         },
         'server': {
             'network': 'ws',
@@ -57,7 +59,6 @@ def loadWsStream(host: str, path: str, isEd: bool) -> dict:
             }
         }
     }
-
 
 def addTlsConfig(rawStreamInfo: dict, cert: str, key: str, sni: str) -> dict:
     streamInfo = copy.deepcopy(rawStreamInfo)

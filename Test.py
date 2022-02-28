@@ -60,7 +60,10 @@ def testObject(option: dict) -> None: # test target object
             testDestroy(option['aider'], aiderProcess)
         raise Exception('check error')
     delay = checkResult['check']['http']['delay'] # get http delay
-    print(format(delay, '.2f') + 'ms')
+    if delay > 0:
+        print(format(delay, '.2f') + 'ms')
+    else:
+        print('ERROR')
 
     testDestroy(option['server'], serverProcess) # destroy server process
     if option['aider'] is not None:
