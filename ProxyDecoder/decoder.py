@@ -5,6 +5,7 @@ import re
 from ProxyDecoder import Shadowsocks
 from ProxyDecoder import ShadowsocksR
 from ProxyDecoder import VMess
+from ProxyDecoder import VLESS
 
 def decode(url: str) -> dict or None:
     """
@@ -28,6 +29,8 @@ def decode(url: str) -> dict or None:
             return ShadowsocksR.ssrDecode(url)
         elif scheme == 'vmess':
             return VMess.vmessDecode(url)
+        elif scheme == 'vless':
+            return VLESS.vlessDecode(url)
     except:
         pass
     return None

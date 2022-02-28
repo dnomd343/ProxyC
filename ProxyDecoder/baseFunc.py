@@ -58,3 +58,20 @@ def paramSplit(content: str) -> dict:
         except:
             pass
     return result
+
+def splitEdParam(path: str) -> tuple[int or None, str]: # 分离early-data参数
+    if path.find('?') == -1:
+        return None, path
+    content = re.search(r'^([\s\S]*?)\?([\s\S]*)$', path)
+    ed = None
+    params = []
+    for field in content[2].split('&'): # ?param_a=...&param_b=...
+        if not field.startswith('ed='):
+            params.append(field)
+            continue
+        ed = int(field[3:]) # ed=...
+    if ed is None: # ed param not found
+        return None, path
+    if not params: # param -> []
+        return ed, content[1]
+    return ed, content[1] + '?' + '&'.join(params)

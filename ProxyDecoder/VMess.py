@@ -5,23 +5,6 @@ import re
 import json
 from ProxyDecoder import baseFunc
 
-def __splitEdParam(path: str) -> tuple[int or None, str]: # 分离early-data参数
-    if path.find('?') == -1:
-        return None, path
-    content = re.search(r'^([\s\S]*?)\?([\s\S]*)$', path)
-    ed = None
-    params = []
-    for field in content[2].split('&'): # ?param_a=...&param_b=...
-        if not field.startswith('ed='):
-            params.append(field)
-            continue
-        ed = int(field[3:]) # ed=...
-    if ed is None: # ed param not found
-        return None, path
-    if not params: # param -> []
-        return ed, content[1]
-    return ed, content[1] + '?' + '&'.join(params)
-
 def __vmessV2raynDecode(url: str) -> dict:
     """
     v2rayN / v2rayNG分享链接解码
@@ -81,7 +64,7 @@ def __vmessV2raynDecode(url: str) -> dict:
             stream['host'] = content['host']
         if 'path' in content:
             try:
-                stream['ed'], stream['path'] = __splitEdParam(content['path'])
+                stream['ed'], stream['path'] = baseFunc.splitEdParam(content['path'])
             except:
                 stream['path'] = content['path']
     elif content['net'] == 'h2':
@@ -131,11 +114,12 @@ def __vmessCommonDecode(url: str) -> dict:
 
         security -> none / tls
 
-        path -> WebSocket / HTTP/2
+        path -> WebSocket / HTTP/2 / http obfs
 
-        host -> WebSocket / HTTP/2
+        host -> WebSocket / HTTP/2 / http obfs
 
         headerType -> mKCP / QUIC UDP obfs -> none / srtp / utp / wechat-video / dtls / wireguard
+                   -> TCP (http obfs) -> http
 
         seed -> mKCP seed
 
@@ -171,14 +155,8 @@ def __vmessCommonDecode(url: str) -> dict:
     stream = {
         'type': params['type']
     }
-
-    """
-        ?httpObfs
-        path -> WebSocket / HTTP/2
-        host -> WebSocket / HTTP/2
-    """
     if params['type'] == 'tcp':
-        if 'headerType' in params and params['headerType']:
+        if 'headerType' in params and params['headerType'] == 'http':
             stream['obfs'] = {}
             if 'host' in params:
                 stream['obfs']['host'] = params['host']
@@ -194,7 +172,7 @@ def __vmessCommonDecode(url: str) -> dict:
             stream['host'] = params['host']
         if 'path' in params:
             try:
-                stream['ed'], stream['path'] = __splitEdParam(params['path'])
+                stream['ed'], stream['path'] = baseFunc.splitEdParam(params['path'])
             except:
                 stream['path'] = params['path']
     elif params['type'] == 'http':
