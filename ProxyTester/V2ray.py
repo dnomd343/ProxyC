@@ -59,7 +59,8 @@ def loadTcpStream(isObfs: bool, host: str, path: str) -> dict:
         return {
             'caption': 'TCP',
             'client': {
-                'type': 'tcp'
+                'type': 'tcp',
+                'secure': None
             },
             'server': streamConfig
         }
@@ -77,7 +78,8 @@ def loadTcpStream(isObfs: bool, host: str, path: str) -> dict:
             'obfs': {
                 'host': host,
                 'path': path
-            }
+            },
+            'secure': None
         },
         'server': streamConfig
     }
@@ -92,7 +94,8 @@ def loadKcpStream(seed: str, obfs: str) -> dict:
         'client': {
             'type': 'kcp',
             'seed': seed,
-            'obfs': obfs
+            'obfs': obfs,
+            'secure': None
         },
         'server': {
             'network': 'kcp',
@@ -113,7 +116,8 @@ def loadWsStream(host: str, path: str, isEd: bool) -> dict:
             'client': {
                 'type': 'ws',
                 'host': host,
-                'path': path
+                'path': path,
+                'secure': None
             },
             'server': {
                 'network': 'ws',
@@ -128,7 +132,8 @@ def loadWsStream(host: str, path: str, isEd: bool) -> dict:
             'type': 'ws',
             'host': host,
             'path': path,
-            'ed': 2048
+            'ed': 2048,
+            'secure': None
         },
         'server': {
             'network': 'ws',
@@ -142,7 +147,8 @@ def loadH2Stream(host: str, path: str) -> dict:
         'client': {
             'type': 'h2',
             'host': host,
-            'path': path
+            'path': path,
+            'secure': None
         },
         'server': {
             'network': 'http',
@@ -160,7 +166,8 @@ def loadQuicStream(method: str, passwd: str, obfs: str) -> dict:
             'type': 'quic',
             'method': method,
             'passwd': passwd,
-            'obfs': obfs
+            'obfs': obfs,
+            'secure': None
         },
         'server': {
             'network': 'quic',
@@ -180,7 +187,8 @@ def loadGrpcStream(service: str, multiMode: bool = False) -> dict:
             'caption': 'gRPC',
             'client': {
                 'type': 'grpc',
-                'service': service
+                'service': service,
+                'secure': None
             },
             'server': {
                 'network': 'grpc',
@@ -194,7 +202,8 @@ def loadGrpcStream(service: str, multiMode: bool = False) -> dict:
         'client': {
             'type': 'grpc',
             'service': service,
-            'mode': 'multi'
+            'mode': 'multi',
+            'secure': None
         },
         'server': {
             'network': 'grpc',
