@@ -11,6 +11,7 @@ ENV GOST_VERSION="v2.11.1"
 ENV XRAY_VERSION="v1.5.3"
 ENV V2FLY_VERSION="v4.44.0"
 ENV TROJAN_VERSION="v1.16.0"
+ENV TROJAN_GO_VERSION="v0.10.6"
 ENV DNSPROXY_VERSION="v0.41.1"
 
 RUN \
@@ -52,6 +53,7 @@ git clone https://github.com/ginuerzh/gost.git && \
 git clone https://github.com/XTLS/Xray-core.git && \
 git clone https://github.com/v2fly/v2ray-core.git && \
 git clone https://github.com/trojan-gfw/trojan.git && \
+git clone https://github.com/p4gefau1t/trojan-go.git && \
 git clone https://github.com/AdguardTeam/dnsproxy.git && \
 \
 # Install rust environment (nightly version)
@@ -206,6 +208,12 @@ cd /tmp/v2ray-core/ && git checkout $V2FLY_VERSION && \
 env CGO_ENABLED=0 go build -o v2ray -trimpath -ldflags "-s -w" ./main && \
 env CGO_ENABLED=0 go build -o v2ctl -trimpath -ldflags "-s -w" -tags confonly ./infra/control/main && \
 mv ./v2ctl ./v2ray /tmp/release/ && \
+\
+# Compile Trojan-Go
+cd /tmp/trojan-go/ && git checkout $TROJAN_GO_VERSION \
+env CGO_ENABLED=0 go build -trimpath -ldflags "-X github.com/p4gefau1t/trojan-go/constant.Version=`git describe --dirty` \
+    -X github.com/p4gefau1t/trojan-go/constant.Commit=`git rev-parse HEAD` -s -w" -tags "full" && \
+mv ./trojan-go /tmp/release/ && \
 \
 # Compile dnsproxy
 cd /tmp/dnsproxy/ && \
