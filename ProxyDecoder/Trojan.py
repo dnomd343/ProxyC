@@ -4,11 +4,11 @@
 import re
 from ProxyDecoder import baseFunc
 
-def __vlessCommonDecode(url: str) -> dict:
+def __trojanCommonDecode(url: str) -> dict:
     """
-    VLESS标准分享链接解码
+    Trojan标准分享链接解码
 
-    FORMAT: vless://$(UUID)@server:port?{fields}#$(remark)
+    FORMAT: trojan://$(UUID)@server:port?{fields}#$(remark)
 
         type -> tcp / kcp / ws / http / quic / grpc
 
@@ -40,7 +40,7 @@ def __vlessCommonDecode(url: str) -> dict:
         flow -> XTLS flow type -> xtls-rprx-origin / xtls-rprx-direct / xtls-rprx-splice
 
     """
-    match = re.search(r'^vless://([\S]+?)(#[\S]*)?$', url) # vless://...#REMARK
+    match = re.search(r'^trojan://([\S]+?)(#[\S]*)?$', url) # trojan://...#REMARK
     remark = baseFunc.urlDecode(
         match[2][1:] if match[2] is not None else ''
     )
@@ -50,10 +50,12 @@ def __vlessCommonDecode(url: str) -> dict:
     info = {
         'server': baseFunc.formatHost(match[2]),
         'port': int(match[3]),
-        'id': baseFunc.urlDecode(match[1]),
+        'passwd': baseFunc.urlDecode(match[1]),
         'remark': remark
     }
     params = baseFunc.paramSplit(match[4])
+    if 'type' not in params:
+        params['type'] = 'tcp' # default -> tcp
     stream = {
         'type': params['type']
     }
@@ -118,24 +120,24 @@ def __vlessCommonDecode(url: str) -> dict:
     info['stream'] = stream
     return info
 
-def vlessDecode(url: str) -> dict or None:
+def trojanDecode(url: str) -> dict or None:
     """
-    VLESS分享链接解码
+    Trojan分享链接解码
 
         链接合法:
             return {
-                'type': 'vless',
+                'type': 'trojan',
                 ...
             }
 
         链接不合法:
             return None
     """
-    if url[0:8] != 'vless://':
+    if url[0:9] != 'trojan://':
         return None
     try:
-        result = __vlessCommonDecode(url)  # try VLESS common decode
+        result = __trojanCommonDecode(url)  # try Trojan common decode
     except:
         return None
-    result['type'] = 'vless'
+    result['type'] = 'trojan'
     return result

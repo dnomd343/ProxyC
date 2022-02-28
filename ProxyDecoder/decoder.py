@@ -6,6 +6,7 @@ from ProxyDecoder import Shadowsocks
 from ProxyDecoder import ShadowsocksR
 from ProxyDecoder import VMess
 from ProxyDecoder import VLESS
+from ProxyDecoder import Trojan
 
 def decode(url: str) -> dict or None:
     """
@@ -31,6 +32,8 @@ def decode(url: str) -> dict or None:
             return VMess.vmessDecode(url)
         elif scheme == 'vless':
             return VLESS.vlessDecode(url)
+        elif scheme == 'trojan':
+            return Trojan.trojanDecode(url)
     except:
         pass
     return None
