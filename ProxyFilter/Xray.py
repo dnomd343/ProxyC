@@ -106,3 +106,5 @@ xrayStreamRules['xtlsObject'] = {
         'format': baseFunc.toBool
     }
 }
+
+addSni = V2ray.addSni

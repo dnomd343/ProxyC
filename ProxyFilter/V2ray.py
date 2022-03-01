@@ -240,3 +240,21 @@ v2rayStreamRules = {
         }
     }
 }
+
+def addSni(info: dict) -> None:
+    stream = info['stream']
+    if stream['secure'] is None or stream['secure']['sni'] != '':  # 未指定SNI
+        return
+    if baseFunc.isDomain(info['server']):
+        stream['secure']['sni'] = info['server']
+
+    sniContent = ''
+    if stream['type'] == 'tcp' and stream['obfs'] is not None:
+        sniContent = stream['obfs']['host'].split(',')[0]
+    elif stream['type'] == 'ws':
+        sniContent = stream['host']
+    elif stream['type'] == 'h2':
+        sniContent = stream['host'].split(',')[0]
+
+    if sniContent != '':
+        stream['secure']['sni'] = sniContent

@@ -95,14 +95,7 @@ def vmessFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
         })
         if not status: # 节点格式错误
             return False, result
-        stream = result['stream']
-        if stream['secure'] is not None and stream['secure']['sni'] == '': # 未指定SNI
-            if stream['type'] == 'tcp' and stream['obfs'] is not None:
-                stream['secure']['sni'] = stream['obfs']['host'].split(',')[0]
-            elif stream['type'] == 'ws':
-                stream['secure']['sni'] = stream['host']
-            elif stream['type'] == 'h2':
-                stream['secure']['sni'] = stream['host'].split(',')[0]
+        V2ray.addSni(result)
         return True, result
     except:
         return False, 'Unknown error'

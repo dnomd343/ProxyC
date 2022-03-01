@@ -5,6 +5,43 @@ import re
 import IPy
 import copy
 
+def isIpAddr(content: str) -> bool:
+    """
+    判断是否为IP地址（IPv4 / IPv6）
+
+        域名: return True
+
+        非域名: return False
+
+    """
+    try:
+        if content.find('/') != -1: # filter CIDR
+            return False
+        if content.find('.') == -1 and content.find(':') == -1:
+            return False
+        IPy.IP(content)
+        return True # IP地址合法
+    except:
+        return False
+
+
+def isDomain(content: str) -> bool:
+    """
+    判断是否为域名
+
+        域名: return True
+
+        非域名: return False
+
+    """
+    try:
+        return re.search( # 域名匹配
+            r'^(?=^.{3,255}$)[a-zA-Z0-9_][a-zA-Z0-9_-]{0,62}(\.[a-zA-Z0-9_][a-zA-Z0-9_-]{0,62})+$', content
+        ) is not None
+    except: # 异常错误
+        return False
+
+
 def isHost(host: str) -> bool:
     """
     判断host是否合法
@@ -14,22 +51,11 @@ def isHost(host: str) -> bool:
         合法: return True
 
         不合法: return False
+
     """
-    try:
-        IPy.IP(host)
-        if host.find('/') != -1: # filter CIDR
-            return False
-        if host.find('.') == -1 and host.find(':') == -1:
-            return False
-        return True # IP地址合法
-    except:
-        pass
-    try:
-        return re.search( # 域名匹配
-            r'^(?=^.{3,255}$)[a-zA-Z0-9_][a-zA-Z0-9_-]{0,62}(\.[a-zA-Z0-9_][a-zA-Z0-9_-]{0,62})+$', host
-        ) is not None
-    except: # 异常错误
-        return False
+    if isIpAddr(host) or isDomain(host):
+        return True
+    return False
 
 
 def isPort(port: int) -> bool:
@@ -41,6 +67,7 @@ def isPort(port: int) -> bool:
         合法: return True
 
         不合法: return False
+
     """
     try:
         if 1 <= port <= 65535: # 1 ~ 65535
