@@ -73,4 +73,4 @@ def load(proxyInfo: dict, socksPort: int, configFile: str) -> tuple[list, str, d
         'shadowsocks': __ssConfig(proxyInfo),
         'transport_plugin': __pluginConfig(proxyInfo)
     }
-    return ['trojan-go', '-config', configFile], json.dumps(config), {}
+    return ['trojan-go', '-config', configFile], json.dumps(config), {'PATH': '/usr/bin'}

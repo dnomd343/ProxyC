@@ -6,6 +6,7 @@ from ProxyTester import ShadowsocksR
 from ProxyTester import VMess
 from ProxyTester import VLESS
 from ProxyTester import Trojan
+from ProxyTester import TrojanGo
 
 def test(key: str, config: dict) -> list:
     if key in ['ss', 'shadowsocks']:
@@ -18,5 +19,7 @@ def test(key: str, config: dict) -> list:
         return VLESS.vlessTest(config)
     elif key == 'trojan':
         return Trojan.trojanTest(config)
+    elif key == 'trojan-go':
+        return TrojanGo.trojanGoTest(config)
     else:
         return []

@@ -6,6 +6,7 @@ import time
 import ctypes
 import random
 import socket
+import signal
 import subprocess
 
 from ProxyBuilder import Shadowsocks
@@ -163,6 +164,9 @@ def check(client: dict) -> bool or None:
     """
     return client['process'].poll() is None
 
+def skipDestroy() -> None:
+    pass
+
 def destroy(client: dict) -> bool:
     """
     结束客户端并清理
@@ -171,12 +175,21 @@ def destroy(client: dict) -> bool:
 
         销毁成功: return True
     """
+    signal.signal(signal.SIGINT, skipDestroy) # 捕获SIGINT
+    signal.signal(signal.SIGTERM, skipDestroy) # 捕获SIGTERM
     try:
         process = client['process']
+        os.killpg(os.getpgid(process.pid), signal.SIGTERM) # 杀进程组
+        time.sleep(0.2)
+        maxWait = 100
         if process.poll() is None: # 未死亡
             while process.poll() is None: # 等待退出
                 process.terminate() # SIGTERM
                 time.sleep(0.2)
+                maxWait -= 1
+                if maxWait < 0:
+                    process.kill() # SIGKILL
+                    time.sleep(0.5)
     except:
         return False
 

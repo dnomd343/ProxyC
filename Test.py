@@ -12,12 +12,12 @@ import ProxyTester as Tester
 testConfig = {
     'port': 12345,
     'passwd': 'dnomd343',
-    'host': 'dns.343.re',
+    'host': 'local.343.re',
     'path': '/test',
     'service': 'dnomd343',
-    'file': '/tmp/proxyc-test.json',
-    'cert': '/etc/ssl/certs/dns.343.re/certificate.crt',
-    'key': '/etc/ssl/certs/dns.343.re/private.key',
+    'file': '/tmp/proxycTest.json',
+    'cert': '/etc/ssl/certs/343.re/fullchain.pem',
+    'key': '/etc/ssl/certs/343.re/privkey.pem',
     'id': '1f7aa040-94d8-4b53-ae85-af6946d550bb',
 }
 
@@ -25,6 +25,8 @@ def testBuild(config: dict): # load file and start process
     if config['filePath'] is not None:
         with open(config['filePath'], 'w') as fileObject:  # save file
             fileObject.write(config['fileContent'])
+    if config['startCommand'] is None:
+        return None
     return subprocess.Popen( # start process
         config['startCommand'],
         env = config['envVar'],
@@ -33,7 +35,7 @@ def testBuild(config: dict): # load file and start process
     )
 
 def testDestroy(config: dict, process): # remove file and kill process
-    if process.poll() is None:  # still alive
+    if process is not None and process.poll() is None:  # still alive
         while process.poll() is None:  # wait for exit
             process.terminate()  # SIGTERM
             time.sleep(0.2)

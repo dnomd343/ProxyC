@@ -6,30 +6,20 @@ import Check as Checker
 info = {
     'type': 'trojan-go',
     'server': '127.0.0.1',
-    'port': '12345',
+    'port': 12345,
     'passwd': 'dnomd343',
     'sni': 'local.343.re',
-    'alpn': 'h2',
-    'verify': False,
-    # 'ws': {
-    #     'host': 'local.343.re',
-    #     'path': '/test'
-    # },
-    # 'ss': {
-    #     'method': 'chacha20-ietf-poly1305',
-    #     'passwd': 'dnomd343'
-    # },
-    # 'plugin': {
-    #     'type': 'obfs-local',
-    #     'param': 'obfs=http'
-    # }
+    'plugin': {
+        # 'type': 'obfs-local',
+        # 'param': 'obfs=http;obfs-host=www.bing.com'
+        'type': 'simple-tls',
+        'param': 'n=local.343.re;no-verify'
+    }
 }
 
 status, ret = Filter.filte(info, isExtra = True)
 print(status)
 print(ret)
-
-# Builder.build(ret, '/tmp/ProxyC')
 
 data = Checker.proxyTest({
     'check': ['http'],
