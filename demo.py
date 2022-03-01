@@ -1,3 +1,4 @@
+import ProxyBuilder as Builder
 import ProxyDecoder as Decoder
 import ProxyFilter as Filter
 import Check as Checker
@@ -10,20 +11,29 @@ info = {
     'sni': 'local.343.re',
     'alpn': 'h2',
     'verify': False,
-    'ws': {
-        'host': 'local.343.re',
-        'path': '/test'
-    },
-    'ss': {
-        'method': 'chacha20-ietf-poly1305',
-        'passwd': 'dnomd343'
-    },
-    'plugin': {
-        'type': 'obfs-local',
-        'param': 'obfs=http'
-    }
+    # 'ws': {
+    #     'host': 'local.343.re',
+    #     'path': '/test'
+    # },
+    # 'ss': {
+    #     'method': 'chacha20-ietf-poly1305',
+    #     'passwd': 'dnomd343'
+    # },
+    # 'plugin': {
+    #     'type': 'obfs-local',
+    #     'param': 'obfs=http'
+    # }
 }
 
 status, ret = Filter.filte(info, isExtra = True)
 print(status)
 print(ret)
+
+# Builder.build(ret, '/tmp/ProxyC')
+
+data = Checker.proxyTest({
+    'check': ['http'],
+    'info': ret
+})
+
+print(data)

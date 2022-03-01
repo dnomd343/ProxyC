@@ -13,6 +13,7 @@ from ProxyBuilder import ShadowsocksR
 from ProxyBuilder import VMess
 from ProxyBuilder import VLESS
 from ProxyBuilder import Trojan
+from ProxyBuilder import TrojanGo
 
 libcPaths = [
     '/usr/lib64/libc.so.6', # CentOS
@@ -107,6 +108,8 @@ def build(proxyInfo: dict, configDir: str,
         clientObj = VLESS
     elif proxyInfo['type'] == 'trojan': # Trojan节点
         clientObj = Trojan
+    elif proxyInfo['type'] == 'trojan-go': # Trojan-Go节点
+        clientObj = TrojanGo
     else: # 未知类型
         return False, 'Unknown proxy type'
 
