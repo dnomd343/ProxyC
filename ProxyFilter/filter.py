@@ -6,6 +6,7 @@ from ProxyFilter import ShadowsocksR
 from ProxyFilter import VMess
 from ProxyFilter import VLESS
 from ProxyFilter import Trojan
+from ProxyFilter import TrojanGo
 
 def filte(raw: dict, isExtra: bool = False) -> tuple[bool, str or dict]:
     """
@@ -34,6 +35,8 @@ def filte(raw: dict, isExtra: bool = False) -> tuple[bool, str or dict]:
             return VLESS.vlessFilter(raw, isExtra)
         elif raw['type'] == 'trojan':
             return Trojan.trojanFilter(raw, isExtra)
+        elif raw['type'] == 'trojan-go':
+            return TrojanGo.trojanGoFilter(raw, isExtra)
         else:
             return False, 'Unknown proxy type'
     except:
