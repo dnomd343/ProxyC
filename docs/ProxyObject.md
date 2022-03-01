@@ -19,3 +19,4 @@
 ### [VMess](./ProxyObject/VMess.md)
 ### [VLESS](./ProxyObject/VLESS.md)
 ### [Trojan](./ProxyObject/Trojan.md)
+### [Trojan-Go](./ProxyObject/TrojanGo.md)
