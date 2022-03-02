@@ -1,6 +1,8 @@
 FROM alpine:3.15 as build
 
-ENV GO_VERSION="1.17.6"
+ENV GO_1_16="1.16.14"
+ENV GO_1_17="1.17.7"
+ENV GO_1_18="1.18rc1"
 
 ENV SS_LIBEV="3.3.5"
 ENV SS_RUST="1.12.5"
@@ -15,7 +17,7 @@ ENV TROJAN_GO_VERSION="v0.10.6"
 ENV DNSPROXY_VERSION="v0.41.1"
 
 RUN \
-apk add asciidoc autoconf automake boost-dev build-base curl c-ares-dev cmake \
+apk add asciidoc autoconf automake bash boost-dev build-base curl c-ares-dev cmake \
         git glib-dev go libev-dev libsodium-dev libtool linux-headers make mbedtls-dev \
         openssl-dev pcre-dev python3 python3-dev py3-pip udns-dev xmlto zlib-dev && \
 \
@@ -55,25 +57,32 @@ git clone https://github.com/v2fly/v2ray-core.git && \
 git clone https://github.com/trojan-gfw/trojan.git && \
 git clone https://github.com/p4gefau1t/trojan-go.git && \
 git clone https://github.com/AdguardTeam/dnsproxy.git && \
+git clone https://github.com/go-gost/gost.git ./gost-v3 && \
 \
 # Install rust environment (nightly version)
 sh -c "$(curl -sL https://sh.rustup.rs)" @ -y --no-modify-path --default-toolchain nightly && \
 \
-# Install Go environment (v1.16.13)
-wget https://dl.google.com/go/go1.16.13.src.tar.gz -P /tmp/ && \
-tar -C /usr/local/ -xf /tmp/go1.16.13.src.tar.gz && \
-mv /usr/local/go/ /usr/local/go-1.16.13/ && \
-cd /usr/local/go-1.16.13/src/ && ./make.bash && \
+# Install Go 1.16 environment
+wget https://dl.google.com/go/go$GO_1_16.src.tar.gz -P /tmp/ && \
+tar -C /usr/local/ -xf /tmp/go$GO_1_16.src.tar.gz && \
+mv /usr/local/go/ /usr/local/go-$GO_1_16/ && \
+cd /usr/local/go-$GO_1_16/src/ && ./make.bash && \
 \
-# Install Go environment (latest version)
-wget https://dl.google.com/go/go$GO_VERSION.src.tar.gz -P /tmp/ && \
-tar -C /usr/local/ -xf /tmp/go$GO_VERSION.src.tar.gz && \
-mv /usr/local/go/ /usr/local/go-$GO_VERSION/ && \
-cd /usr/local/go-$GO_VERSION/src/ && ./make.bash && \
+# Install Go 1.17 environment
+wget https://dl.google.com/go/go$GO_1_17.src.tar.gz -P /tmp/ && \
+tar -C /usr/local/ -xf /tmp/go$GO_1_17.src.tar.gz && \
+mv /usr/local/go/ /usr/local/go-$GO_1_17/ && \
+cd /usr/local/go-$GO_1_17/src/ && ./make.bash && \
 \
-# Switch to latest version of Golang
+# Install Go 1.18 environment
+wget https://dl.google.com/go/go$GO_1_18.src.tar.gz -P /tmp/ && \
+tar -C /usr/local/ -xf /tmp/go$GO_1_18.src.tar.gz && \
+mv /usr/local/go/ /usr/local/go-$GO_1_18/ && \
+cd /usr/local/go-$GO_1_18/src/ && ./make.bash && \
+\
+# Switch to Golang 1.18
 apk del go && \
-export PATH=$PATH:/usr/local/go-$GO_VERSION/bin && \
+export PATH=$PATH:/usr/local/go-$GO_1_18/bin && \
 \
 # Install and package numpy / salsa20 / flask / IPy / redis / pysocks / requests
 pip install numpy salsa20 flask IPy redis pysocks && \
@@ -169,6 +178,14 @@ cd /tmp/shadowsocks-rust-$SS_RUST/ && \
 mv ./target/release/sslocal /tmp/release/ss-rust-local && \
 mv ./target/release/ssserver /tmp/release/ss-rust-server && \
 \
+# Compile Gost-v3
+cd /tmp/gost-v3/ && \
+env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" ./cmd/gost && \
+mv ./gost /tmp/release/gost-v3 && \
+\
+# Switch to Go 1.17
+export PATH=/usr/local/go-$GO_1_17/bin:$PATH && \
+\
 # Compile simple-obfs
 cd /tmp/simple-obfs/ && \
 git submodule update --init --recursive && \
@@ -193,7 +210,7 @@ env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.version=$VERSION -s -w" .
 env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.version=$VERSION -s -w" ./cmd/ck-server && \
 mv ./ck-client ./ck-server /tmp/release/ && \
 \
-# Compile Gost-v2
+# Compile Gost
 cd /tmp/gost/ && git checkout $GOST_VERSION && \
 cd ./cmd/gost/ && env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" && \
 mv ./gost /tmp/release/ && \
@@ -221,8 +238,8 @@ git checkout $DNSPROXY_VERSION && VERSION=`git describe --tags` && \
 env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.VersionString=$VERSION -s -w" && \
 mv ./dnsproxy /tmp/release/ && \
 \
-# Switch to go 1.16.13
-export PATH=/usr/local/go-1.16.13/bin:$PATH && \
+# Switch to Go 1.16
+export PATH=/usr/local/go-$GO_1_16/bin:$PATH && \
 \
 # Compile v2ray-plugin
 cd /tmp/v2ray-plugin/ && VERSION=`git describe --tags` && \
