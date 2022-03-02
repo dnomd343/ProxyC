@@ -8,7 +8,7 @@ def __trojanCommonDecode(url: str) -> dict:
     """
     Trojan标准分享链接解码
 
-    FORMAT: trojan://$(UUID)@server:port?{fields}#$(remark)
+    FORMAT: trojan://$(password)@server:port?{fields}#$(remark)
 
         type -> tcp / kcp / ws / http / quic / grpc
 
