@@ -15,6 +15,7 @@ ENV V2FLY_VERSION="v4.44.0"
 ENV BROOK_VERSION="v20220401"
 ENV TROJAN_VERSION="v1.16.0"
 ENV TROJAN_GO_VERSION="v0.10.6"
+ENV HYSTERIA_VERSION="v1.0.1"
 ENV DNSPROXY_VERSION="v0.41.1"
 
 RUN \
@@ -57,6 +58,7 @@ git clone https://github.com/XTLS/Xray-core.git && \
 git clone https://github.com/v2fly/v2ray-core.git && \
 git clone https://github.com/txthinking/brook.git && \
 git clone https://github.com/trojan-gfw/trojan.git && \
+git clone https://github.com/HyNetwork/hysteria.git && \
 git clone https://github.com/p4gefau1t/trojan-go.git && \
 git clone https://github.com/AdguardTeam/dnsproxy.git && \
 git clone https://github.com/go-gost/gost.git ./gost-v3 && \
@@ -233,6 +235,14 @@ cd /tmp/trojan-go/ && git checkout $TROJAN_GO_VERSION && \
 env CGO_ENABLED=0 go build -trimpath -ldflags "-X github.com/p4gefau1t/trojan-go/constant.Version=`git describe --dirty` \
     -X github.com/p4gefau1t/trojan-go/constant.Commit=`git rev-parse HEAD` -s -w" -tags "full" && \
 mv ./trojan-go /tmp/release/ && \
+\
+# Compile Hysteria
+cd /tmp/hysteria && git checkout $HYSTERIA_VERSION && \
+cd ./cmd/ && env CGO_ENABLED=0 go build -o hysteria -trimpath -ldflags "-s -w \
+    -X 'main.appVersion=`git describe --tags`' \
+    -X 'main.appCommit=`git rev-parse HEAD`' \
+    -X 'main.appDate=`date \"+%F %T\"`'" && \
+mv ./hysteria /tmp/release/ && \
 \
 # Compile dnsproxy
 cd /tmp/dnsproxy/ && \
