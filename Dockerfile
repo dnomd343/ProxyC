@@ -12,6 +12,7 @@ ENV GOST_PLUGIN="v1.6.3"
 ENV GOST_VERSION="v2.11.1"
 ENV XRAY_VERSION="v1.5.3"
 ENV V2FLY_VERSION="v4.44.0"
+ENV BROOK_VERSION="v20220401"
 ENV TROJAN_VERSION="v1.16.0"
 ENV TROJAN_GO_VERSION="v0.10.6"
 ENV DNSPROXY_VERSION="v0.41.1"
@@ -54,6 +55,7 @@ git clone https://github.com/Qv2ray/gun.git && \
 git clone https://github.com/ginuerzh/gost.git && \
 git clone https://github.com/XTLS/Xray-core.git && \
 git clone https://github.com/v2fly/v2ray-core.git && \
+git clone https://github.com/txthinking/brook.git && \
 git clone https://github.com/trojan-gfw/trojan.git && \
 git clone https://github.com/p4gefau1t/trojan-go.git && \
 git clone https://github.com/AdguardTeam/dnsproxy.git && \
@@ -240,6 +242,11 @@ mv ./dnsproxy /tmp/release/ && \
 \
 # Switch to Go 1.16
 export PATH=/usr/local/go-$GO_1_16/bin:$PATH && \
+\
+# Compile brook
+cd /tmp/brook/ && git checkout $BROOK_VERSION && \
+env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" ./cli/brook && \
+mv ./brook /tmp/release/ && \
 \
 # Compile v2ray-plugin
 cd /tmp/v2ray-plugin/ && VERSION=`git describe --tags` && \
