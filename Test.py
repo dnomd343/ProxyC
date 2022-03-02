@@ -4,6 +4,7 @@
 import os
 import sys
 import time
+import signal
 import subprocess
 
 import Check as Checker
@@ -31,11 +32,13 @@ def testBuild(config: dict): # load file and start process
         config['startCommand'],
         env = config['envVar'],
         stdout = subprocess.DEVNULL,
-        stderr = subprocess.DEVNULL
+        stderr = subprocess.DEVNULL,
+        preexec_fn = os.setpgrp # new process group
     )
 
 def testDestroy(config: dict, process): # remove file and kill process
     if process is not None and process.poll() is None:  # still alive
+        os.killpg(os.getpgid(process.pid), signal.SIGTERM)  # kill process group
         while process.poll() is None:  # wait for exit
             process.terminate()  # SIGTERM
             time.sleep(0.2)

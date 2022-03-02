@@ -152,13 +152,13 @@ def trojanGoTest(trojanGoConfig: dict) -> list:
     for key, value in trojanGoConfig.items(): # trojanGoConfig -> config
         config[key] = value
 
-    result += loadTrojanGoConfig([loadTrojanGo(False, None)])
+    result += loadTrojanGoConfig([loadTrojanGo(False, None)]) # basic test
     result += loadTrojanGoConfig([loadTrojanGo(True, None)])
     for ssMethod in trojanGoMethod:
-        result += loadTrojanGoConfig([loadTrojanGo(False, ssMethod)])
+        result += loadTrojanGoConfig([loadTrojanGo(False, ssMethod)]) # basic test with shadowsocks
         result += loadTrojanGoConfig([loadTrojanGo(True, ssMethod)])
 
-    for plugin in sip003PluginList:
+    for plugin in sip003PluginList: # plugin test -> cause zombie process (imperfect trojan-go)
         result += loadTrojanGoConfig(loadTrojanGoPlugin(plugin))
 
     return result

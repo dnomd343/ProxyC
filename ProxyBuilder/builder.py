@@ -17,12 +17,20 @@ from ProxyBuilder import Trojan
 from ProxyBuilder import TrojanGo
 
 libcPaths = [
-    '/usr/lib64/libc.so.6', # CentOS
-    '/lib/libc.musl-x86_64.so.1', # Alpine
+    '/usr/lib/libc.so.6', # CentOS
+    '/usr/lib64/libc.so.6',
+    '/lib/libc.musl-i386.so.1', # Alpine
+    '/lib/libc.musl-x86_64.so.1',
+    '/lib/libc.musl-aarch64.so.1',
     '/lib/i386-linux-gnu/libc.so.6', # Debian / Ubuntu
     '/lib/x86_64-linux-gnu/libc.so.6',
     '/lib/aarch64-linux-gnu/libc.so.6',
 ]
+
+def __preExec(libcPath) -> None:
+    ctypes.CDLL(libcPath).prctl(1, signal.SIGTERM)  # 子进程跟随退出
+    os.setpgrp() # 新进程组
+
 
 def __checkPortAvailable(port: int) -> bool: # 检测端口可用性
     ipv4_tcp = None
@@ -59,6 +67,7 @@ def __checkPortAvailable(port: int) -> bool: # 检测端口可用性
             ipv6_udp.close()
         except: pass
 
+
 def __genTaskFlag(length: int = 16) -> str: # 生成任务标志
     flag = ''
     for i in range(0, length):
@@ -69,6 +78,7 @@ def __genTaskFlag(length: int = 16) -> str: # 生成任务标志
             flag += str(tmp) # 0 ~ 9
     return flag
 
+
 def __getAvailablePort(rangeStart: int = 41952, rangeEnd: int = 65535) -> int or None: # 获取一个空闲端口
     if rangeStart > rangeEnd or rangeStart < 1 or rangeEnd > 65535:
         return None
@@ -77,6 +87,7 @@ def __getAvailablePort(rangeStart: int = 41952, rangeEnd: int = 65535) -> int or
         if __checkPortAvailable(port):
             return port
         time.sleep(0.1) # wait for 100ms
+
 
 def build(proxyInfo: dict, configDir: str,
           portRangeStart: int = 1024, portRangeEnd: int = 65535) -> tuple[bool, str or dict]:
@@ -135,7 +146,7 @@ def build(proxyInfo: dict, configDir: str,
             env = envVar,
             stdout = subprocess.DEVNULL,
             stderr = subprocess.DEVNULL,
-            preexec_fn = lambda: ctypes.CDLL(libcPath).prctl(1, 15) # 子进程跟随退出
+            preexec_fn = lambda: __preExec(libcPath)
         )
     except:
         process = subprocess.Popen( # prctl失败 回退正常启动
@@ -154,6 +165,7 @@ def build(proxyInfo: dict, configDir: str,
         'process': process
     }
 
+
 def check(client: dict) -> bool or None:
     """
     检查客户端是否正常运行
@@ -164,8 +176,6 @@ def check(client: dict) -> bool or None:
     """
     return client['process'].poll() is None
 
-def skipDestroy() -> None:
-    pass
 
 def destroy(client: dict) -> bool:
     """
@@ -175,21 +185,18 @@ def destroy(client: dict) -> bool:
 
         销毁成功: return True
     """
-    signal.signal(signal.SIGINT, skipDestroy) # 捕获SIGINT
-    signal.signal(signal.SIGTERM, skipDestroy) # 捕获SIGTERM
     try:
+        maxTermTime = 100 # SIGTERM -> SIGKILL
         process = client['process']
-        os.killpg(os.getpgid(process.pid), signal.SIGTERM) # 杀进程组
+        os.killpg(os.getpgid(process.pid), signal.SIGTERM) # 杀死子进程组
         time.sleep(0.2)
-        maxWait = 100
-        if process.poll() is None: # 未死亡
-            while process.poll() is None: # 等待退出
-                process.terminate() # SIGTERM
-                time.sleep(0.2)
-                maxWait -= 1
-                if maxWait < 0:
-                    process.kill() # SIGKILL
-                    time.sleep(0.5)
+        while process.poll() is None: # 等待退出
+            maxTermTime -= 1
+            if maxTermTime < 0:
+                process.kill() # SIGKILL -> force kill
+            else:
+                process.terminate()  # SIGTERM -> soft kill
+            time.sleep(0.2)
     except:
         return False
 

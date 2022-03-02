@@ -1,3 +1,5 @@
+import time
+
 import ProxyBuilder as Builder
 import ProxyDecoder as Decoder
 import ProxyFilter as Filter
@@ -10,8 +12,6 @@ info = {
     'passwd': 'dnomd343',
     'sni': 'local.343.re',
     'plugin': {
-        # 'type': 'obfs-local',
-        # 'param': 'obfs=http;obfs-host=www.bing.com'
         'type': 'simple-tls',
         'param': 'n=local.343.re;no-verify'
     }
@@ -27,3 +27,10 @@ data = Checker.proxyTest({
 })
 
 print(data)
+
+# status, client = Builder.build(ret, '/tmp/ProxyC')
+# print(status)
+# print(client)
+#
+# time.sleep(300)
+# Builder.destroy(client)
