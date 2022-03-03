@@ -15,6 +15,7 @@ from ProxyBuilder import VMess
 from ProxyBuilder import VLESS
 from ProxyBuilder import Trojan
 from ProxyBuilder import TrojanGo
+from ProxyBuilder import Brook
 
 libcPaths = [
     '/usr/lib/libc.so.6', # CentOS
@@ -122,6 +123,8 @@ def build(proxyInfo: dict, configDir: str,
         clientObj = Trojan
     elif proxyInfo['type'] == 'trojan-go': # Trojan-Go节点
         clientObj = TrojanGo
+    elif proxyInfo['type'] == 'brook': # Brook节点
+        clientObj = Brook
     else: # 未知类型
         return False, 'Unknown proxy type'
 
@@ -132,8 +135,9 @@ def build(proxyInfo: dict, configDir: str,
         return False, 'Format error with ' + str(proxyInfo['type'])
 
     try:
-        with open(configFile, 'w') as fileObject: # 保存配置文件
-            fileObject.write(fileContent)
+        if fileContent is not None:
+            with open(configFile, 'w') as fileObject: # 保存配置文件
+                fileObject.write(fileContent)
     except: # 配置文件写入失败
         raise Exception('Unable write to file ' + str(configFile))
 
@@ -161,7 +165,7 @@ def build(proxyInfo: dict, configDir: str,
     return True, { # 返回连接参数
         'flag': taskFlag,
         'port': socksPort,
-        'file': configFile,
+        'file': configFile if fileContent is not None else None,
         'process': process
     }
 
@@ -202,6 +206,8 @@ def destroy(client: dict) -> bool:
 
     try:
         file = client['file']
+        if file is None: # 无配置文件
+            return True
         if os.path.exists(file) and os.path.isfile(file):
             os.remove(file) # 删除配置文件
             return True # 销毁成功

@@ -83,8 +83,13 @@ def brookFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
     try:
         if not isExtra: # 去除非必要参数
             brookFilterRules['rootObject'].pop('remark')
-        return baseFunc.ruleFilter(rawInfo, brookFilterRules, {
+        status, result = baseFunc.ruleFilter(rawInfo, brookFilterRules, {
             'type': 'brook'
         })
+        if not status: # 节点格式错误
+            return False, result
+        if result['ws'] is not None and result['ws']['host'] == '':
+            result['ws']['host'] = result['server']
+        return True, result
     except:
         return False, 'Unknown error'
