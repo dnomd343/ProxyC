@@ -8,6 +8,7 @@ from ProxyDecoder import VMess
 from ProxyDecoder import VLESS
 from ProxyDecoder import Trojan
 from ProxyDecoder import TrojanGo
+from ProxyDecoder import Brook
 
 def decode(url: str) -> dict or None:
     """
@@ -18,8 +19,7 @@ def decode(url: str) -> dict or None:
 
         链接有效:
             return {
-                '...': '...',
-                '...': '...',
+                'type': ...,
                 ...
             }
     """
@@ -37,6 +37,8 @@ def decode(url: str) -> dict or None:
             return Trojan.trojanDecode(url)
         elif scheme == 'trojan-go':
             return TrojanGo.trojanGoDecode(url)
+        elif scheme == 'brook':
+            return Brook.decode(url)
     except:
         pass
     return None

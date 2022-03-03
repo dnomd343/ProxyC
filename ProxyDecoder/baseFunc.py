@@ -11,11 +11,13 @@ def urlEncode(content: str) -> str or None:
     except:
         return None
 
+
 def urlDecode(content: str) -> str or None:
     try:
         return urllib.parse.unquote(content)
     except:
         return None
+
 
 def base64Encode(content: str, urlSafe: bool = False, isPadding: bool = True) -> str or None:
     try:
@@ -29,6 +31,7 @@ def base64Encode(content: str, urlSafe: bool = False, isPadding: bool = True) ->
     except:
         return None
 
+
 def base64Decode(content: str) -> str or None:
     try:
         content = content.replace('-', '+').replace('_', '/')
@@ -38,26 +41,28 @@ def base64Decode(content: str) -> str or None:
     except:
         return None
 
-def formatHost(content: str) -> str:
+
+def formatHost(host: str) -> str:
     try:
-        content = content.lower().strip()
-        if content[:1] == '[' and content[-1:] == ']':
-            return content[1:-1]
+        host = host.lower().strip()
+        if host[:1] == '[' and host[-1:] == ']': # [IPv6]
+            return host[1:-1]
     except:
         pass
-    return content
+    return host
 
-def paramSplit(content: str) -> dict:
-    if content.startswith('?'):
-        content = content[1:]
-    result = {}
-    for field in content.split('&'):
-        match = re.search(r'^([\S]*?)=([\S]*)$', field)  # xxx=...
-        try:
-            result[urlDecode(match[1])] = urlDecode(match[2])
-        except:
-            pass
-    return result
+
+def paramSplit(paramStr: str) -> dict: # ?param_1=xxx&param_2=xxx&param_3=xxx
+    if paramStr.startswith('?'):
+        paramStr = paramStr[1:] # remove `?` char
+    params = {}
+    for field in paramStr.split('&'):
+        if field.find('=') < 0: # without `=` char
+            continue
+        key, value = field.split('=', maxsplit = 1)
+        params[key] = urlDecode(value)
+    return params
+
 
 def splitEdParam(path: str) -> tuple[int or None, str]: # 分离early-data参数
     if path.find('?') == -1:
@@ -75,3 +80,25 @@ def splitEdParam(path: str) -> tuple[int or None, str]: # 分离early-data参数
     if not params: # param -> []
         return ed, content[1]
     return ed, content[1] + '?' + '&'.join(params)
+
+
+def urlSplit(url: str) -> dict: # scheme://[auth@]server[:port]/.../...?param_1=...&param_2=...#remark
+    url = urllib.parse.urlparse(url)
+    auth = port = None
+    netloc = url[1]
+
+    if not netloc.find(':') < 0: # server[:port]
+        netloc, port = netloc.rsplit(':', maxsplit = 1)
+        port = int(port)
+    if not netloc.find('@') < 0: # [auth@]server
+        auth, netloc = netloc.rsplit('@', maxsplit = 1)
+
+    return {
+        'scheme': url[0],
+        'auth': auth,
+        'server': formatHost(netloc),
+        'port': port,
+        'path': url[2],
+        'params': paramSplit(url[4]),
+        'remark': urlDecode(url[5])
+    }
