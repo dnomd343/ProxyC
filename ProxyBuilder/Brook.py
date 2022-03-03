@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
+import copy
+
 def __originConfig(proxyInfo: dict) -> list:
     return [
         'client',
@@ -36,6 +38,12 @@ def load(proxyInfo: dict, socksPort: int, configFile: str) -> tuple[list, str or
 
             return startCommand, fileContent, envVar
     """
+    proxyInfo = copy.deepcopy(proxyInfo)
+    if proxyInfo['server'].find(':') >= 0:
+        proxyInfo['server'] = '[' + proxyInfo['server'] + ']' # IPv6
+    if proxyInfo['ws'] is not None and proxyInfo['ws']['host'].find(':') >= 0:
+        proxyInfo['ws']['host'] = '[' + proxyInfo['ws']['host'] + ']' # IPv6
+
     command = [
         'brook',
         '--debug', '--listen', 'skip success', # debug on

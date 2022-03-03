@@ -67,7 +67,7 @@ brookFilterRules = {
     }
 }
 
-def brookFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
+def filte(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
     """
     Brook节点合法性检查
 

@@ -39,7 +39,7 @@ def filte(raw: dict, isExtra: bool = False) -> tuple[bool, str or dict]:
         elif raw['type'] == 'trojan-go':
             return TrojanGo.trojanGoFilter(raw, isExtra)
         elif raw['type'] == 'brook':
-            return Brook.brookFilter(raw, isExtra)
+            return Brook.filte(raw, isExtra)
         else:
             return False, 'Unknown proxy type'
     except:
