@@ -127,6 +127,13 @@ def toStrTidy(raw) -> str: # change to str with trim and lower
     return toStr(raw).strip().lower()
 
 
+def toHost(raw) -> str: # format to IP address or domain
+    raw = toStrTidy(raw)
+    if raw[:1] == '[' and raw[-1:] == ']':  # [IPv6]
+        raw = raw[1:-1]
+    return raw
+
+
 class filterException(Exception): # 检测异常
     def __init__(self, reason):
         self.reason = reason

@@ -1,6 +1,8 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
+import copy
+
 testConfig = {}
 
 def __originConfig() -> dict:
@@ -8,7 +10,7 @@ def __originConfig() -> dict:
         'caption': 'Brook original',
         'client': {
             'type': 'brook',
-            'server': testConfig['host'],
+            'server': testConfig['bind'],
             'port': testConfig['port'],
             'passwd': testConfig['passwd']
         },
@@ -25,7 +27,7 @@ def __wsConfig() -> dict:
         'caption': 'Brook websocket',
         'client': {
             'type': 'brook',
-            'server': testConfig['host'],
+            'server': testConfig['bind'],
             'port': testConfig['port'],
             'passwd': testConfig['passwd'],
             'ws': {
@@ -47,7 +49,7 @@ def __wssConfig() -> dict:
         'caption': 'Brook websocket with TLS',
         'client': {
             'type': 'brook',
-            'server': testConfig['host'],
+            'server': testConfig['bind'],
             'port': testConfig['port'],
             'passwd': testConfig['passwd'],
             'ws': {
@@ -60,7 +62,7 @@ def __wssConfig() -> dict:
         },
         'server': [
             'brook', 'wssserver',
-            '--domainaddress', testConfig['host'] + ':' + str(testConfig['port']),
+            '--domainaddress', testConfig['bind'] + ':' + str(testConfig['port']),
             '--cert', testConfig['cert'],
             '--certkey', testConfig['key'],
             '--password', testConfig['passwd'],
@@ -85,7 +87,9 @@ def __brookConfig(brookConfig: dict) -> dict:
 
 def test(config: dict) -> list:
     global testConfig
-    testConfig = config
+    testConfig = copy.deepcopy(config)
+    if testConfig['bind'].find(':') >= 0:
+        testConfig['bind'] = '[' + testConfig['bind'] + ']'
     return [
         __brookConfig(__originConfig()),
         __brookConfig(__wsConfig()),

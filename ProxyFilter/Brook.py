@@ -14,7 +14,7 @@ brookFilterRules = {
         'server': {
             'optional': True,
             'type': str,
-            'format': baseFunc.toStrTidy,
+            'format': baseFunc.toHost,
             'filter': baseFunc.isHost,
             'errMsg': 'Illegal server address'
         },
