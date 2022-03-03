@@ -15,6 +15,7 @@ testConfig = {
     'passwd': 'dnomd343',
     'host': 'local.343.re',
     'path': '/test',
+    'bind': '127.0.0.1',
     'service': 'dnomd343',
     'file': '/tmp/proxycTest.json',
     'cert': '/etc/ssl/certs/343.re/fullchain.pem',
