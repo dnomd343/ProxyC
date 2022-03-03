@@ -7,6 +7,7 @@ from ProxyFilter import VMess
 from ProxyFilter import VLESS
 from ProxyFilter import Trojan
 from ProxyFilter import TrojanGo
+from ProxyFilter import Brook
 
 def filte(raw: dict, isExtra: bool = False) -> tuple[bool, str or dict]:
     """
@@ -37,6 +38,8 @@ def filte(raw: dict, isExtra: bool = False) -> tuple[bool, str or dict]:
             return Trojan.trojanFilter(raw, isExtra)
         elif raw['type'] == 'trojan-go':
             return TrojanGo.trojanGoFilter(raw, isExtra)
+        elif raw['type'] == 'brook':
+            return Brook.brookFilter(raw, isExtra)
         else:
             return False, 'Unknown proxy type'
     except:
