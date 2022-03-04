@@ -20,6 +20,7 @@ loadH2Stream = V2ray.loadH2Stream
 loadQuicStream = V2ray.loadQuicStream
 loadGrpcStream = V2ray.loadGrpcStream
 
+
 def loadWsStream(host: str, path: str, isEd: bool) -> dict:
     if not isEd: # without Early-Data
         return {
@@ -60,6 +61,7 @@ def loadWsStream(host: str, path: str, isEd: bool) -> dict:
         }
     }
 
+
 def addTlsConfig(rawStreamInfo: dict, cert: str, key: str, sni: str) -> dict:
     streamInfo = copy.deepcopy(rawStreamInfo)
     streamInfo['caption'] += ' (tls)'
@@ -81,6 +83,7 @@ def addTlsConfig(rawStreamInfo: dict, cert: str, key: str, sni: str) -> dict:
         ]
     }
     return streamInfo
+
 
 def addXtlsConfig(rawStreamInfo: dict, cert: str, key: str, sni: str, xtlsFlow: str) -> tuple[str, dict]:
     streamInfo = copy.deepcopy(rawStreamInfo)

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-config = {}
+testConfig = {}
 
 ssrMethodList = [
     "aes-128-cfb",
@@ -76,17 +76,18 @@ ssrObfsList = [
 def __ssrServerConfig(method: str, protocol: str, obfs: str, caption: str) -> list:
     proxyInfo = {
         'type': 'ssr',
-        'server': '127.0.0.1',
-        'port': config['port'],
-        'passwd': config['passwd'],
+        'server': testConfig['addr'],
+        'port': testConfig['port'],
+        'passwd': testConfig['passwd'],
         'method': method,
         'protocol': protocol,
         'obfs': obfs
     }
     serverCommand = [
         'ssr-server',
-        '-p', str(config['port']),
-        '-k', config['passwd'],
+        '-s', testConfig['bind'],
+        '-p', str(testConfig['port']),
+        '-k', testConfig['passwd'],
         '-m', method,
         '-O', protocol,
         '-o', obfs
@@ -103,13 +104,16 @@ def __ssrServerConfig(method: str, protocol: str, obfs: str, caption: str) -> li
         'aider': None
     }]
 
-def ssrTest(ssrConfig: dict) -> list:
-    result = []
-    for key, value in ssrConfig.items(): # ssrConfig -> config
-        config[key] = value
+def test(config: dict) -> list:
+    global testConfig
+    testConfig = config
+
+    testList = []
     for method in ssrMethodList: # all ShadowsocksR methods
-        result += __ssrServerConfig(method, 'origin', 'plain', 'ShadowsocksR method ' + method)
+        testList += __ssrServerConfig(method, 'origin', 'plain', 'ShadowsocksR method ' + method)
+
     for protocol in ssrProtocolList: # all ShadowsocksR protocol and obfs
         for obfs in ssrObfsList:
-            result += __ssrServerConfig('table', protocol, obfs, 'ShadowsocksR protocol ' + protocol + ' obfs ' + obfs)
-    return result
+            testList += __ssrServerConfig('table', protocol, obfs, 'ShadowsocksR protocol ' + protocol + ' obfs ' + obfs)
+
+    return testList

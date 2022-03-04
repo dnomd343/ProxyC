@@ -235,6 +235,7 @@ pluginConfig = {
     ]
 }
 
+
 def loadPluginConfig(plugin: str, host: str, cert: str, key: str) -> list: # without rabbit-tcp
     result = []
     filePath = None

@@ -4,7 +4,7 @@
 import copy
 import ProxyTester.Plugin as sip003
 
-config = {}
+testConfig = {}
 
 ssMethodList = [
     'aes-128-gcm',
@@ -73,29 +73,31 @@ sip003PluginList = [ # SIP003插件列表
     'gun-plugin'
 ]
 
+
 def __ssServerConfig(method: str, plugin: str or None) -> list:
     rabbitPort = 20191
     proxyInfo = {
         'type': 'ss',
-        'server': '127.0.0.1',
-        'port': config['port'],
-        'passwd': config['passwd'],
+        'server': testConfig['addr'],
+        'port': testConfig['port'],
+        'passwd': testConfig['passwd'],
         'method': method
     }
     caption = 'Shadowsocks method ' + method
     if method in ['plain', 'none']: # plain / none -> ss-rust
         serverCommand = [
             'ss-rust-server',
-            '-s', '0.0.0.0:' + str(config['port']),
-            '-k', config['passwd'],
+            '-s', testConfig['bind'] + ':' + str(testConfig['port']),
+            '-k', testConfig['passwd'],
             '-m', method
         ]
     elif method == 'salsa20-ctr': # salsa20-ctr -> ss-python-legacy
         serverCommand = [
             'ss-bootstrap-server', '--no-udp',
             '--shadowsocks', 'ss-python-legacy-server',
-            '-p', str(config['port']),
-            '-k', config['passwd'],
+            '-s', testConfig['bind'],
+            '-p', str(testConfig['port']),
+            '-k', testConfig['passwd'],
             '-m', method
         ]
     else: # others -> ss-python
@@ -112,8 +114,9 @@ def __ssServerConfig(method: str, plugin: str or None) -> list:
         serverCommand = [
             'ss-bootstrap-server', '--no-udp',
             '--shadowsocks', 'ss-python-server',
-            '-p', str(config['port']),
-            '-k', config['passwd'],
+            '-s', testConfig['bind'],
+            '-p', str(testConfig['port']),
+            '-k', testConfig['passwd'],
             '-m', method
         ]
         if method == 'idea-cfb' or method == 'seed-cfb':
@@ -136,7 +139,7 @@ def __ssServerConfig(method: str, plugin: str or None) -> list:
         proxyInfo['port'] = rabbitPort
         proxyInfo['plugin'] = {
             'type': 'rabbit-plugin',
-            'param': 'serviceAddr=127.0.0.1:' + str(config['port']) + ';password=' + config['passwd']
+            'param': 'serviceAddr=127.0.0.1:' + str(testConfig['port']) + ';password=' + testConfig['passwd']
         }
         return [{
             'proxy': proxyInfo,
@@ -151,7 +154,7 @@ def __ssServerConfig(method: str, plugin: str or None) -> list:
                 'startCommand': [
                     'rabbit',
                     '-mode', 's',
-                    '-password', config['passwd'],
+                    '-password', testConfig['passwd'],
                     '-rabbit-addr', ':' + str(rabbitPort)
                 ],
                 'fileContent': None,
@@ -162,7 +165,9 @@ def __ssServerConfig(method: str, plugin: str or None) -> list:
 
     # others plugin
     result = []
-    pluginConfig = sip003.loadPluginConfig(plugin, config['host'], config['cert'], config['key']) # 载入插件配置
+    pluginConfig = sip003.loadPluginConfig( # 载入插件配置
+        plugin, testConfig['host'], testConfig['cert'], testConfig['key']
+    )
     serverBaseCommand = copy.deepcopy(serverCommand)
     for pluginOption in pluginConfig:
         serverCommand = copy.deepcopy(serverBaseCommand)
@@ -184,12 +189,14 @@ def __ssServerConfig(method: str, plugin: str or None) -> list:
         }))
     return result
 
-def ssTest(ssConfig: dict) -> list:
-    result = []
-    for key, value in ssConfig.items(): # ssConfig -> config
-        config[key] = value
+
+def test(config: dict) -> list:
+    global testConfig
+    testConfig = config
+
+    testList = []
     for method in ssMethodList: # all Shadowsocks methods
-        result += __ssServerConfig(method, None)
+        testList += __ssServerConfig(method, None)
     for plugin in sip003PluginList: # all SIP003 plugin
-        result += __ssServerConfig('aes-256-ctr', plugin)
-    return result
+        testList += __ssServerConfig('aes-256-ctr', plugin)
+    return testList

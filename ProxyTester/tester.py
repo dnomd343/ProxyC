@@ -11,18 +11,19 @@ from ProxyTester import Brook
 
 def test(key: str, config: dict) -> list:
     if key in ['ss', 'shadowsocks']:
-        return Shadowsocks.ssTest(config)
+        testObj = Shadowsocks
     elif key in ['ssr', 'shadowsocksr']:
-        return ShadowsocksR.ssrTest(config)
+        testObj = ShadowsocksR
     elif key == 'vmess':
-        return VMess.vmessTest(config)
+        testObj = VMess
     elif key == 'vless':
-        return VLESS.vlessTest(config)
+        testObj = VLESS
     elif key == 'trojan':
-        return Trojan.trojanTest(config)
+        testObj = Trojan
     elif key == 'trojan-go':
-        return TrojanGo.trojanGoTest(config)
+        testObj = TrojanGo
     elif key == 'brook':
-        return Brook.test(config)
+        testObj = Brook
     else:
         return []
+    return testObj.test(config)

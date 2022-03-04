@@ -11,17 +11,17 @@ import Check as Checker
 import ProxyTester as Tester
 
 testConfig = {
+    'bind': '0.0.0.0',
+    'addr': '172.17.0.2',
     'port': 12345,
     'passwd': 'dnomd343',
     'host': 'local.343.re',
     'path': '/test',
-    'bind': '::1',
-    # 'bind': '127.0.0.1',
     'service': 'dnomd343',
     'file': '/tmp/proxycTest.json',
+    'id': '1f7aa040-94d8-4b53-ae85-af6946d550bb',
     'cert': '/etc/ssl/certs/343.re/fullchain.pem',
     'key': '/etc/ssl/certs/343.re/privkey.pem',
-    'id': '1f7aa040-94d8-4b53-ae85-af6946d550bb',
 }
 
 def testBuild(config: dict): # load file and start process

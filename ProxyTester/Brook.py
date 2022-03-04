@@ -5,12 +5,13 @@ import copy
 
 testConfig = {}
 
+
 def __originConfig() -> dict:
     return {
         'caption': 'Brook original',
         'client': {
             'type': 'brook',
-            'server': testConfig['bind'],
+            'server': testConfig['addr'],
             'port': testConfig['port'],
             'passwd': testConfig['passwd']
         },
@@ -27,7 +28,7 @@ def __wsConfig() -> dict:
         'caption': 'Brook websocket',
         'client': {
             'type': 'brook',
-            'server': testConfig['bind'],
+            'server': testConfig['addr'],
             'port': testConfig['port'],
             'passwd': testConfig['passwd'],
             'ws': {
@@ -49,7 +50,7 @@ def __wssConfig() -> dict:
         'caption': 'Brook websocket with TLS',
         'client': {
             'type': 'brook',
-            'server': testConfig['bind'],
+            'server': testConfig['addr'],
             'port': testConfig['port'],
             'passwd': testConfig['passwd'],
             'ws': {

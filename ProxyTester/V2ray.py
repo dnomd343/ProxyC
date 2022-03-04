@@ -48,6 +48,7 @@ quicMethodList = [
     'chacha20-poly1305',
 ]
 
+
 def loadTcpStream(isObfs: bool, host: str, path: str) -> dict:
     streamConfig = {
         'network': 'tcp',
@@ -84,6 +85,7 @@ def loadTcpStream(isObfs: bool, host: str, path: str) -> dict:
         'server': streamConfig
     }
 
+
 def loadKcpStream(seed: str, obfs: str) -> dict:
     kcpSetting['header'] = {
         'type': obfs
@@ -102,6 +104,7 @@ def loadKcpStream(seed: str, obfs: str) -> dict:
             'kcpSettings': kcpSetting
         }
     }
+
 
 def loadWsStream(host: str, path: str, isEd: bool) -> dict:
     wsSetting = {
@@ -141,6 +144,7 @@ def loadWsStream(host: str, path: str, isEd: bool) -> dict:
         }
     }
 
+
 def loadH2Stream(host: str, path: str) -> dict:
     return {
         'caption': 'HTTP/2',
@@ -158,6 +162,7 @@ def loadH2Stream(host: str, path: str) -> dict:
             }
         }
     }
+
 
 def loadQuicStream(method: str, passwd: str, obfs: str) -> dict:
     return {
@@ -180,6 +185,7 @@ def loadQuicStream(method: str, passwd: str, obfs: str) -> dict:
             }
         }
     }
+
 
 def loadGrpcStream(service: str, multiMode: bool = False) -> dict:
     if not multiMode:
@@ -214,6 +220,7 @@ def loadGrpcStream(service: str, multiMode: bool = False) -> dict:
         }
     }
 
+
 def addSecureConfig(rawStreamInfo: dict, cert: str, key: str, sni: str) -> dict:
     streamInfo = copy.deepcopy(rawStreamInfo)
     streamInfo['caption'] += ' (tls)'
@@ -234,6 +241,7 @@ def addSecureConfig(rawStreamInfo: dict, cert: str, key: str, sni: str) -> dict:
         ]
     }
     return streamInfo
+
 
 def v2rayConfig(inboundConfig: dict) -> str:
     return json.dumps({

@@ -3,10 +3,9 @@
 
 import copy
 import json
-
 from ProxyTester import Plugin
 
-config = {}
+testConfig = {}
 
 trojanGoMethod = [
     'AES-128-GCM',
@@ -29,51 +28,52 @@ sip003PluginList = [ # SIP003插件列表
     'gun-plugin'
 ]
 
+
 def loadTrojanGo(isWs: bool, ssMethod: str or None) -> dict:
     caption = 'Trojan-Go original'
     serverConfig = {
         'run_type': 'server',
-        'local_addr': '127.0.0.1',
-        'local_port': config['port'],
+        'local_addr': testConfig['bind'],
+        'local_port': testConfig['port'],
         'remote_addr': '127.0.0.1', # only for shadowsocks fallback
         'remote_port': 343,
         'password': [
-            config['passwd']
+            testConfig['passwd']
         ],
         'disable_http_check': True,
         'ssl': {
-            'cert': config['cert'],
-            'key': config['key']
+            'cert': testConfig['cert'],
+            'key': testConfig['key']
         }
     }
     proxyInfo = {
         'type': 'trojan-go',
-        'server': '127.0.0.1',
-        'port': config['port'],
-        'passwd': config['passwd'],
-        'sni': config['host'],
+        'server': testConfig['addr'],
+        'port': testConfig['port'],
+        'passwd': testConfig['passwd'],
+        'sni': testConfig['host'],
     }
     if ssMethod is not None: # add Shadowsocks encrypt
         caption += ' ' + ssMethod + ' encrypt'
         serverConfig['shadowsocks'] = {
             'enabled': True,
             'method': ssMethod,
-            'password': config['passwd']
+            'password': testConfig['passwd']
         }
         proxyInfo['ss'] = {
             'method': ssMethod,
-            'passwd': config['passwd']
+            'passwd': testConfig['passwd']
         }
     if isWs: # add WebSocket config
         caption += ' (websocket)'
         serverConfig['websocket'] = {
             'enabled': True,
-            'host': config['host'],
-            'path': config['path']
+            'host': testConfig['host'],
+            'path': testConfig['path']
         }
         proxyInfo['ws'] = {
-            'host': config['host'],
-            'path': config['path']
+            'host': testConfig['host'],
+            'path': testConfig['path']
         }
     return {
         'caption': caption,
@@ -82,6 +82,7 @@ def loadTrojanGo(isWs: bool, ssMethod: str or None) -> dict:
         'file': None,
         'path': None
     }
+
 
 def loadTrojanGoPlugin(plugin: str) -> list:
     result = []
@@ -93,7 +94,7 @@ def loadTrojanGoPlugin(plugin: str) -> list:
         trojanBaseConfig['client']['port'] = rabbitPort
         trojanBaseConfig['client']['plugin'] = {
             'type': 'rabbit-plugin',
-            'param': 'serviceAddr=127.0.0.1:' + str(config['port']) + ';password=' + config['passwd']
+            'param': 'serviceAddr=127.0.0.1:' + str(testConfig['port']) + ';password=' + testConfig['passwd']
         }
         trojanBaseConfig['server']['transport_plugin'] = {
             'enabled': True,
@@ -101,7 +102,7 @@ def loadTrojanGoPlugin(plugin: str) -> list:
             'command': 'rabbit',
             'arg': [
                 '-mode', 's',
-                '-password', config['passwd'],
+                '-password', testConfig['passwd'],
                 '-rabbit-addr', ':' + str(rabbitPort)
             ]
         }
@@ -110,7 +111,7 @@ def loadTrojanGoPlugin(plugin: str) -> list:
         return [trojanBaseConfig]
 
     # other plugin
-    pluginConfig = Plugin.loadPluginConfig(plugin, config['host'], config['cert'], config['key'])  # 载入插件配置
+    pluginConfig = Plugin.loadPluginConfig(plugin, testConfig['host'], testConfig['cert'], testConfig['key'])  # 载入插件配置
     for pluginOption in pluginConfig:
         trojanConfig = copy.deepcopy(trojanBaseConfig)
         trojanConfig['caption'] = 'Trojan-Go plugin ' + plugin + ' (' + pluginOption['caption'] + ')'
@@ -126,6 +127,7 @@ def loadTrojanGoPlugin(plugin: str) -> list:
         result.append(trojanConfig)
     return result
 
+
 def loadTrojanGoConfig(trojanGoConfigList: list) -> list:
     result = []
     for trojanGoConfig in trojanGoConfigList:
@@ -133,9 +135,9 @@ def loadTrojanGoConfig(trojanGoConfigList: list) -> list:
             'caption': trojanGoConfig['caption'],
             'proxy': trojanGoConfig['client'],
             'server': {
-                'startCommand': ['trojan-go', '-config', config['file']],
+                'startCommand': ['trojan-go', '-config', testConfig['file']],
                 'fileContent': json.dumps(trojanGoConfig['server']),
-                'filePath': config['file'],
+                'filePath': testConfig['file'],
                 'envVar': {'PATH': '/usr/bin'}
             },
             'aider': {
@@ -147,18 +149,19 @@ def loadTrojanGoConfig(trojanGoConfigList: list) -> list:
         })
     return result
 
-def trojanGoTest(trojanGoConfig: dict) -> list:
-    result = []
-    for key, value in trojanGoConfig.items(): # trojanGoConfig -> config
-        config[key] = value
 
-    result += loadTrojanGoConfig([loadTrojanGo(False, None)]) # basic test
-    result += loadTrojanGoConfig([loadTrojanGo(True, None)])
+def test(config: dict) -> list:
+    global testConfig
+    testConfig = config
+    testList = []
+
+    testList += loadTrojanGoConfig([loadTrojanGo(False, None)]) # basic test
+    testList += loadTrojanGoConfig([loadTrojanGo(True, None)])
     for ssMethod in trojanGoMethod:
-        result += loadTrojanGoConfig([loadTrojanGo(False, ssMethod)]) # basic test with shadowsocks
-        result += loadTrojanGoConfig([loadTrojanGo(True, ssMethod)])
+        testList += loadTrojanGoConfig([loadTrojanGo(False, ssMethod)]) # basic test with shadowsocks
+        testList += loadTrojanGoConfig([loadTrojanGo(True, ssMethod)])
 
     for plugin in sip003PluginList: # plugin test -> cause zombie process (imperfect trojan-go)
-        result += loadTrojanGoConfig(loadTrojanGoPlugin(plugin))
+        testList += loadTrojanGoConfig(loadTrojanGoPlugin(plugin))
 
-    return result
+    return testList
