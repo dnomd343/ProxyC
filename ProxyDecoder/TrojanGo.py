@@ -4,7 +4,7 @@
 import re
 from ProxyDecoder import baseFunc
 
-def __trojanGoCommonDecode(url: str) -> dict:
+def __trojanGoDecode(url: str) -> dict:
     """
     Trojan-Go标准分享链接解码
 
@@ -73,24 +73,10 @@ def __trojanGoCommonDecode(url: str) -> dict:
         }
     return info
 
-def trojanGoDecode(url: str) -> dict or None:
-    """
-    Trojan-Go分享链接解码
-
-        链接合法:
-            return {
-                'type': 'trojan-go',
-                ...
-            }
-
-        链接不合法:
-            return None
-    """
-    if url[0:12] != 'trojan-go://':
-        return None
-    try:
-        result = __trojanGoCommonDecode(url)  # try Trojan-Go common decode
-    except:
-        return None
-    result['type'] = 'trojan-go'
-    return result
+def decode(url: str) -> dict:
+    if url.split('://')[0] != 'trojan-go':
+        raise Exception('Unexpected scheme')
+    return {
+        **{'type': 'trojan-go'},
+        **__trojanGoDecode(url)
+    }

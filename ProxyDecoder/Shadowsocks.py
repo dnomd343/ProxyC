@@ -4,6 +4,7 @@
 import re
 from ProxyDecoder import baseFunc
 
+
 def __ssPlainDecode(url: str) -> dict:
     """
     Shadowsocks原始分享链接解码
@@ -31,6 +32,7 @@ def __ssPlainDecode(url: str) -> dict:
         'remark': remark
     }
 
+
 def __ssCommonDecode(url: str) -> dict:
     """
     Shadowsocks经典分享链接解码
@@ -57,6 +59,7 @@ def __ssCommonDecode(url: str) -> dict:
         'method': match[1],
         'remark': remark
     }
+
 
 def __sip002Decode(url: str) -> dict:
     """
@@ -116,32 +119,24 @@ def __sip002Decode(url: str) -> dict:
         info['plugin'] = pluginObject
     return info
 
-def ssDecode(url: str, compatible: bool = False) -> dict or None:
-    """
-    Shadowsocks分享链接解码
 
-        链接合法:
-            return {
-                'type': 'ss',
-                ...
-            }
-
-        链接不合法:
-            return None
-    """
-    if url[0:5] != 'ss://':
-        return None
+def decode(url: str, compatible: bool = False) -> dict or None:
+    if url.split('://')[0] != 'ss':
+        raise Exception('Unexpected scheme')
     try:
-        result = __ssCommonDecode(url) # try shadowsocks common decode
+        ssInfo = __ssCommonDecode(url) # try shadowsocks common decode
     except:
         try:
-            result = __sip002Decode(url)  # try shadowsocks sip002 decode
+            ssInfo = __sip002Decode(url)  # try shadowsocks sip002 decode
         except:
             try:
-                result = __ssPlainDecode(url)  # try shadowsocks plain decode
+                ssInfo = __ssPlainDecode(url)  # try shadowsocks plain decode
             except:
-                return None
-    if compatible and 'remark' in result: # 向后兼容部分客户端
-        result['remark'] = result['remark'].replace('+', ' ')
-    result['type'] = 'ss'
-    return result
+                raise Exception('Url could not be parsed')
+
+    if compatible and 'remark' in ssInfo: # 向后兼容部分客户端
+        ssInfo['remark'] = ssInfo['remark'].replace('+', ' ')
+    return {
+        **{'type': 'ss'},
+        **ssInfo
+    }

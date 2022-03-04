@@ -5,6 +5,7 @@ import re
 import json
 from ProxyDecoder import baseFunc
 
+
 def __vmessV2raynDecode(url: str) -> dict:
     """
     v2rayN / v2rayNG分享链接解码
@@ -27,6 +28,7 @@ def __vmessV2raynDecode(url: str) -> dict:
           "sni": "...",
           "alpn": "..."
         }
+
     """
     content = json.loads(
         baseFunc.base64Decode(
@@ -36,7 +38,7 @@ def __vmessV2raynDecode(url: str) -> dict:
     if int(content['v']) != 2: # version => 2
         raise Exception('Unknown version field')
     info = {
-        'server': content['add'],
+        'server': baseFunc.formatHost(content['add']),
         'port': int(content['port']),
         'id': content['id'],
         'aid': int(content['aid']),
@@ -102,6 +104,7 @@ def __vmessV2raynDecode(url: str) -> dict:
     info['stream'] = stream
     return info
 
+
 def __vmessCommonDecode(url: str) -> dict:
     """
     VMess标准分享链接解码 (only VMessAEAD)
@@ -153,7 +156,7 @@ def __vmessCommonDecode(url: str) -> dict:
     if 'encryption' in params:
         info['method'] = params['encryption']
     stream = {
-        'type': params['type']
+        'type': params['type'] if params['type'] != 'http' else 'h2'
     }
     if params['type'] == 'tcp':
         if 'headerType' in params and params['headerType'] == 'http':
@@ -207,27 +210,18 @@ def __vmessCommonDecode(url: str) -> dict:
     info['stream'] = stream
     return info
 
-def vmessDecode(url: str) -> dict or None:
-    """
-    VMess分享链接解码
 
-        链接合法:
-            return {
-                'type': 'vmess',
-                ...
-            }
-
-        链接不合法:
-            return None
-    """
-    if url[0:8] != 'vmess://':
-        return None
+def decode(url: str) -> dict:
+    if url.split('://')[0] != 'vmess':
+        raise Exception('Unexpected scheme')
     try:
-        result = __vmessV2raynDecode(url) # try v2rayN decode
+        vmessInfo = __vmessV2raynDecode(url) # try v2rayN decode
     except:
         try:
-            result = __vmessCommonDecode(url)  # try VMess common decode
+            vmessInfo = __vmessCommonDecode(url)  # try VMess common decode
         except:
-            return None
-    result['type'] = 'vmess'
-    return result
+            raise Exception('Url could not be parsed')
+    return {
+        **{'type': 'vmess'},
+        **vmessInfo
+    }

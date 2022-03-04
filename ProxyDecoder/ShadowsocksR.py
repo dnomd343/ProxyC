@@ -4,10 +4,9 @@
 import re
 from ProxyDecoder import baseFunc
 
-def __ssrCommonDecode(url: str) -> dict:
-    """
-    ShadowsocksR经典分享链接解码
 
+def __ssrDecode(url: str) -> dict: # SSR分享链接解码
+    """
     FORMAT: ssr://BASE64-ENCODED-STRING-WITHOUT-PADDING
 
     EXAMPLE:
@@ -41,24 +40,11 @@ def __ssrCommonDecode(url: str) -> dict:
         info['group'] = baseFunc.base64Decode(params['group'])
     return info
 
-def ssrDecode(url: str) -> dict or None:
-    """
-    ShadowsocksR分享链接解码
 
-        链接合法:
-            return {
-                'type': 'ssr',
-                ...
-            }
-
-        链接不合法:
-            return None
-    """
-    if url[0:6] != 'ssr://':
-        return None
-    try:
-        result = __ssrCommonDecode(url) # try common decode
-    except:
-        return None
-    result['type'] = 'ssr'
-    return result
+def decode(url: str) -> dict:
+    if url.split('://')[0] != 'ssr':
+        raise Exception('Unexpected scheme')
+    return {
+        **{'type': 'ssr'},
+        **__ssrDecode(url)
+    }

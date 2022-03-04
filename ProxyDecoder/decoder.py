@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-import re
 from ProxyDecoder import Shadowsocks
 from ProxyDecoder import ShadowsocksR
 from ProxyDecoder import VMess
@@ -9,6 +8,7 @@ from ProxyDecoder import VLESS
 from ProxyDecoder import Trojan
 from ProxyDecoder import TrojanGo
 from ProxyDecoder import Brook
+
 
 def decode(url: str) -> dict or None:
     """
@@ -24,19 +24,19 @@ def decode(url: str) -> dict or None:
             }
     """
     try:
-        scheme = re.search(r'^([\S]+?)://([\s\S]+)$', url).group(1)
+        scheme = url.split('://', maxsplit = 1)[0]
         if scheme == 'ss':
-            return Shadowsocks.ssDecode(url, compatible = True)
+            return Shadowsocks.decode(url, compatible = True)
         elif scheme == 'ssr':
-            return ShadowsocksR.ssrDecode(url)
+            return ShadowsocksR.decode(url)
         elif scheme == 'vmess':
-            return VMess.vmessDecode(url)
+            return VMess.decode(url)
         elif scheme == 'vless':
-            return VLESS.vlessDecode(url)
+            return VLESS.decode(url)
         elif scheme == 'trojan':
-            return Trojan.trojanDecode(url)
+            return Trojan.decode(url)
         elif scheme == 'trojan-go':
-            return TrojanGo.trojanGoDecode(url)
+            return TrojanGo.decode(url)
         elif scheme == 'brook':
             return Brook.decode(url)
     except:

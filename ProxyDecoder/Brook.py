@@ -1,28 +1,27 @@
 #!/usr/bin/python
 # -*- coding:utf-8 -*-
 
-import re
 from ProxyDecoder import baseFunc
 
 
 def __addressSplit(address: str) -> dict: # server:port
     if address == '':
         return {}
-    server, port = address.rsplit(':', maxsplit=1)
+    server, port = address.rsplit(':', maxsplit = 1)
     return {
         'server': baseFunc.formatHost(server),
         'port': int(port)
     }
 
 
-def __wsSplit(wsServer: str, params: dict) -> dict:
+def __wsSplit(wsServer: str, params: dict) -> dict: # ws[s]://xxx:xxx/...
     wsUrl = baseFunc.urlSplit(wsServer)
     wsInfo = {
         'server': wsUrl['server'],
         'port': wsUrl['port'],
         'ws': {
             'host': wsUrl['server'],
-            'path': wsUrl['path'] if wsUrl['path'] != '' else '/ws'
+            'path': wsUrl['path'] if wsUrl['path'] != '' else '/ws' # path as `/ws` when omitted
         }
     }
     if 'address' not in params:

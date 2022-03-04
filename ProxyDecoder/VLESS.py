@@ -4,7 +4,8 @@
 import re
 from ProxyDecoder import baseFunc
 
-def __vlessCommonDecode(url: str) -> dict:
+
+def __vlessDecode(url: str) -> dict:
     """
     VLESS标准分享链接解码
 
@@ -55,7 +56,7 @@ def __vlessCommonDecode(url: str) -> dict:
     }
     params = baseFunc.paramSplit(match[4])
     stream = {
-        'type': params['type']
+        'type': params['type'] if params['type'] != 'http' else 'h2'
     }
     if params['type'] == 'tcp':
         if 'headerType' in params and params['headerType'] == 'http':
@@ -98,44 +99,34 @@ def __vlessCommonDecode(url: str) -> dict:
         raise Exception('Unknown network type')
 
     if 'security' in params:
-        if params['security'] not in ['tls', 'xtls']:
+        if params['security'] in ['tls', 'xtls']:
+            secure = {
+                'type': params['security']
+            }
+            if 'sni' in params:
+                secure['sni'] = params['sni']
+            if 'alpn' in params:
+                secure['alpn'] = params['alpn']
+            if params['security'] == 'xtls' and 'flow' in params: # XTLS flow
+                if params['flow'] in ['xtls-rprx-origin', 'xtls-rprx-origin-udp443']:
+                    secure['flow'] = 'xtls-origin'
+                elif params['flow'] in ['xtls-rprx-direct', 'xtls-rprx-direct-udp443']:
+                    secure['flow'] = 'xtls-direct'
+                elif params['flow'] in ['xtls-rprx-splice', 'xtls-rprx-splice-udp443']:
+                    secure['flow'] = 'xtls-splice'
+        elif params['security'] in ['', 'none']:
+            secure = None
+        else:
             raise Exception('Unknown security type')
-        secure = {
-            'type': params['security']
-        }
-        if 'sni' in params:
-            secure['sni'] = params['sni']
-        if 'alpn' in params:
-            secure['alpn'] = params['alpn']
-        if params['security'] == 'xtls' and 'flow' in params: # XTLS flow
-            if params['flow'] in ['xtls-rprx-origin', 'xtls-rprx-origin-udp443']:
-                secure['flow'] = 'xtls-origin'
-            elif params['flow'] in ['xtls-rprx-direct', 'xtls-rprx-direct-udp443']:
-                secure['flow'] = 'xtls-direct'
-            elif params['flow'] in ['xtls-rprx-splice', 'xtls-rprx-splice-udp443']:
-                secure['flow'] = 'xtls-splice'
         stream['secure'] = secure
     info['stream'] = stream
     return info
 
-def vlessDecode(url: str) -> dict or None:
-    """
-    VLESS分享链接解码
 
-        链接合法:
-            return {
-                'type': 'vless',
-                ...
-            }
-
-        链接不合法:
-            return None
-    """
-    if url[0:8] != 'vless://':
-        return None
-    try:
-        result = __vlessCommonDecode(url)  # try VLESS common decode
-    except:
-        return None
-    result['type'] = 'vless'
-    return result
+def decode(url: str) -> dict:
+    if url.split('://')[0] != 'vless':
+        raise Exception('Unexpected scheme')
+    return {
+        **{'type': 'vless'},
+        **__vlessDecode(url)
+    }
