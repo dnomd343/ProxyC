@@ -85,9 +85,12 @@ def __ssServerConfig(method: str, plugin: str or None) -> list:
     }
     caption = 'Shadowsocks method ' + method
     if method in ['plain', 'none']: # plain / none -> ss-rust
+        serverAddr = testConfig['bind']
+        if not testConfig['bind'].find(':') < 0:
+            serverAddr = '[' + testConfig['bind'] + ']'
         serverCommand = [
             'ss-rust-server',
-            '-s', testConfig['bind'] + ':' + str(testConfig['port']),
+            '-s', serverAddr + ':' + str(testConfig['port']),
             '-k', testConfig['passwd'],
             '-m', method
         ]
@@ -165,6 +168,8 @@ def __ssServerConfig(method: str, plugin: str or None) -> list:
 
     # others plugin
     result = []
+    if plugin == 'kcptun-client' and testConfig['bind'].find(':') >= 0:
+        serverCommand[serverCommand.index('-s') + 1] = '[' + testConfig['bind'] + ']'
     pluginConfig = sip003.loadPluginConfig( # 载入插件配置
         plugin, testConfig['host'], testConfig['cert'], testConfig['key']
     )
@@ -197,6 +202,11 @@ def test(config: dict) -> list:
     testList = []
     for method in ssMethodList: # all Shadowsocks methods
         testList += __ssServerConfig(method, None)
+
+    if config['bind'].find(':') >= 0: # ipv6 format error
+        sip003PluginList.remove('gq-client')
+        sip003PluginList.remove('rabbit-plugin')
     for plugin in sip003PluginList: # all SIP003 plugin
         testList += __ssServerConfig('aes-256-ctr', plugin)
+
     return testList

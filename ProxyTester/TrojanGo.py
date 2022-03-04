@@ -112,6 +112,8 @@ def loadTrojanGoPlugin(plugin: str) -> list:
 
     # other plugin
     pluginConfig = Plugin.loadPluginConfig(plugin, testConfig['host'], testConfig['cert'], testConfig['key'])  # 载入插件配置
+    if plugin == 'kcptun-client' and testConfig['bind'].find(':') >= 0:
+        trojanBaseConfig['server']['local_addr'] = '[' + trojanBaseConfig['server']['local_addr'] + ']'
     for pluginOption in pluginConfig:
         trojanConfig = copy.deepcopy(trojanBaseConfig)
         trojanConfig['caption'] = 'Trojan-Go plugin ' + plugin + ' (' + pluginOption['caption'] + ')'
@@ -161,6 +163,9 @@ def test(config: dict) -> list:
         testList += loadTrojanGoConfig([loadTrojanGo(False, ssMethod)]) # basic test with shadowsocks
         testList += loadTrojanGoConfig([loadTrojanGo(True, ssMethod)])
 
+    if config['bind'].find(':') >= 0: # ipv6 format error
+        sip003PluginList.remove('gq-client')
+        sip003PluginList.remove('rabbit-plugin')
     for plugin in sip003PluginList: # plugin test -> cause zombie process (imperfect trojan-go)
         testList += loadTrojanGoConfig(loadTrojanGoPlugin(plugin))
 

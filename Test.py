@@ -11,8 +11,8 @@ import Check as Checker
 import ProxyTester as Tester
 
 testConfig = {
-    'bind': '0.0.0.0',
-    'addr': '172.17.0.2',
+    'bind': '::1',
+    'addr': '::1',
     'port': 12345,
     'passwd': 'dnomd343',
     'host': 'local.343.re',
