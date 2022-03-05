@@ -8,6 +8,7 @@ from ProxyFilter import VLESS
 from ProxyFilter import Trojan
 from ProxyFilter import TrojanGo
 from ProxyFilter import Brook
+from ProxyFilter import Hysteria
 
 def filte(raw: dict, isExtra: bool = False) -> tuple[bool, str or dict]:
     """
@@ -40,6 +41,8 @@ def filte(raw: dict, isExtra: bool = False) -> tuple[bool, str or dict]:
             return TrojanGo.trojanGoFilter(raw, isExtra)
         elif raw['type'] == 'brook':
             return Brook.filte(raw, isExtra)
+        elif raw['type'] == 'hysteria':
+            return Hysteria.filte(raw, isExtra)
         else:
             return False, 'Unknown proxy type'
     except:
