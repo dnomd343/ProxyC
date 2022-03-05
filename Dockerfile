@@ -42,12 +42,12 @@ git clone https://github.com/shadowsocks/simple-obfs.git && \
 git clone https://github.com/IrineSistiana/simple-tls.git && \
 git clone https://github.com/shadowsocks/v2ray-plugin.git && \
 git clone https://github.com/teddysun/xray-plugin.git && \
-git clone https://github.com/shadowsocks/kcptun.git && \
+git clone https://github.com/dnomd343/kcptun.git && \
 git clone https://github.com/maskedeken/gost-plugin.git && \
 git clone https://github.com/cbeuw/Cloak.git && \
-git clone https://github.com/cbeuw/GoQuiet.git && \
+git clone https://github.com/dnomd343/GoQuiet.git && \
 git clone https://github.com/IrineSistiana/mos-tls-tunnel.git && \
-git clone https://github.com/ihciah/rabbit-plugin.git && \
+git clone https://github.com/dnomd343/rabbit-plugin.git && \
 git clone https://github.com/ihciah/rabbit-tcp.git && \
 git clone https://github.com/shadowsocks/qtun.git && \
 git clone https://github.com/Qv2ray/gun.git && \

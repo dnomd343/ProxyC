@@ -86,8 +86,8 @@ def __ssServerConfig(method: str, plugin: str or None) -> list:
     caption = 'Shadowsocks method ' + method
     if method in ['plain', 'none']: # plain / none -> ss-rust
         serverAddr = testConfig['bind']
-        if not testConfig['bind'].find(':') < 0:
-            serverAddr = '[' + testConfig['bind'] + ']'
+        if not serverAddr.find(':') < 0:
+            serverAddr = '[' + serverAddr + ']'
         serverCommand = [
             'ss-rust-server',
             '-s', serverAddr + ':' + str(testConfig['port']),
@@ -139,10 +139,13 @@ def __ssServerConfig(method: str, plugin: str or None) -> list:
         }]
 
     if plugin == 'rabbit-plugin': # rabbit-tcp
+        serverAddr = testConfig['bind']
+        if not serverAddr.find(':') < 0: # IPv6
+            serverAddr = '[' + serverAddr + ']'
         proxyInfo['port'] = rabbitPort
         proxyInfo['plugin'] = {
             'type': 'rabbit-plugin',
-            'param': 'serviceAddr=127.0.0.1:' + str(testConfig['port']) + ';password=' + testConfig['passwd']
+            'param': 'serviceAddr=' + serverAddr + ':' + str(testConfig['port']) + ';password=' + testConfig['passwd']
         }
         return [{
             'proxy': proxyInfo,
@@ -168,8 +171,6 @@ def __ssServerConfig(method: str, plugin: str or None) -> list:
 
     # others plugin
     result = []
-    if plugin == 'kcptun-client' and testConfig['bind'].find(':') >= 0:
-        serverCommand[serverCommand.index('-s') + 1] = '[' + testConfig['bind'] + ']'
     pluginConfig = sip003.loadPluginConfig( # 载入插件配置
         plugin, testConfig['host'], testConfig['cert'], testConfig['key']
     )
@@ -202,10 +203,6 @@ def test(config: dict) -> list:
     testList = []
     for method in ssMethodList: # all Shadowsocks methods
         testList += __ssServerConfig(method, None)
-
-    if config['bind'].find(':') >= 0: # ipv6 format error
-        sip003PluginList.remove('gq-client')
-        sip003PluginList.remove('rabbit-plugin')
     for plugin in sip003PluginList: # all SIP003 plugin
         testList += __ssServerConfig('aes-256-ctr', plugin)
 
