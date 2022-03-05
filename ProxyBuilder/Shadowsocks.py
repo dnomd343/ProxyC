@@ -153,8 +153,8 @@ def __baseConfig(proxyInfo: dict, socksPort: int) -> dict: # 生成基本配置
     return config
 
 def __pluginWithUdp(plugin: str, pluginParam: str) -> bool: # 插件是否使用UDP通讯
-    if plugin in ['obfs-local', 'simple-tls', 'ck-client', 'gq-client',
-                  'mtt-client', 'rabbit-plugin', 'gun-plugin']: # 不使用UDP通讯的插件
+    if plugin in ['obfs-local', 'simple-tls', 'ck-client',
+                  'gq-client', 'mtt-client', 'rabbit-plugin']: # 不使用UDP通讯的插件
         return False
     if plugin in ['v2ray-plugin', 'xray-plugin', 'gost-plugin']:
         if 'mode=quic' not in pluginParam.split(';'): # 非quic模式不使用UDP通讯
