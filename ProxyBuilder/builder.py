@@ -16,6 +16,7 @@ from ProxyBuilder import VLESS
 from ProxyBuilder import Trojan
 from ProxyBuilder import TrojanGo
 from ProxyBuilder import Brook
+from ProxyBuilder import Hysteria
 
 libcPaths = [
     '/usr/lib/libc.so.6', # CentOS
@@ -125,6 +126,8 @@ def build(proxyInfo: dict, configDir: str,
         clientObj = TrojanGo
     elif proxyInfo['type'] == 'brook': # Brook节点
         clientObj = Brook
+    elif proxyInfo['type'] == 'hysteria': # Hysteria节点
+        clientObj = Hysteria
     else: # 未知类型
         return False, 'Unknown proxy type'
 

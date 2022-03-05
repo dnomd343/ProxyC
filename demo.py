@@ -13,13 +13,17 @@ info = {
     'server': '127.0.0.1',
     'port': 443,
     'protocol': 'faketcp',
-    'obfs': 'dnomd343',
+    'obfs': '770091573',
     'auth': 'dnomd343',
-    'sni': 'local.343.re',
-    'alpn': 'h3',
-    'verify': False
+    'sni': 'local.343.re'
 }
 
 status, ret = Filter.filte(info, isExtra = True)
 print(status)
 print(ret)
+
+result = Checker.proxyTest({
+    'check': ['http'],
+    'info': ret
+})
+print(result)
