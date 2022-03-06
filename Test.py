@@ -56,7 +56,7 @@ def testObject(option: dict) -> None: # test target object
     checkResult = Checker.proxyTest({ # http check
         'check': ['http'],
         'info': option['proxy']
-    })
+    }, startDelay = 0.5)
     print(option['caption'], end=' -> ')
     if not checkResult['success']: # client build error
         print('\n--------------------------------------------------------------------------------------------------------------------------------')

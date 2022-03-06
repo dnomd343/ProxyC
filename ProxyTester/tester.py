@@ -8,6 +8,7 @@ from ProxyTester import VLESS
 from ProxyTester import Trojan
 from ProxyTester import TrojanGo
 from ProxyTester import Brook
+from ProxyTester import Hysteria
 
 def test(key: str, config: dict) -> list:
     if key in ['ss', 'shadowsocks']:
@@ -24,6 +25,8 @@ def test(key: str, config: dict) -> list:
         testObj = TrojanGo
     elif key == 'brook':
         testObj = Brook
+    elif key == 'hysteria':
+        testObj = Hysteria
     else:
         return []
     return testObj.test(config)
