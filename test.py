@@ -23,17 +23,17 @@ def loadConfig(serverPort: int, method: str) -> dict:  # load basic config optio
     return config
 
 
-def ssRust(serverPort: int, method: str, isLegacy: bool = False) -> tuple[dict, list]:
+def ssRust(serverPort: int, method: str) -> tuple[dict, list]:
     config = loadConfig(serverPort, method)
     return config, ['ss-rust-server', '-v']
 
 
-def ssLibev(serverPort: int, method: str, isLegacy: bool = False) -> tuple[dict, list]:
+def ssLibev(serverPort: int, method: str) -> tuple[dict, list]:
     config = loadConfig(serverPort, method)
-    return config, ['ss-libev-legacy-server' if isLegacy else 'ss-libev-server', '-v']
+    return config, ['ss-libev-server', '-v']
 
 
-def ssPython(serverPort: int, method: str, isLegacy: bool = False) -> tuple[dict, list]:
+def ssPython(serverPort: int, method: str) -> tuple[dict, list]:
     config = loadConfig(serverPort, method)
     mbedtlsMethods = [
         'aes-128-cfb128',
@@ -43,12 +43,17 @@ def ssPython(serverPort: int, method: str, isLegacy: bool = False) -> tuple[dict
         'camellia-192-cfb128',
         'camellia-256-cfb128',
     ]
-    if not isLegacy:  # only for latest version
-        if config['method'] in mbedtlsMethods:  # mbedtls methods should use prefix `mbedtls:`
-            config['method'] = 'mbedtls:' + config['method']
-        if config['method'] in ['idea-cfb', 'seed-cfb']:  # Only older versions of openssl are supported
-            config['extra_opts'] = '--libopenssl=libcrypto.so.1.0.0'
-    config['shadowsocks'] = 'ss-python-legacy-server' if isLegacy else 'ss-python-server'
+    if config['method'] in mbedtlsMethods:  # mbedtls methods should use prefix `mbedtls:`
+        config['method'] = 'mbedtls:' + config['method']
+    if config['method'] in ['idea-cfb', 'seed-cfb']:  # Only older versions of openssl are supported
+        config['extra_opts'] = '--libopenssl=libcrypto.so.1.0.0'
+    config['shadowsocks'] = 'ss-python-server'
+    return config, ['ss-bootstrap-server', '--debug', '-vv']
+
+
+def ssPythonLegacy(serverPort: int, method: str) -> tuple[dict, list]:
+    config = loadConfig(serverPort, method)
+    config['shadowsocks'] = 'ss-python-legacy-server'
     return config, ['ss-bootstrap-server', '--debug', '-vv']
 
 
@@ -76,21 +81,25 @@ def loadTest(serverType: str, clientType: str, method: str, timeout: float) -> N
         'addr': '127.0.0.1',
         'port': socksPort
     }
-    ssClientLoad = None
-    if 'rust' in clientType: ssClientLoad = Shadowsocks.ssRust
-    if 'libev' in clientType: ssClientLoad = Shadowsocks.ssLibev
-    if 'python' in clientType: ssClientLoad = Shadowsocks.ssPython
-    ssConfig, ssClient = ssClientLoad(proxyInfo, socksInfo, isUdp = False, isLegacy = 'legacy' in clientType)
+    ssClientLoad = {
+        'ss-rust': Shadowsocks.ssRust,
+        'ss-libev': Shadowsocks.ssLibev,
+        'ss-python': Shadowsocks.ssPython,
+        'ss-python-legacy': Shadowsocks.ssPythonLegacy
+    }[clientType]
+    ssConfig, ssClient = ssClientLoad(proxyInfo, socksInfo, isUdp = False)
     client = Process(workDir, cmd = ssClient + ['-c', os.path.join(workDir, title + '_client.json')], file = {
         'path': os.path.join(workDir, title + '_client.json'),
         'content': json.dumps(ssConfig)
     }, isStart = False)
 
-    ssServerLoad = None
-    if 'rust' in serverType: ssServerLoad = ssRust
-    if 'libev' in serverType: ssServerLoad = ssLibev
-    if 'python' in serverType: ssServerLoad = ssPython
-    ssConfig, ssServer = ssServerLoad(serverPort, method, 'legacy' in serverType)
+    ssServerLoad = {
+        'ss-rust': ssRust,
+        'ss-libev': ssLibev,
+        'ss-python': ssPython,
+        'ss-python-legacy': ssPythonLegacy
+    }[serverType]
+    ssConfig, ssServer = ssServerLoad(serverPort, method)
     server = Process(workDir, cmd = ssServer + ['-c', os.path.join(workDir, title + '_server.json')], file = {
         'path': os.path.join(workDir, title + '_server.json'),
         'content': json.dumps(ssConfig)
@@ -103,7 +112,6 @@ def loadTest(serverType: str, clientType: str, method: str, timeout: float) -> N
     try:
         request = requests.get(
             'http://baidu.com',
-            # 'http://8.210.148.24',
             proxies = {
                 'http': 'socks5://127.0.0.1:%i' % socksPort,
                 'https': 'socks5://127.0.0.1:%i' % socksPort
@@ -125,26 +133,28 @@ def loadTest(serverType: str, clientType: str, method: str, timeout: float) -> N
 
 def test_1() -> None:
     for ssType in ssMethods:
-        if ssType == 'all': continue
         for method in ssMethods[ssType]:
-            loadTest(ssType, ssType, method, 0.3)
+            timeout = 0.1
+            if 'python' in ssType: timeout = 0.3
+            if 'python-legacy' in ssType:
+                timeout = 0.8
+                if method == 'table' or method == 'salsa20-ctr': timeout = 2
+            loadTest(ssType, ssType, method, timeout)
 
 
 def test_2() -> None:
     for ssServer in ssMethods:
-        if ssServer == 'all': continue
         for method in ssMethods[ssServer]:
             for ssClient in ssMethods:
-                if ssClient == 'all': continue
                 if method not in ssMethods[ssClient]: continue
                 timeout = 0.1
-                if 'python' in ssServer or 'python' in ssClient:
-                    timeout = 0.3
-                if method == 'table':
-                    timeout = 0.8
+                if 'python' in ssServer or 'python' in ssClient: timeout = 0.3
+                if method == 'table': timeout = 0.8
+                if 'python-legacy' in ssServer or 'python-legacy' in ssClient: timeout = 1
+                if method == 'salsa20-ctr': timeout = 3
                 loadTest(ssServer, ssClient, method, timeout)
 
 
-# test_1()
+test_1()
 # test_2()
-loadTest('ss-rust', 'ss-python', 'table', 1)
+# loadTest('ss-python-legacy', 'ss-python-legacy', 'salsa20-ctr', 3)

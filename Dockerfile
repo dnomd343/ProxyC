@@ -1,16 +1,14 @@
 FROM alpine:3.16.0 AS ss-libev
 ENV SS_LIBEV="3.3.5"
-ENV SS_LIBEV_LEGACY="2.6.3"
 RUN \
   # Source code downloads and dependent installations
-  apk add asciidoc build-base c-ares-dev libev-dev libsodium-dev linux-headers mbedtls-dev pcre-dev udns-dev xmlto zlib-dev && \
+  apk add asciidoc build-base c-ares-dev libev-dev libsodium-dev linux-headers mbedtls-dev pcre-dev xmlto && \
   wget https://github.com/shadowsocks/shadowsocks-libev/releases/download/v$SS_LIBEV/shadowsocks-libev-$SS_LIBEV.tar.gz && \
-  wget https://github.com/shadowsocks/shadowsocks-libev/releases/download/v$SS_LIBEV_LEGACY/shadowsocks-libev-$SS_LIBEV_LEGACY.tar.gz && \
   wget https://www.openssl.org/source/old/1.0.2/openssl-1.0.2u.tar.gz && \
   ls ./*.tar.gz | xargs -n1 tar xf && \
   mkdir -p /tmp/release/ && \
   \
-  # Compile shadowsocks-libev (latest version)
+  # Compile shadowsocks-libev
   cd ./shadowsocks-libev-$SS_LIBEV/ && \
   ./configure --prefix=/usr && make && make install && \
   mv /usr/bin/ss-local /tmp/release/ss-libev-local && \
@@ -19,15 +17,7 @@ RUN \
   # Compile and install openssl (version 1.0.2u)
   cd ../openssl-1.0.2u/ && \
   ./config --shared --prefix=/usr && make && make install && \
-  cp /usr/lib/libcrypto.so.1.0.0 /tmp/release/ && \
-  \
-  # Compile shadowsocks-libev (legacy version)
-  cd ../shadowsocks-libev-$SS_LIBEV_LEGACY/ && \
-  sed -i '/ss-nat/d' `grep "ss-nat" -rl src/*` && \
-  sed -i 's/^const protocol_t/extern const protocol_t/g' `grep "^const protocol" -rl src/*.h` && \
-  ./configure --prefix=/usr && make && make install && \
-  mv /usr/bin/ss-local /tmp/release/ss-libev-legacy-local && \
-  mv /usr/bin/ss-server /tmp/release/ss-libev-legacy-server
+  cp /usr/lib/libcrypto.so.1.0.0 /tmp/release/
 
 FROM rust:1.62.0-alpine3.16 AS ss-rust
 ENV SS_RUST="v1.15.0-alpha.5"
@@ -77,7 +67,7 @@ RUN \
   # Package shadowsocks-python (legacy version)
   cd ../../shadowsocks-$SS_PYTHON_LEGACY/ && \
   sed -i 's/MutableMapping/abc.MutableMapping/' ./shadowsocks/lru_cache.py && \
-  sed -i "s/find_library(p)/'libsodium.so'/g" ./shadowsocks/crypto/ctypes_libsodium.py && \
+  sed -i "s/find_library(p)/'libsodium.so.23'/g" ./shadowsocks/crypto/ctypes_libsodium.py && \
   sed -i "s/find_library(p)/'libcrypto.so.1.0.0'/g" ./shadowsocks/crypto/ctypes_openssl.py && \
   python3 setup.py build && cd ./build/ && mv ./lib/ ./ss-python-legacy/ && \
   mv ./ss-python-legacy/shadowsocks/local.py ./ss-python-legacy/shadowsocks/server.py ./ss-python-legacy/ && \
@@ -119,11 +109,11 @@ RUN \
 FROM python:3.10.5-alpine3.16
 COPY --from=asset /asset /
 RUN \
-  apk add --no-cache c-ares glib libev libsodium mbedtls pcre udns
+  apk add --no-cache c-ares glib libev libsodium mbedtls pcre && \
+  pip3 --no-cache-dir install pysocks
+
 # ss-libev-server --help
 # ss-libev-local --help
-# ss-libev-legacy-server --help
-# ss-libev-legacy-local --help
 # ss-rust-server --help
 # ss-rust-local --help
 # ss-bootstrap-server --help

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import json
-from Basis.Methods import ssMethods
+from Basis.Methods import ssMethods, ssAllMethods
 
 
 def loadConfig(proxyInfo: dict, socksInfo: dict) -> dict:  # load basic config option
@@ -29,21 +29,21 @@ def pluginUdp(plugin: str, pluginParam: str) -> bool:  # whether the plugin uses
     return True  # UDP is assumed by default
 
 
-def ssRust(proxyInfo: dict, socksInfo: dict, isUdp: bool, isLegacy: bool = False) -> tuple[dict, list]:
+def ssRust(proxyInfo: dict, socksInfo: dict, isUdp: bool) -> tuple[dict, list]:
     config = loadConfig(proxyInfo, socksInfo)
-    if isUdp:  # Proxy UDP traffic
+    if isUdp:  # proxy UDP traffic
         config['mode'] = 'tcp_and_udp'
     return config, ['ss-rust-local', '-v']
 
 
-def ssLibev(proxyInfo: dict, socksInfo: dict, isUdp: bool, isLegacy: bool = False) -> tuple[dict, list]:
+def ssLibev(proxyInfo: dict, socksInfo: dict, isUdp: bool) -> tuple[dict, list]:
     config = loadConfig(proxyInfo, socksInfo)
-    if isUdp:  # Proxy UDP traffic
+    if isUdp:  # proxy UDP traffic
         config['mode'] = 'tcp_and_udp'
-    return config, ['ss-libev-legacy-local' if isLegacy else 'ss-libev-local', '-v']
+    return config, ['ss-libev-local', '-v']
 
 
-def ssPython(proxyInfo: dict, socksInfo: dict, isUdp: bool, isLegacy: bool = False) -> tuple[dict, list]:
+def ssPython(proxyInfo: dict, socksInfo: dict, isUdp: bool) -> tuple[dict, list]:
     config = loadConfig(proxyInfo, socksInfo)
     mbedtlsMethods = [
         'aes-128-cfb128',
@@ -53,32 +53,41 @@ def ssPython(proxyInfo: dict, socksInfo: dict, isUdp: bool, isLegacy: bool = Fal
         'camellia-192-cfb128',
         'camellia-256-cfb128',
     ]
-    if not isLegacy:  # only for latest version
-        if config['method'] in mbedtlsMethods:  # mbedtls methods should use prefix `mbedtls:`
-            config['method'] = 'mbedtls:' + config['method']
-        if config['method'] in ['idea-cfb', 'seed-cfb']:  # Only older versions of openssl are supported
-            config['extra_opts'] = '--libopenssl=libcrypto.so.1.0.0'
+    if config['method'] in mbedtlsMethods:  # mbedtls methods should use prefix `mbedtls:`
+        config['method'] = 'mbedtls:' + config['method']
+    if config['method'] in ['idea-cfb', 'seed-cfb']:  # only older versions of openssl are supported
+        config['extra_opts'] = '--libopenssl=libcrypto.so.1.0.0'
     if not isUdp:
         config['no_udp'] = True  # UDP traffic is not proxied
-    config['shadowsocks'] = 'ss-python-legacy-local' if isLegacy else 'ss-python-local'
+    config['shadowsocks'] = 'ss-python-local'
     return config, ['ss-bootstrap-local', '--debug', '-vv']
 
 
-def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, None]:
+def ssPythonLegacy(proxyInfo: dict, socksInfo: dict, isUdp: bool) -> tuple[dict, list]:
+    config = loadConfig(proxyInfo, socksInfo)
+    if not isUdp:
+        config['no_udp'] = True  # UDP traffic is not proxied
+    config['shadowsocks'] = 'ss-python-legacy-local'
+    return config, ['ss-bootstrap-local', '--debug', '-vv']
+
+
+def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, dict]:
     if proxyInfo['plugin'] is None:  # UDP is enabled when server without plugin
         isUdp = True
     else:
         isUdp = not pluginUdp(  # check the UDP conflict status of plugins
             proxyInfo['plugin']['type'], proxyInfo['plugin']['param']
         )
-    if proxyInfo['method'] not in ssMethods['all']:  # unknown shadowsocks method
+    if proxyInfo['method'] not in ssAllMethods:  # unknown shadowsocks method
         raise RuntimeError('Unknown shadowsocks method')
     for client in ssMethods:  # traverse all shadowsocks client
-        if proxyInfo['method'] not in ssMethods[client] or client != 'all':
+        if proxyInfo['method'] not in ssMethods[client]:
             continue
-        ssLoadConfig = None
-        if 'rust' in client: ssLoadConfig = ssRust
-        if 'libev' in client: ssLoadConfig = ssLibev
-        if 'python' in client: ssLoadConfig = ssPython
-        ssConfig, ssClient = ssLoadConfig(proxyInfo, socksInfo, isUdp, 'legacy' in client)  # generate config file
-        return ssClient + ['-c', configFile], json.dumps(ssConfig), None  # tuple[command, fileContent, envVar]
+        ssLoadConfig = {
+            'ss-rust': ssRust,
+            'ss-libev': ssLibev,
+            'ss-python': ssPython,
+            'ss-python-legacy': ssPythonLegacy
+        }[client]
+        ssConfig, ssClient = ssLoadConfig(proxyInfo, socksInfo, isUdp)  # generate config file
+        return ssClient + ['-c', configFile], json.dumps(ssConfig), {}  # tuple[command, fileContent, envVar]

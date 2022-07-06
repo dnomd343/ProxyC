@@ -49,14 +49,6 @@ ssMethods = { # methods support of different Shadowsocks project
         'salsa20', 'chacha20', 'xchacha20', 'chacha20-ietf', 'chacha20-poly1305',
         'chacha20-ietf-poly1305', 'xchacha20-ietf-poly1305',
     ],
-    'ss-libev-legacy': [
-        'table', 'rc4', 'rc4-md5',
-        'aes-128-ctr', 'aes-192-ctr', 'aes-256-ctr',
-        'aes-128-cfb', 'aes-192-cfb', 'aes-256-cfb',
-        'camellia-128-cfb', 'camellia-192-cfb', 'camellia-256-cfb',
-        'rc2-cfb', 'bf-cfb', 'cast5-cfb', 'des-cfb', 'idea-cfb', 'seed-cfb',
-        'salsa20', 'chacha20', 'chacha20-ietf',
-    ],
     'ss-python-legacy': [
         'table', 'rc4', 'rc4-md5',
         'aes-128-ctr', 'aes-192-ctr', 'aes-256-ctr',
@@ -72,4 +64,4 @@ ssMethods = { # methods support of different Shadowsocks project
 
 ssAllMethods = set()
 [ssAllMethods.update(ssMethods[x]) for x in ssMethods]
-ssMethods['all'] = list(ssAllMethods)
+ssAllMethods = list(ssAllMethods)
