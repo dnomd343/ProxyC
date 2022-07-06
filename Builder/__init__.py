@@ -60,12 +60,12 @@ class Builder(object):
         self.__process = Process(self.__workDir, taskId = self.id,
                                  isStart = isStart, cmd = command, env = envVar, file = fileObject)
 
-    def __init__(self, proxy: dict, taskId: str = '', isStart: bool = True,
+    def __init__(self, proxyType: str, proxyInfo: dict, taskId: str = '', isStart: bool = True,
                  bind: str = default['bindAddr'], workDir: str = default['workDir']) -> None:
         self.id = genFlag(length = 12) if taskId == '' else taskId
         self.__workDir = workDir
-        self.proxyType = proxy['type']
-        self.proxyInfo = copy.copy(proxy['info'])
+        self.proxyType = proxyType
+        self.proxyInfo = copy.copy(proxyInfo)
         self.socksAddr = bind
         self.socksPort = getAvailablePort()
         self.__loadClient(isStart)
