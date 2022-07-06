@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 
 ssMethods = { # methods support of different Shadowsocks project
-    'ss-rust': [
-        'none', 'plain',
-        'table', 'rc4', 'rc4-md5',
+    'ss-rust': [  # table method removed refer to https://github.com/shadowsocks/shadowsocks-rust/issues/887
+        'none', 'plain', 'rc4', 'rc4-md5',
         'aes-128-ccm', 'aes-256-ccm',
         'aes-128-gcm', 'aes-256-gcm',
         'aes-128-gcm-siv', 'aes-256-gcm-siv',

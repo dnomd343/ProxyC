@@ -155,6 +155,6 @@ def test_2() -> None:
                 loadTest(ssServer, ssClient, method, timeout)
 
 
-test_1()
-# test_2()
+# test_1()
+test_2()
 # loadTest('ss-python-legacy', 'ss-python-legacy', 'salsa20-ctr', 3)
