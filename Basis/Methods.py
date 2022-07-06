@@ -63,4 +63,31 @@ ssMethods = { # methods support of different Shadowsocks project
 
 ssAllMethods = set()
 [ssAllMethods.update(ssMethods[x]) for x in ssMethods]
-ssAllMethods = list(ssAllMethods)
+ssAllMethods = list(ssAllMethods)  # methods of Shadowsocks
+
+ssrMethods = [  # methods of ShadowsocksR
+    'aes-128-ctr', 'aes-192-ctr', 'aes-256-ctr',
+    'aes-128-gcm', 'aes-192-gcm', 'aes-256-gcm',
+    'aes-128-ofb', 'aes-192-ofb', 'aes-256-ofb',
+    'aes-128-cfb', 'aes-192-cfb', 'aes-256-cfb',
+    'aes-128-cfb1', 'aes-192-cfb1', 'aes-256-cfb1',
+    'aes-128-cfb8', 'aes-192-cfb8', 'aes-256-cfb8',
+    'camellia-128-cfb', 'camellia-192-cfb', 'camellia-256-cfb',
+    'none', 'table', 'rc4', 'rc4-md5', 'rc2-cfb', 'rc4-md5-6',
+    'bf-cfb', 'cast5-cfb', 'des-cfb', 'idea-cfb', 'seed-cfb',
+    'salsa20', 'xsalsa20', 'chacha20', 'xchacha20', 'chacha20-ietf',
+]
+
+ssrProtocols = [  # protocols of ShadowsocksR
+    'origin', 'auth_simple',
+    'verify_sha1', 'verify_simple', 'verify_deflate',
+    'auth_sha1', 'auth_sha1_v2', 'auth_sha1_v4',
+    'auth_aes128', 'auth_aes128_md5', 'auth_aes128_sha1',
+    'auth_chain_a', 'auth_chain_b', 'auth_chain_c',
+    'auth_chain_d', 'auth_chain_e', 'auth_chain_f',
+]
+
+ssrObfuscations = [ # obfuscations of ShadowsocksR (obfs)
+    'plain', 'http_post', 'http_simple', 'random_head',
+    'tls_simple', 'tls1.2_ticket_auth', 'tls1.2_ticket_fastauth',
+]

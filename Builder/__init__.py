@@ -5,6 +5,7 @@ import os
 import copy
 
 from Builder import Shadowsocks
+from Builder import ShadowsocksR
 
 from Basis.Logger import logging
 from Basis.Process import Process
@@ -13,7 +14,7 @@ from Basis.Functions import genFlag, getAvailablePort
 default = {
     'workDir': '/tmp/ProxyC',
     'bindAddr': '127.0.0.1',
-    'binDir': '/usr/bin',
+    'binDir': '/bin:/usr/bin:/usr/local/bin',
 }
 
 
@@ -39,6 +40,7 @@ class Builder(object):
     def __loadClient(self, isStart: bool):
         loadFunction = {
             'ss': Shadowsocks.load,
+            'ssr': ShadowsocksR.load,
         }
         if self.proxyType not in loadFunction:
             raise RuntimeError('Unknown proxy type')

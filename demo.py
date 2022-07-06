@@ -5,7 +5,7 @@ import time
 from Builder import Builder
 from Basis.Logger import logging
 
-proxy = {
+proxySS = {
     'type': 'ss',
     'info': {
         'server': '127.0.0.1',
@@ -16,7 +16,21 @@ proxy = {
     }
 }
 
-client = Builder(proxy)
+proxySSR = {
+    'type': 'ssr',
+    'info': {
+        'server': '127.0.0.1',
+        'port': 12345,
+        'passwd': 'dnomd343',
+        'method': 'aes-128-ctr',
+        'protocol': 'origin',
+        'protocolParam': '',
+        'obfs': 'plain',
+        'obfsParam': '',
+    }
+}
+
+client = Builder(proxySSR)
 
 logging.critical(client.id)
 logging.critical(client.proxyType)
@@ -24,7 +38,7 @@ logging.critical(client.proxyInfo)
 logging.critical(client.socksAddr)
 logging.critical(client.socksPort)
 
-time.sleep(5)
+time.sleep(20)
 logging.critical(client.status())
 
 client.destroy()
