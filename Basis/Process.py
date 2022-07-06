@@ -44,7 +44,9 @@ class Process(object):
 
       workDir: A directory for storing log files and configuration files.
 
-      taskId: Task id, defaults to 12 random characters length.
+      taskId: Task ID, defaults to 12 random characters length.
+
+      isStart: Start the process after class init complete.
 
     Attributes:
         id, workDir, output
@@ -56,9 +58,6 @@ class Process(object):
 
     @staticmethod
     def __preExec() -> None:
-        # TODO: remember to remove test code
-        print('WARNING: pre exec at static method')
-        print('libc.so: ' + str(libcPath))
         ctypes.CDLL(libcPath).prctl(1, signal.SIGTERM)  # sub process killed when father process exit
         os.setpgrp()  # new process group
 
