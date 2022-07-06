@@ -1,29 +1,32 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import time
+from Builder import Builder
+from Basis.Logger import logging
 
-import ProxyBuilder as Builder
-import ProxyDecoder as Decoder
-import ProxyFilter as Filter
-import Check as Checker
-
-# ret = Decoder.decode(url)
-# print(ret)
-
-info = {
-    'type': 'hysteria',
-    'server': '127.0.0.1',
-    'port': 443,
-    'protocol': 'faketcp',
-    'obfs': '770091573',
-    'auth': 'dnomd343',
-    'sni': 'local.343.re'
+proxy = {
+    'type': 'ss',
+    'info': {
+        'server': '127.0.0.1',
+        'port': 12345,
+        'passwd': 'dnomd343',
+        'method': 'aes-128-ctr',
+        'plugin': None
+    }
 }
 
-status, ret = Filter.filte(info, isExtra = True)
-print(status)
-print(ret)
+client = Builder(proxy)
 
-result = Checker.proxyTest({
-    'check': ['http'],
-    'info': ret
-})
-print(result)
+logging.critical(client.id)
+logging.critical(client.proxyType)
+logging.critical(client.proxyInfo)
+logging.critical(client.socksAddr)
+logging.critical(client.socksPort)
+
+time.sleep(5)
+logging.critical(client.status())
+
+client.destroy()
+logging.critical(client.status())
+logging.critical('Client output:\n' + str(client.output))
