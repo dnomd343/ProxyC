@@ -49,7 +49,7 @@ class Process(object):
       isStart: Start the process after class init complete.
 
     Attributes:
-        id, workDir, output
+        id, cmd, env, file, workDir, output
     """
     output = None  # sub process output if capture is True
     __capture = None  # capture the sub process output or not
@@ -97,34 +97,34 @@ class Process(object):
                  cmd: str or list or None = None, env: dict or None = None, file: dict or list or None = None) -> None:
         self.id = genFlag(length = 12) if taskId == '' else taskId
         self.workDir = workDir
-        self.__env = copy.copy(env)  # depth = 1
-        self.__cmd = copy.copy([cmd] if type(cmd) == str else cmd)  # depth = 1
-        self.__file = copy.deepcopy([file] if type(file) == dict else file)  # depth = 2
+        self.env = copy.copy(env)  # depth = 1
+        self.cmd = copy.copy([cmd] if type(cmd) == str else cmd)  # depth = 1
+        self.file = copy.deepcopy([file] if type(file) == dict else file)  # depth = 2
         self.__checkWorkDir()  # ensure the working direction is normal
-        logging.debug('[%s] Process command -> %s (%s)' % (self.id, self.__cmd, self.__env))
-        if self.__file is not None:
-            if len(self.__file) > 1:
-                logging.debug('[%s] Manage %i files' % (self.id, len(self.__file)))
-            for file in self.__file:  # traverse all files
+        logging.debug('[%s] Process command -> %s (%s)' % (self.id, self.cmd, self.env))
+        if self.file is not None:
+            if len(self.file) > 1:
+                logging.debug('[%s] Manage %i files' % (self.id, len(self.file)))
+            for file in self.file:  # traverse all files
                 if not isStart:  # don't print log twice
                     logging.debug('[%s] File %s -> %s' % (self.id, file['path'], file['content']))
         if isStart:
             self.start()
 
     def setCmd(self, cmd: str or list) -> None:
-        self.__cmd = copy.copy([cmd] if type(cmd) == str else cmd)
-        logging.info('[%s] Process setting command -> %s' % (self.id, self.__cmd))
+        self.cmd = copy.copy([cmd] if type(cmd) == str else cmd)
+        logging.info('[%s] Process setting command -> %s' % (self.id, self.cmd))
 
     def setEnv(self, env: dict or None) -> None:
-        self.__env = copy.copy(env)
-        logging.info('[%s] Process setting environ -> %s' % (self.id, self.__env))
+        self.env = copy.copy(env)
+        logging.info('[%s] Process setting environ -> %s' % (self.id, self.env))
 
     def setFile(self, file: dict or list or None) -> None:
-        self.__file = copy.deepcopy([file] if type(file) == dict else file)
-        if self.__file is None:
+        self.file = copy.deepcopy([file] if type(file) == dict else file)
+        if self.file is None:
             logging.info('[%s] Process setting file -> None' % self.id)
             return
-        for file in self.__file:  # traverse all files
+        for file in self.file:  # traverse all files
             logging.info('[%s] Process setting file %s -> %s' % (self.id, file['path'], file['content']))
 
     def start(self, isCapture: bool = True) -> None:
@@ -132,16 +132,16 @@ class Process(object):
         logging.debug('[%s] Process ready to start (%s)' % (self.id, (
             'with output capture' if self.__capture else 'without output capture'
         )))
-        if self.__cmd is None:  # ERROR CASE
+        if self.cmd is None:  # ERROR CASE
             logging.error('[%s] Process miss start command' % self.id)
             raise RuntimeError('miss start command')
         if self.__process is not None and self.__process.poll() is None:  # ERROR CASE
             logging.error('[%s] Sub process is still running' % self.id)
             raise RuntimeError('sub process is still running')
-        if self.__env is not None and 'PATH' not in self.__env and '/' not in self.__cmd[0]:  # WARNING CASE
+        if self.env is not None and 'PATH' not in self.env and '/' not in self.cmd[0]:  # WARNING CASE
             logging.warning('[%s] Executable file in relative path but miss PATH in environ' % self.id)
-        if self.__file is not None:  # create and write file contents
-            for file in self.__file:
+        if self.file is not None:  # create and write file contents
+            for file in self.file:
                 with open(file['path'], 'w', encoding = 'utf-8') as fileObject: # save file content
                     fileObject.write(file['content'])
                     logging.debug('[%s] File %s -> %s' % (self.id, file['path'], file['content']))
@@ -153,7 +153,7 @@ class Process(object):
         else:  # discard all the output of sub process
             stdout = DEVNULL
             stderr = DEVNULL
-        self.__process = Popen(self.__cmd, env = self.__env, stdout = stdout,
+        self.__process = Popen(self.cmd, env = self.env, stdout = stdout,
                              stderr = stderr, preexec_fn = None if libcPath is None else Process.__preExec)
         logging.info('[%s] Process running -> PID = %i' % (self.id, self.__process.pid))
 
@@ -195,6 +195,6 @@ class Process(object):
                 self.__deleteFile(self.__logfile)
             except:
                 logging.error('[%s] Failed to read capture log file -> %s' % (self.id, self.__logfile))
-        if self.__file is not None:  # with config file
-            for file in self.__file:
+        if self.file is not None:  # with config file
+            for file in self.file:
                 self.__deleteFile(file['path'])

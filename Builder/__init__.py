@@ -11,18 +11,14 @@ from Basis.Logger import logging
 from Basis.Process import Process
 from Basis.Functions import genFlag, getAvailablePort
 
-default = {
-    'workDir': '/tmp/ProxyC',
-    'bindAddr': '127.0.0.1',
-    'binDir': '/bin:/usr/bin:/usr/local/bin',
-}
-
 
 class Builder(object):
     """ Build the proxy client process and expose socks5 port.
 
     Arguments:
-      proxy: Proxy node information.
+      proxyType: Proxy node type.
+
+      proxyInfo: Proxy node information.
 
       bind: Socks5 proxy bind address.
 
@@ -30,14 +26,12 @@ class Builder(object):
 
       taskId: Task ID, defaults to 12 random characters length.
 
-      isStart: Start the process after class init complete.
-
     Attributes:
         id, proxyType, proxyInfo, socksAddr, socksPort, output
     """
     output = None
 
-    def __loadClient(self, isStart: bool):
+    def __loadClient(self):
         loadFunction = {
             'ss': Shadowsocks.load,
             'ssr': ShadowsocksR.load,
@@ -52,23 +46,22 @@ class Builder(object):
             'addr': self.socksAddr,
             'port': self.socksPort,
         }, configFile)
-        envVar['PATH'] = default['binDir']
+        envVar['PATH'] = '/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin'
         fileObject = {
             'path': configFile,
             'content': fileContent
         }
-        self.__process = Process(self.__workDir, taskId = self.id,
-                                 isStart = isStart, cmd = command, env = envVar, file = fileObject)
+        self.__process = Process(self.__workDir, taskId = self.id, cmd = command, env = envVar, file = fileObject)
 
-    def __init__(self, proxyType: str, proxyInfo: dict, taskId: str = '', isStart: bool = True,
-                 bind: str = default['bindAddr'], workDir: str = default['workDir']) -> None:
+    def __init__(self, proxyType: str, proxyInfo: dict, taskId: str = '',
+                 bind: str = '127.0.0.1', workDir: str = '/tmp/ProxyC') -> None:
         self.id = genFlag(length = 12) if taskId == '' else taskId
         self.__workDir = workDir
         self.proxyType = proxyType
         self.proxyInfo = copy.copy(proxyInfo)
         self.socksAddr = bind
         self.socksPort = getAvailablePort()
-        self.__loadClient(isStart)
+        self.__loadClient()
 
     def status(self) -> bool:
         return self.__process.status()

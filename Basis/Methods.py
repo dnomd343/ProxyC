@@ -63,7 +63,7 @@ ssMethods = { # methods support of different Shadowsocks project
 
 ssAllMethods = set()
 [ssAllMethods.update(ssMethods[x]) for x in ssMethods]
-ssAllMethods = list(ssAllMethods)  # methods of Shadowsocks
+ssAllMethods = sorted(list(ssAllMethods))  # methods of Shadowsocks
 
 ssrMethods = [  # methods of ShadowsocksR
     'aes-128-ctr', 'aes-192-ctr', 'aes-256-ctr',
