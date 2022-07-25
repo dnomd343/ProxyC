@@ -285,6 +285,17 @@ RUN \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" ./cli/brook && \
   mv ./brook /tmp/
 
+# Compile clash
+FROM golang:1.18-alpine3.16 AS clash
+ENV CLASH_VERSION="v1.11.4"
+RUN \
+  wget https://github.com/Dreamacro/clash/archive/refs/tags/${CLASH_VERSION}.tar.gz && \
+  tar xf ${CLASH_VERSION}.tar.gz && cd ./clash-*/ && \
+  env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w \
+    -X 'github.com/Dreamacro/clash/constant.Version=${CLASH_VERSION}' \
+    -X 'github.com/Dreamacro/clash/constant.BuildTime=$(date -u)'" && \
+  mv ./clash /tmp/
+
 # Compile hysteria
 FROM golang:1.17-alpine3.16 AS hysteria
 ENV HYSTERIA_VERSION="v1.1.0"
@@ -297,6 +308,24 @@ RUN \
     -X 'main.appCommit=$(git rev-parse HEAD)' \
     -X 'main.appDate=$(date "+%F %T")'" && \
   mv ./hysteria /tmp/
+
+# Compile relaybaton
+FROM golang:1.14-alpine3.13 AS relaybaton
+ENV RELAYBATON_VERSION="0.6.0"
+RUN \
+  apk add build-base git perl rsync && \
+  wget https://github.com/iyouport-org/relaybaton/archive/refs/tags/${RELAYBATON_VERSION}.tar.gz \
+  tar xf ${RELAYBATON_VERSION}.tar.gz && cd ./relaybaton-*/ && \
+  make && mv ./bin/relaybaton /tmp/
+
+# Compile wireproxy
+FROM golang:1.17-alpine3.16 AS wireproxy
+ENV WIREPROXY_VERSION="v1.0.3"
+RUN \
+  wget https://github.com/octeep/wireproxy/archive/refs/tags/${WIREPROXY_VERSION}.tar.gz && \
+  tar xf ${WIREPROXY_VERSION}.tar.gz && cd ./wireproxy-*/ && \
+  env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" ./cmd/wireproxy && \
+  mv ./wireproxy /tmp/
 
 # Compile dnsproxy
 FROM golang:1.18-alpine3.16 AS dnsproxy
@@ -316,7 +345,10 @@ COPY --from=xray /tmp/xray /release/
 COPY --from=trojan /tmp/trojan* /release/
 COPY --from=gost /tmp/gost* /release/
 COPY --from=brook /tmp/brook /release/
+COPY --from=clash /tmp/clash /release/
 COPY --from=hysteria /tmp/hysteria /release/
+COPY --from=relaybaton /tmp/relaybaton /release/
+COPY --from=wireproxy /tmp/wireproxy /release/
 COPY --from=dnsproxy /tmp/dnsproxy /release/
 RUN \
   PACKAGE_DIR="/asset/usr/local/lib/$(ls /usr/local/lib/ | grep ^python)" && \
