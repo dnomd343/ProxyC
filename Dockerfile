@@ -296,6 +296,18 @@ RUN \
     -X 'github.com/Dreamacro/clash/constant.BuildTime=$(date -u)'" && \
   mv ./clash /tmp/
 
+# Compile open-snell
+FROM golang:1.17-alpine3.16 AS snell
+ENV SNELL_VERSION="v3.0.1"
+RUN \
+  wget https://github.com/icpz/open-snell/archive/refs/tags/${SNELL_VERSION}.tar.gz && \
+  tar xf ${SNELL_VERSION}.tar.gz && cd ./open-snell-*/ && \
+  env CGO_ENABLED=0 go build -trimpath \
+    -ldflags "-s -w -X 'github.com/icpz/open-snell/constants.Version=${SNELL_VERSION}'" ./cmd/snell-client && \
+  env CGO_ENABLED=0 go build -trimpath \
+    -ldflags "-s -w -X 'github.com/icpz/open-snell/constants.Version=${SNELL_VERSION}'" ./cmd/snell-server && \
+  mv ./snell-client ./snell-server /tmp/
+
 # Compile hysteria
 FROM golang:1.17-alpine3.16 AS hysteria
 ENV HYSTERIA_VERSION="v1.1.0"
@@ -317,6 +329,15 @@ RUN \
   wget https://github.com/iyouport-org/relaybaton/archive/refs/tags/${RELAYBATON_VERSION}.tar.gz && \
   tar xf ${RELAYBATON_VERSION}.tar.gz && cd ./relaybaton-*/ && \
   make && mv ./bin/relaybaton /tmp/
+
+# Compile pingtunnel
+FROM golang:1.18-alpine3.16 AS pingtunnel
+RUN \
+  apk add git && \
+  git clone https://github.com/esrrhs/pingtunnel.git && cd ./pingtunnel/ && \
+  env GO111MODULE=off go get github.com/esrrhs/pingtunnel/... && \
+  env GO111MODULE=off CGO_ENABLED=0 go build -ldflags="-s -w" && \
+  mv ./pingtunnel /tmp/
 
 # Compile wireproxy
 FROM golang:1.17-alpine3.16 AS wireproxy
@@ -346,8 +367,10 @@ COPY --from=trojan /tmp/trojan* /release/
 COPY --from=gost /tmp/gost* /release/
 COPY --from=brook /tmp/brook /release/
 COPY --from=clash /tmp/clash /release/
+COPY --from=snell /tmp/snell-* /release/
 COPY --from=hysteria /tmp/hysteria /release/
 COPY --from=relaybaton /tmp/relaybaton /release/
+COPY --from=pingtunnel /tmp/pingtunnel /release/
 COPY --from=wireproxy /tmp/wireproxy /release/
 COPY --from=dnsproxy /tmp/dnsproxy /release/
 RUN \
