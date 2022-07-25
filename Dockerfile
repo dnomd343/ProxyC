@@ -311,10 +311,10 @@ RUN \
 
 # Compile relaybaton
 FROM golang:1.14-alpine3.13 AS relaybaton
-ENV RELAYBATON_VERSION="0.6.0"
+ENV RELAYBATON_VERSION="v0.6.0"
 RUN \
   apk add build-base git perl rsync && \
-  wget https://github.com/iyouport-org/relaybaton/archive/refs/tags/${RELAYBATON_VERSION}.tar.gz \
+  wget https://github.com/iyouport-org/relaybaton/archive/refs/tags/${RELAYBATON_VERSION}.tar.gz && \
   tar xf ${RELAYBATON_VERSION}.tar.gz && cd ./relaybaton-*/ && \
   make && mv ./bin/relaybaton /tmp/
 
