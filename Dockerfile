@@ -211,15 +211,113 @@ RUN \
   mv ./ck-client ./ck-server /plugins/
 
 # Combine sip003 plugins
-FROM busybox AS plugin
+FROM alpine:3.16 AS plugin
 COPY --from=plugin-1 /plugins/ /release/
 COPY --from=plugin-2 /plugins/ /release/
 COPY --from=plugin-3 /plugins/ /release/
+
+# Compile v2fly-core
+FROM golang:1.18-alpine3.16 AS v2ray
+ENV V2RAY_VERSION="v4.45.2"
+RUN \
+  wget https://github.com/v2fly/v2ray-core/archive/refs/tags/${V2RAY_VERSION}.tar.gz && \
+  tar xf ${V2RAY_VERSION}.tar.gz && cd ./v2ray-core-*/ && \
+  env CGO_ENABLED=0 go build -o v2ray -trimpath -ldflags "-s -w" ./main && \
+  env CGO_ENABLED=0 go build -o v2ctl -trimpath -ldflags "-s -w" -tags confonly ./infra/control/main && \
+  mv ./v2ctl ./v2ray /tmp/
+
+# Compile xray-core
+FROM golang:1.18-alpine3.16 AS xray
+ENV XRAY_VERSION="v1.5.9"
+RUN \
+  wget https://github.com/XTLS/Xray-core/archive/refs/tags/${XRAY_VERSION}.tar.gz && \
+  tar xf ${XRAY_VERSION}.tar.gz && cd ./Xray-core-*/ && \
+  env CGO_ENABLED=0 go build -o xray -trimpath -ldflags "-s -w" ./main && \
+  mv ./xray /tmp/
+
+# Compile trojan-go
+FROM golang:1.17-alpine3.16 AS trojan-go
+ENV TROJAN_GO_VERSION="v0.10.6"
+RUN \
+  apk add git && \
+  git clone https://github.com/p4gefau1t/trojan-go.git && \
+  cd ./trojan-go/ && git checkout ${TROJAN_GO_VERSION} && \
+  env CGO_ENABLED=0 go build -trimpath \
+    -ldflags "-X github.com/p4gefau1t/trojan-go/constant.Version=$(git describe --dirty) \
+    -X github.com/p4gefau1t/trojan-go/constant.Commit=$(git rev-parse HEAD) -s -w" -tags "full" && \
+  mv ./trojan-go /tmp/
+
+# Compile trojan
+FROM alpine:3.16 AS trojan
+ENV TROJAN_VERSION="v1.16.0"
+RUN \
+  apk add boost-dev build-base cmake openssl-dev && \
+  wget https://github.com/trojan-gfw/trojan/archive/refs/tags/${TROJAN_VERSION}.tar.gz && \
+  tar xf ${TROJAN_VERSION}.tar.gz && cd ./trojan-*/ && \
+  mkdir ./build/ && cd ./build/ && cmake .. -DENABLE_MYSQL=OFF -DSYSTEMD_SERVICE=OFF && make && \
+  mv ./trojan /tmp/
+COPY --from=trojan-go /tmp/trojan-go /tmp/
+
+# Compile gost-v3
+FROM golang:1.18-alpine3.16 AS gost-v3
+RUN \
+  apk add git && \
+  git clone https://github.com/go-gost/gost.git && cd ./gost/ && \
+  env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" ./cmd/gost && \
+  mv ./gost /tmp/gost-v3
+
+# Compile gost
+FROM golang:1.17-alpine3.16 AS gost
+ENV GOST_VERSION="v2.11.2"
+RUN \
+  wget https://github.com/ginuerzh/gost/archive/refs/tags/${GOST_VERSION}.tar.gz && \
+  tar xf ${GOST_VERSION}.tar.gz && cd ./gost-*/cmd/gost/ && \
+  env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" && \
+  mv ./gost /tmp/
+COPY --from=gost-v3 /tmp/gost-v3 /tmp/
+
+# Compile brook
+FROM golang:1.16-alpine3.15 AS brook
+ENV BROOK_VERSION="v20220707"
+RUN \
+  wget https://github.com/txthinking/brook/archive/refs/tags/${BROOK_VERSION}.tar.gz && \
+  tar xf ${BROOK_VERSION}.tar.gz && cd ./brook-*/ && \
+  env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" ./cli/brook && \
+  mv ./brook /tmp/
+
+# Compile hysteria
+FROM golang:1.17-alpine3.16 AS hysteria
+ENV HYSTERIA_VERSION="v1.1.0"
+RUN \
+  apk add git && \
+  git clone https://github.com/HyNetwork/hysteria.git && \
+  cd ./hysteria/ && git checkout ${HYSTERIA_VERSION} && cd ./cmd/ && \
+  env CGO_ENABLED=0 go build -o hysteria -trimpath -ldflags "-s -w \
+    -X 'main.appVersion=$(git describe --tags)' \
+    -X 'main.appCommit=$(git rev-parse HEAD)' \
+    -X 'main.appDate=$(date "+%F %T")'" && \
+  mv ./hysteria /tmp/
+
+# Compile dnsproxy
+FROM golang:1.18-alpine3.16 AS dnsproxy
+ENV DNSPROXY_VERSION="v0.43.1"
+RUN \
+  wget https://github.com/AdguardTeam/dnsproxy/archive/refs/tags/${DNSPROXY_VERSION}.tar.gz && \
+  tar xf ${DNSPROXY_VERSION}.tar.gz && cd ./dnsproxy-*/ && \
+  env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.VersionString=${DNSPROXY_VERSION} -s -w" && \
+  mv ./dnsproxy /tmp/
 
 # Combine all release
 FROM python:3.10-alpine3.16 AS asset
 COPY --from=shadowsocks /release/ /release/
 COPY --from=plugin /release/ /release/
+COPY --from=v2ray /tmp/v2* /release/
+COPY --from=xray /tmp/xray /release/
+COPY --from=trojan /tmp/trojan* /release/
+COPY --from=gost /tmp/gost* /release/
+COPY --from=brook /tmp/brook /release/
+COPY --from=hysteria /tmp/hysteria /release/
+COPY --from=dnsproxy /tmp/dnsproxy /release/
 RUN \
   PACKAGE_DIR="/asset/usr/local/lib/$(ls /usr/local/lib/ | grep ^python)" && \
   mkdir -p ${PACKAGE_DIR}/ && tar xf /release/packages.tar.bz2 -C ${PACKAGE_DIR}/ && \
@@ -231,5 +329,5 @@ RUN \
 FROM python:3.10-alpine3.16
 COPY --from=asset /asset /
 RUN \
-  apk add --no-cache c-ares glib libev libsodium mbedtls pcre && \
+  apk add --no-cache boost-program_options c-ares glib libev libsodium libstdc++ mbedtls pcre && \
   pip3 --no-cache-dir install colorlog pysocks requests
