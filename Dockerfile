@@ -3,9 +3,11 @@ FROM rust:1.62-alpine3.16 AS ss-rust
 ENV SS_RUST="v1.15.0-alpha.8"
 RUN \
   apk add build-base && \
-  wget https://github.com/shadowsocks/shadowsocks-rust/archive/refs/tags/${SS_RUST}.tar.gz && \
+  wget https://github.com/shadowsocks/shadowsocks-rust/archive/refs/tags/${SS_RUST}.tar.gz
+RUN \
   tar xf ${SS_RUST}.tar.gz && cd ./shadowsocks-rust-*/ && \
-  cargo build --release --features "stream-cipher aead-cipher-extra aead-cipher-2022 aead-cipher-2022-extra" && \
+  cargo build --release --bin sslocal --bin ssserver  \
+    --features "stream-cipher aead-cipher-extra aead-cipher-2022 aead-cipher-2022-extra" && \
   cd ./target/release/ && mv ./sslocal /tmp/ss-rust-local && mv ./ssserver /tmp/ss-rust-server
 
 # Compile shadowsocks-libev
@@ -13,10 +15,11 @@ FROM alpine:3.16 AS ss-libev
 ENV SS_LIBEV="3.3.5"
 RUN \
   apk add build-base c-ares-dev libev-dev libsodium-dev linux-headers mbedtls-dev pcre-dev && \
-  wget https://github.com/shadowsocks/shadowsocks-libev/releases/download/v${SS_LIBEV}/shadowsocks-libev-${SS_LIBEV}.tar.gz && \
+  wget https://github.com/shadowsocks/shadowsocks-libev/releases/download/v${SS_LIBEV}/shadowsocks-libev-${SS_LIBEV}.tar.gz
+RUN \
   tar xf shadowsocks-libev-*.tar.gz && cd ./shadowsocks-libev-*/ && \
-  ./configure --disable-documentation --prefix=/usr && make && make install && \
-  cd /usr/bin && mv ./ss-local /tmp/ss-libev-local && mv ./ss-server /tmp/ss-libev-server
+  ./configure --disable-documentation && make && \
+  mv ./src/ss-local /tmp/ss-libev-local && mv ./src/ss-server /tmp/ss-libev-server
 
 # Package shadowsocks-python (lastest version, legacy version, R version aka ssr)
 FROM python:3.10-alpine3.16 AS ss-python
@@ -62,7 +65,8 @@ RUN \
 FROM alpine:3.16 AS ss-bootstrap
 RUN \
   apk add build-base cmake git glib-dev && \
-  git clone https://github.com/dnomd343/shadowsocks-bootstrap.git && \
+  git clone https://github.com/dnomd343/shadowsocks-bootstrap.git
+RUN \
   cd ./shadowsocks-bootstrap/ && mkdir ./build/ && cd ./build/ && \
   cmake -DCMAKE_BUILD_TYPE=Release .. && make && \
   mv ../bin/ss-bootstrap-* /tmp/
@@ -73,7 +77,8 @@ ENV OPENSSL_VER="1.0.2"
 ENV OPENSSL_SUB_VER="u"
 RUN \
   apk add build-base perl && \
-  wget https://www.openssl.org/source/old/${OPENSSL_VER}/openssl-${OPENSSL_VER}${OPENSSL_SUB_VER}.tar.gz && \
+  wget https://www.openssl.org/source/old/${OPENSSL_VER}/openssl-${OPENSSL_VER}${OPENSSL_SUB_VER}.tar.gz
+RUN \
   tar xf openssl-*.tar.gz && cd ./openssl-*/ && \
   ./config --shared --prefix=/usr && make && \
   mv ./libcrypto.so.1.0.0 /tmp/
@@ -252,7 +257,8 @@ FROM alpine:3.16 AS trojan
 ENV TROJAN_VERSION="v1.16.0"
 RUN \
   apk add boost-dev build-base cmake openssl-dev && \
-  wget https://github.com/trojan-gfw/trojan/archive/refs/tags/${TROJAN_VERSION}.tar.gz && \
+  wget https://github.com/trojan-gfw/trojan/archive/refs/tags/${TROJAN_VERSION}.tar.gz
+RUN \
   tar xf ${TROJAN_VERSION}.tar.gz && cd ./trojan-*/ && \
   mkdir ./build/ && cd ./build/ && cmake .. -DENABLE_MYSQL=OFF -DSYSTEMD_SERVICE=OFF && make && \
   mv ./trojan /tmp/
@@ -326,7 +332,8 @@ FROM golang:1.14-alpine3.13 AS relaybaton
 ENV RELAYBATON_VERSION="v0.6.0"
 RUN \
   apk add build-base git perl rsync && \
-  wget https://github.com/iyouport-org/relaybaton/archive/refs/tags/${RELAYBATON_VERSION}.tar.gz && \
+  wget https://github.com/iyouport-org/relaybaton/archive/refs/tags/${RELAYBATON_VERSION}.tar.gz
+RUN \
   tar xf ${RELAYBATON_VERSION}.tar.gz && cd ./relaybaton-*/ && \
   make && mv ./bin/relaybaton /tmp/
 
