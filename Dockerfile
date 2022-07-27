@@ -302,6 +302,27 @@ RUN \
     -X 'github.com/Dreamacro/clash/constant.BuildTime=$(date -u)'" && \
   mv ./clash /tmp/
 
+# Compile caddy
+FROM golang:1.18-alpine3.16 AS caddy
+RUN \
+  go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest && \
+  xcaddy build --with github.com/caddyserver/forwardproxy@caddy2=github.com/klzgrad/forwardproxy@naive && \
+  mv ./caddy /tmp/
+
+# Download naiveproxy
+FROM alpine:3.16 AS naiveproxy
+ENV NAIVE_VERSION="v103.0.5060.53-3"
+RUN \
+  apk add curl libgcc jq && \
+  curl -sL https://api.github.com/repos/klzgrad/naiveproxy/releases/tags/${NAIVE_VERSION} | jq .assets | jq .[].name \
+    | grep naiveproxy-${NAIVE_VERSION}-openwrt-$(uname -m) | cut -b 2- | rev | cut -b 2- | rev | tac > list.dat
+RUN \
+  echo -e "while read FILE_NAME;do\nwget https://github.com/klzgrad/naiveproxy/releases/download/\${NAIVE_VERSION}/\${FILE_NAME}\n \
+    tar xf \${FILE_NAME} && ldd ./\$(echo \$FILE_NAME | rev | cut -b 8- | rev)/naive\n \
+    [ \$? -eq 0 ] && cp ./\$(echo \$FILE_NAME | rev | cut -b 8- | rev)/naive /tmp/ && break\ndone < list.dat" > naiveproxy.sh && \
+  sh naiveproxy.sh
+COPY --from=caddy /tmp/caddy /tmp/
+
 # Compile open-snell
 FROM golang:1.17-alpine3.16 AS snell
 ENV SNELL_VERSION="v3.0.1"
@@ -376,6 +397,8 @@ COPY --from=brook /tmp/brook /release/
 COPY --from=clash /tmp/clash /release/
 COPY --from=snell /tmp/snell-* /release/
 COPY --from=hysteria /tmp/hysteria /release/
+COPY --from=naiveproxy /tmp/caddy /release/
+COPY --from=naiveproxy /tmp/naive /release/
 COPY --from=relaybaton /tmp/relaybaton /release/
 COPY --from=pingtunnel /tmp/pingtunnel /release/
 COPY --from=wireproxy /tmp/wireproxy /release/
