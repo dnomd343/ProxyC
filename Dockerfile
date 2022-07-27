@@ -7,7 +7,11 @@ RUN \
 RUN \
   tar xf upx-${UPX_VERSION}-src.tar.xz && \
   cd upx-${UPX_VERSION}-src/ && make all && \
-  mv ./src/upx.out /tmp/upx
+  mv ./src/upx.out /usr/bin/upx
+RUN \
+  mkdir -p /upx/lib/ && mkdir -p /upx/bin/ && cd /upx/ && \
+  cp -d /usr/lib/libgcc_s.so* /usr/lib/libstdc++.so* /usr/lib/libucl.so* ./lib/ && \
+  cp /usr/bin/upx ./bin/
 
 # Compile shadowsocks-rust
 FROM rust:1.62-alpine3.16 AS ss-rust
@@ -20,7 +24,7 @@ RUN \
   cargo build --release --bin sslocal --bin ssserver  \
     --features "stream-cipher aead-cipher-extra aead-cipher-2022 aead-cipher-2022-extra" && \
   cd ./target/release/ && mv ./sslocal /tmp/ss-rust-local && mv ./ssserver /tmp/ss-rust-server
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN strip /tmp/ss-rust-* && upx -9 /tmp/ss-rust-*
 
 # Compile shadowsocks-libev
@@ -142,7 +146,7 @@ RUN \
 RUN \
   cd ./qtun/ && cargo build --release && \
   cd ./target/release/ && mv ./qtun-client ./qtun-server /plugins/
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN strip /plugins/* && upx -9 /plugins/qtun-*
 
 # Compile sip003 plugins (part2 -> go1.16)
@@ -205,7 +209,7 @@ RUN \
   cd ./gun/ && \
   env CGO_ENABLED=0 go build -o gun-plugin -trimpath -ldflags "-s -w" ./cmd/sip003/ && \
   mv ./gun-plugin /plugins/
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN upx -9 /plugins/*
 
 # Compile sip003 plugins (part3 -> go1.17)
@@ -234,7 +238,7 @@ RUN \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.version=$(git describe --tags) -s -w" ./cmd/ck-client && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.version=$(git describe --tags) -s -w" ./cmd/ck-server && \
   mv ./ck-client ./ck-server /plugins/
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN upx -9 /plugins/*
 
 # Combine sip003 plugins
@@ -252,7 +256,7 @@ RUN \
   env CGO_ENABLED=0 go build -o v2ray -trimpath -ldflags "-s -w" ./main && \
   env CGO_ENABLED=0 go build -o v2ctl -trimpath -ldflags "-s -w" -tags confonly ./infra/control/main && \
   mv ./v2ctl ./v2ray /tmp/
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/v2ray
 
 # Compile xray-core
@@ -263,7 +267,7 @@ RUN \
   tar xf ${XRAY_VERSION}.tar.gz && cd ./Xray-core-*/ && \
   env CGO_ENABLED=0 go build -o xray -trimpath -ldflags "-s -w" ./main && \
   mv ./xray /tmp/
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/xray
 
 # Compile trojan-go
@@ -277,7 +281,7 @@ RUN \
     -ldflags "-X github.com/p4gefau1t/trojan-go/constant.Version=$(git describe --dirty) \
     -X github.com/p4gefau1t/trojan-go/constant.Commit=$(git rev-parse HEAD) -s -w" -tags "full" && \
   mv ./trojan-go /tmp/
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/trojan-go
 
 # Compile trojan
@@ -300,7 +304,7 @@ RUN \
   git clone https://github.com/go-gost/gost.git && cd ./gost/ && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" ./cmd/gost && \
   mv ./gost /tmp/gost-v3
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/gost-v3
 
 # Compile gost
@@ -311,7 +315,7 @@ RUN \
   tar xf ${GOST_VERSION}.tar.gz && cd ./gost-*/cmd/gost/ && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" && \
   mv ./gost /tmp/
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/gost
 COPY --from=gost-v3 /tmp/gost-v3 /tmp/
 
@@ -323,7 +327,7 @@ RUN \
   tar xf ${BROOK_VERSION}.tar.gz && cd ./brook-*/ && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" ./cli/brook && \
   mv ./brook /tmp/
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/brook
 
 # Compile clash
@@ -336,7 +340,7 @@ RUN \
     -X 'github.com/Dreamacro/clash/constant.Version=${CLASH_VERSION}' \
     -X 'github.com/Dreamacro/clash/constant.BuildTime=$(date -u)'" && \
   mv ./clash /tmp/
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/clash
 
 # Compile caddy
@@ -345,7 +349,7 @@ RUN \
   go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest && \
   xcaddy build --with github.com/caddyserver/forwardproxy@caddy2=github.com/klzgrad/forwardproxy@naive && \
   mv ./caddy /tmp/
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/caddy
 
 # Download naiveproxy
@@ -374,7 +378,7 @@ RUN \
   env CGO_ENABLED=0 go build -trimpath \
     -ldflags "-s -w -X 'github.com/icpz/open-snell/constants.Version=${SNELL_VERSION}'" ./cmd/snell-server && \
   mv ./snell-client ./snell-server /tmp/
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/snell-*
 
 # Compile hysteria
@@ -389,7 +393,7 @@ RUN \
     -X 'main.appCommit=$(git rev-parse HEAD)' \
     -X 'main.appDate=$(date "+%F %T")'" && \
   mv ./hysteria /tmp/
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/hysteria
 
 # Compile relaybaton
@@ -401,7 +405,7 @@ RUN \
 RUN \
   tar xf ${RELAYBATON_VERSION}.tar.gz && cd ./relaybaton-*/ && \
   make && mv ./bin/relaybaton /tmp/
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/relaybaton
 
 # Compile pingtunnel
@@ -412,7 +416,7 @@ RUN \
   env GO111MODULE=off go get github.com/esrrhs/pingtunnel/... && \
   env GO111MODULE=off CGO_ENABLED=0 go build -ldflags="-s -w" && \
   mv ./pingtunnel /tmp/
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/pingtunnel
 
 # Compile wireproxy
@@ -423,7 +427,7 @@ RUN \
   tar xf ${WIREPROXY_VERSION}.tar.gz && cd ./wireproxy-*/ && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" ./cmd/wireproxy && \
   mv ./wireproxy /tmp/
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/wireproxy
 
 # Compile dnsproxy
@@ -434,7 +438,7 @@ RUN \
   tar xf ${DNSPROXY_VERSION}.tar.gz && cd ./dnsproxy-*/ && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.VersionString=${DNSPROXY_VERSION} -s -w" && \
   mv ./dnsproxy /tmp/
-COPY --from=upx /tmp/upx /usr/bin/
+COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/dnsproxy
 
 # Combine all release
