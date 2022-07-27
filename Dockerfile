@@ -1,3 +1,14 @@
+# Compile upx (can't use gcc11 for now)
+FROM alpine:3.15 AS upx
+ENV UPX_VERSION="3.96"
+RUN \
+  apk add bash build-base perl ucl-dev zlib-dev && \
+  wget https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-src.tar.xz
+RUN \
+  tar xf upx-${UPX_VERSION}-src.tar.xz && \
+  cd upx-${UPX_VERSION}-src/ && make all && \
+  mv ./src/upx.out /tmp/upx
+
 # Compile shadowsocks-rust
 FROM rust:1.62-alpine3.16 AS ss-rust
 ENV SS_RUST="v1.15.0-alpha.8"
@@ -9,6 +20,8 @@ RUN \
   cargo build --release --bin sslocal --bin ssserver  \
     --features "stream-cipher aead-cipher-extra aead-cipher-2022 aead-cipher-2022-extra" && \
   cd ./target/release/ && mv ./sslocal /tmp/ss-rust-local && mv ./ssserver /tmp/ss-rust-server
+COPY --from=upx /tmp/upx /usr/bin/
+RUN strip /tmp/ss-rust-* && upx -9 /tmp/ss-rust-*
 
 # Compile shadowsocks-libev
 FROM alpine:3.16 AS ss-libev
@@ -20,6 +33,7 @@ RUN \
   tar xf shadowsocks-libev-*.tar.gz && cd ./shadowsocks-libev-*/ && \
   ./configure --disable-documentation && make && \
   mv ./src/ss-local /tmp/ss-libev-local && mv ./src/ss-server /tmp/ss-libev-server
+RUN strip /tmp/ss-libev-*
 
 # Package shadowsocks-python (lastest version, legacy version, R version aka ssr)
 FROM python:3.10-alpine3.16 AS ss-python
@@ -70,6 +84,7 @@ RUN \
   cd ./shadowsocks-bootstrap/ && mkdir ./build/ && cd ./build/ && \
   cmake -DCMAKE_BUILD_TYPE=Release .. && make && \
   mv ../bin/ss-bootstrap-* /tmp/
+RUN strip /tmp/ss-bootstrap-*
 
 # Compile openssl (old version, for shadowsocks method -> idea-cfb / seed-cfb)
 FROM alpine:3.16 AS openssl
@@ -82,6 +97,7 @@ RUN \
   tar xf openssl-*.tar.gz && cd ./openssl-*/ && \
   ./config --shared --prefix=/usr && make && \
   mv ./libcrypto.so.1.0.0 /tmp/
+RUN strip /tmp/libcrypto.so.1.0.0
 
 # Build numpy and salsa20 python module
 FROM python:3.10-alpine3.16 AS salsa20
@@ -126,6 +142,8 @@ RUN \
 RUN \
   cd ./qtun/ && cargo build --release && \
   cd ./target/release/ && mv ./qtun-client ./qtun-server /plugins/
+COPY --from=upx /tmp/upx /usr/bin/
+RUN strip /plugins/* && upx -9 /plugins/qtun-*
 
 # Compile sip003 plugins (part2 -> go1.16)
 FROM golang:1.16-alpine3.15 AS plugin-2
@@ -187,6 +205,8 @@ RUN \
   cd ./gun/ && \
   env CGO_ENABLED=0 go build -o gun-plugin -trimpath -ldflags "-s -w" ./cmd/sip003/ && \
   mv ./gun-plugin /plugins/
+COPY --from=upx /tmp/upx /usr/bin/
+RUN upx -9 /plugins/*
 
 # Compile sip003 plugins (part3 -> go1.17)
 FROM golang:1.17-alpine3.16 AS plugin-3
@@ -214,6 +234,8 @@ RUN \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.version=$(git describe --tags) -s -w" ./cmd/ck-client && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.version=$(git describe --tags) -s -w" ./cmd/ck-server && \
   mv ./ck-client ./ck-server /plugins/
+COPY --from=upx /tmp/upx /usr/bin/
+RUN upx -9 /plugins/*
 
 # Combine sip003 plugins
 FROM alpine:3.16 AS plugin
@@ -230,6 +252,8 @@ RUN \
   env CGO_ENABLED=0 go build -o v2ray -trimpath -ldflags "-s -w" ./main && \
   env CGO_ENABLED=0 go build -o v2ctl -trimpath -ldflags "-s -w" -tags confonly ./infra/control/main && \
   mv ./v2ctl ./v2ray /tmp/
+COPY --from=upx /tmp/upx /usr/bin/
+RUN upx -9 /tmp/v2ray
 
 # Compile xray-core
 FROM golang:1.18-alpine3.16 AS xray
@@ -239,6 +263,8 @@ RUN \
   tar xf ${XRAY_VERSION}.tar.gz && cd ./Xray-core-*/ && \
   env CGO_ENABLED=0 go build -o xray -trimpath -ldflags "-s -w" ./main && \
   mv ./xray /tmp/
+COPY --from=upx /tmp/upx /usr/bin/
+RUN upx -9 /tmp/xray
 
 # Compile trojan-go
 FROM golang:1.17-alpine3.16 AS trojan-go
@@ -251,6 +277,8 @@ RUN \
     -ldflags "-X github.com/p4gefau1t/trojan-go/constant.Version=$(git describe --dirty) \
     -X github.com/p4gefau1t/trojan-go/constant.Commit=$(git rev-parse HEAD) -s -w" -tags "full" && \
   mv ./trojan-go /tmp/
+COPY --from=upx /tmp/upx /usr/bin/
+RUN upx -9 /tmp/trojan-go
 
 # Compile trojan
 FROM alpine:3.16 AS trojan
@@ -262,6 +290,7 @@ RUN \
   tar xf ${TROJAN_VERSION}.tar.gz && cd ./trojan-*/ && \
   mkdir ./build/ && cd ./build/ && cmake .. -DENABLE_MYSQL=OFF -DSYSTEMD_SERVICE=OFF && make && \
   mv ./trojan /tmp/
+RUN strip /tmp/trojan
 COPY --from=trojan-go /tmp/trojan-go /tmp/
 
 # Compile gost-v3
@@ -271,6 +300,8 @@ RUN \
   git clone https://github.com/go-gost/gost.git && cd ./gost/ && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" ./cmd/gost && \
   mv ./gost /tmp/gost-v3
+COPY --from=upx /tmp/upx /usr/bin/
+RUN upx -9 /tmp/gost-v3
 
 # Compile gost
 FROM golang:1.17-alpine3.16 AS gost
@@ -280,6 +311,8 @@ RUN \
   tar xf ${GOST_VERSION}.tar.gz && cd ./gost-*/cmd/gost/ && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" && \
   mv ./gost /tmp/
+COPY --from=upx /tmp/upx /usr/bin/
+RUN upx -9 /tmp/gost
 COPY --from=gost-v3 /tmp/gost-v3 /tmp/
 
 # Compile brook
@@ -290,6 +323,8 @@ RUN \
   tar xf ${BROOK_VERSION}.tar.gz && cd ./brook-*/ && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" ./cli/brook && \
   mv ./brook /tmp/
+COPY --from=upx /tmp/upx /usr/bin/
+RUN upx -9 /tmp/brook
 
 # Compile clash
 FROM golang:1.18-alpine3.16 AS clash
@@ -301,6 +336,8 @@ RUN \
     -X 'github.com/Dreamacro/clash/constant.Version=${CLASH_VERSION}' \
     -X 'github.com/Dreamacro/clash/constant.BuildTime=$(date -u)'" && \
   mv ./clash /tmp/
+COPY --from=upx /tmp/upx /usr/bin/
+RUN upx -9 /tmp/clash
 
 # Compile caddy
 FROM golang:1.18-alpine3.16 AS caddy
@@ -308,6 +345,8 @@ RUN \
   go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest && \
   xcaddy build --with github.com/caddyserver/forwardproxy@caddy2=github.com/klzgrad/forwardproxy@naive && \
   mv ./caddy /tmp/
+COPY --from=upx /tmp/upx /usr/bin/
+RUN upx -9 /tmp/caddy
 
 # Download naiveproxy
 FROM alpine:3.16 AS naiveproxy
@@ -321,6 +360,7 @@ RUN \
     tar xf \${FILE_NAME} && ldd ./\$(echo \$FILE_NAME | rev | cut -b 8- | rev)/naive\n \
     [ \$? -eq 0 ] && cp ./\$(echo \$FILE_NAME | rev | cut -b 8- | rev)/naive /tmp/ && break\ndone < list.dat" > naiveproxy.sh && \
   sh naiveproxy.sh
+RUN apk add gcc && strip /tmp/naive
 COPY --from=caddy /tmp/caddy /tmp/
 
 # Compile open-snell
@@ -334,6 +374,8 @@ RUN \
   env CGO_ENABLED=0 go build -trimpath \
     -ldflags "-s -w -X 'github.com/icpz/open-snell/constants.Version=${SNELL_VERSION}'" ./cmd/snell-server && \
   mv ./snell-client ./snell-server /tmp/
+COPY --from=upx /tmp/upx /usr/bin/
+RUN upx -9 /tmp/snell-*
 
 # Compile hysteria
 FROM golang:1.17-alpine3.16 AS hysteria
@@ -347,6 +389,8 @@ RUN \
     -X 'main.appCommit=$(git rev-parse HEAD)' \
     -X 'main.appDate=$(date "+%F %T")'" && \
   mv ./hysteria /tmp/
+COPY --from=upx /tmp/upx /usr/bin/
+RUN upx -9 /tmp/hysteria
 
 # Compile relaybaton
 FROM golang:1.14-alpine3.13 AS relaybaton
@@ -357,6 +401,8 @@ RUN \
 RUN \
   tar xf ${RELAYBATON_VERSION}.tar.gz && cd ./relaybaton-*/ && \
   make && mv ./bin/relaybaton /tmp/
+COPY --from=upx /tmp/upx /usr/bin/
+RUN upx -9 /tmp/relaybaton
 
 # Compile pingtunnel
 FROM golang:1.18-alpine3.16 AS pingtunnel
@@ -366,6 +412,8 @@ RUN \
   env GO111MODULE=off go get github.com/esrrhs/pingtunnel/... && \
   env GO111MODULE=off CGO_ENABLED=0 go build -ldflags="-s -w" && \
   mv ./pingtunnel /tmp/
+COPY --from=upx /tmp/upx /usr/bin/
+RUN upx -9 /tmp/pingtunnel
 
 # Compile wireproxy
 FROM golang:1.17-alpine3.16 AS wireproxy
@@ -375,6 +423,8 @@ RUN \
   tar xf ${WIREPROXY_VERSION}.tar.gz && cd ./wireproxy-*/ && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" ./cmd/wireproxy && \
   mv ./wireproxy /tmp/
+COPY --from=upx /tmp/upx /usr/bin/
+RUN upx -9 /tmp/wireproxy
 
 # Compile dnsproxy
 FROM golang:1.18-alpine3.16 AS dnsproxy
@@ -384,6 +434,8 @@ RUN \
   tar xf ${DNSPROXY_VERSION}.tar.gz && cd ./dnsproxy-*/ && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.VersionString=${DNSPROXY_VERSION} -s -w" && \
   mv ./dnsproxy /tmp/
+COPY --from=upx /tmp/upx /usr/bin/
+RUN upx -9 /tmp/dnsproxy
 
 # Combine all release
 FROM python:3.10-alpine3.16 AS asset
