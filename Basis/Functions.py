@@ -19,7 +19,7 @@ def genFlag(length: int = 12) -> str:  # generate random task flag
     return flag
 
 
-def getAvailablePort(rangeStart: int = 41952, rangeEnd: int = 65535) -> int:  # get a available port
+def getAvailablePort(rangeStart: int = 1024, rangeEnd: int = 65535, waitTime: int = 10) -> int:  # get available port
     if rangeStart > rangeEnd or rangeStart < 1 or rangeEnd > 65535:
         raise RuntimeError('invalid port range')
     while True:
@@ -27,7 +27,7 @@ def getAvailablePort(rangeStart: int = 41952, rangeEnd: int = 65535) -> int:  # 
         if checkPortStatus(port):
             logging.debug('get new port -> %i' % port)
             return port
-        time.sleep(0.1) # wait for 100ms
+        time.sleep(waitTime / 1000)  # ms -> s (default 10ms)
 
 
 def checkPortStatus(port: int) -> bool:  # check if the port is occupied

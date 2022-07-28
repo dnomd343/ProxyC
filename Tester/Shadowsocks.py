@@ -4,6 +4,7 @@
 import os
 import json
 import base64
+import itertools
 from Builder import Shadowsocks
 from Basis.Logger import logging
 from Basis.Process import Process
@@ -82,75 +83,74 @@ def ssPythonLegacy(proxyInfo: dict, isUdp: bool) -> tuple[dict, list]:
 
 
 def loadPassword(method: str) -> str:
-    b64 = lambda x: base64.b64encode(x.encode(encoding = 'utf-8')).decode(encoding = 'utf-8')
-    if not method.startswith('2022-blake3-'):
+    b64 = lambda x: base64.b64encode(x.encode(encoding = 'utf-8')).decode(encoding = 'utf-8')  # base64 encode
+    if not method.startswith('2022-blake3-'):  # normal method
         return genFlag(length = 8)
-    if method == '2022-blake3-aes-128-gcm':
+    if method == '2022-blake3-aes-128-gcm':  # 2022-blake3-aes-128-gcm use 16 byte length password
         return b64(genFlag(length = 16))
     return b64(genFlag(length = 32))  # three other 2022-blake3-* methods use 32 byte length password
 
 
-def testConnection(serverType: str, clientType: str, method: str) -> dict:
-    proxyInfo = {
+def loadClient(ssType: str, configFile: str, proxyInfo: dict, socksInfo: dict) -> Process:
+    ssConfig, ssClient = {  # generate client start command and its config file
+        'ss-rust': Shadowsocks.ssRust,
+        'ss-libev': Shadowsocks.ssLibev,
+        'ss-python': Shadowsocks.ssPython,
+        'ss-python-legacy': Shadowsocks.ssPythonLegacy
+    }[ssType](proxyInfo, socksInfo, isUdp = False)
+    clientFile = os.path.join(settings['workDir'], configFile)
+    return Process(settings['workDir'], cmd = ssClient + ['-c', clientFile], file = {  # load client process
+        'path': clientFile,
+        'content': json.dumps(ssConfig)
+    }, isStart = False)
+
+
+def loadServer(ssType: str, configFile: str, proxyInfo: dict) -> Process:
+    ssConfig, ssServer = {  # generate server start command and its config file
+        'ss-rust': ssRust,
+        'ss-libev': ssLibev,
+        'ss-python': ssPython,
+        'ss-python-legacy': ssPythonLegacy
+    }[ssType](proxyInfo, isUdp = False)
+    serverFile = os.path.join(settings['workDir'], configFile)
+    return Process(settings['workDir'], cmd = ssServer + ['-c', serverFile], file = {  # load server process
+        'path': serverFile,
+        'content': json.dumps(ssConfig)
+    }, isStart = False)
+
+
+def loadTest(serverType: str, clientType: str, method: str) -> dict:
+    proxyInfo = {  # connection info
         'server': settings['serverBind'],
         'port': getAvailablePort(),
         'method': method,
         'passwd': loadPassword(method),
         'plugin': None
     }
-    socksInfo = {
+    socksInfo = {  # socks5 interface for test
         'addr': settings['clientBind'],
         'port': getAvailablePort()
     }
-
-    ssClientLoad = {
-        'ss-rust': Shadowsocks.ssRust,
-        'ss-libev': Shadowsocks.ssLibev,
-        'ss-python': Shadowsocks.ssPython,
-        'ss-python-legacy': Shadowsocks.ssPythonLegacy
-    }[clientType]
-    ssConfig, ssClient = ssClientLoad(proxyInfo, socksInfo, isUdp = False)
-    clientFile = os.path.join(settings['workDir'], '%s_%s_%s' % (serverType, clientType, method) + '_client.json')
-    client = Process(settings['workDir'], cmd = ssClient + ['-c', clientFile], file = {
-        'path': clientFile,
-        'content': json.dumps(ssConfig)
-    }, isStart = False)
-
-    ssServerLoad = {
-        'ss-rust': ssRust,
-        'ss-libev': ssLibev,
-        'ss-python': ssPython,
-        'ss-python-legacy': ssPythonLegacy
-    }[serverType]
-    ssConfig, ssServer = ssServerLoad(proxyInfo, isUdp = False)
-    serverFile = os.path.join(settings['workDir'], '%s_%s_%s' % (serverType, clientType, method) + '_server.json')
-    server = Process(settings['workDir'], cmd = ssServer + ['-c', serverFile], file = {
-        'path': serverFile,
-        'content': json.dumps(ssConfig)
-    }, isStart = False)
-
-    testInfo = {
+    configName = '%s_%s_%s' % (serverType, clientType, method)  # prefix of config file name
+    testInfo = {  # release test info
         'title': 'Shadowsocks test: {%s <- %s -> %s}' % (serverType, method, clientType),
-        'socks': socksInfo,
-        'client': client,
-        'server': server,
+        'client': loadClient(clientType, configName + '_client.json', proxyInfo, socksInfo),
+        'server': loadServer(serverType, configName + '_server.json', proxyInfo),
+        'socks': socksInfo,  # exposed socks5 interface
     }
     logging.debug('New shadowsocks test connection -> %s' % testInfo)
     return testInfo
 
 
-def load(isExtra: bool = False) -> list:
-    result = []
-    if isExtra:
-        for ssServer in ssMethods:
-            for method in ssMethods[ssServer]:
-                for ssClient in ssMethods:
-                    if method not in ssMethods[ssClient]: continue
-                    result.append(testConnection(ssServer, ssClient, method))
-    else:
-        for method in ssAllMethods:
-            for ssType in ssMethods:
+def load(isExtra: bool = False):
+    if not isExtra:  # just test basic connection
+        for method in ssAllMethods:  # test every method for once
+            for ssType in ssMethods:  # found the client which support this method
                 if method not in ssMethods[ssType]: continue
-                result.append(testConnection(ssType, ssType, method))
-                break
-    return result
+                yield loadTest(ssType, ssType, method)  # ssType <-- method --> ssType
+                break  # don't need other client
+        return
+    for ssServer in ssMethods:  # traverse all shadowsocks type as server
+        for method, ssClient in itertools.product(ssMethods[ssServer], ssMethods):  # supported methods and clients
+            if method not in ssMethods[ssClient]: continue
+            yield loadTest(ssServer, ssClient, method)  # ssServer <-- method --> ssClient

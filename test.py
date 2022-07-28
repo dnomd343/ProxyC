@@ -3,22 +3,22 @@
 
 import time
 import requests
+from threading import Thread
 from Tester import Shadowsocks
 from Basis.Logger import logging
-from Basis.Functions import networkStatus
+
+testDelay = 1  # wait 1s before request test
+threadNum = 128  # thread number
 
 def test(testObj: dict) -> None:
     logging.warning(testObj['title'])
-    logging.debug('network status -> %s' % networkStatus())
     testObj['client'].start()
     testObj['server'].start()
-
-    time.sleep(1)
-
+    time.sleep(testDelay)
     errFlag = False
     try:
         request = requests.get(
-            'http://baidu.com',
+            'http://iserv.scutbot.cn',
             proxies = {
                 'http': 'socks5://127.0.0.1:%i' % testObj['socks']['port'],
                 'https': 'socks5://127.0.0.1:%i' % testObj['socks']['port'],
@@ -36,19 +36,34 @@ def test(testObj: dict) -> None:
     testObj['server'].quit()
     if errFlag:
         logging.warning('client info')
-        logging.error('command -> ' + str(testObj['client'].cmd))
-        logging.error('envVar -> ' + str(testObj['client'].env))
-        logging.error('file -> ' + str(testObj['client'].file))
+        logging.error('command -> %s' % testObj['client'].cmd)
+        logging.error('envVar -> %s' % testObj['client'].env)
+        logging.error('file -> %s' % testObj['client'].file)
         logging.warning('client capture output')
         logging.error('\n' + str(testObj['client'].output))
         logging.warning('server info')
-        logging.error('command -> ' + str(testObj['server'].cmd))
-        logging.error('envVar -> ' + str(testObj['server'].env))
-        logging.error('file -> ' + str(testObj['server'].file))
+        logging.error('command -> %s' % testObj['server'].cmd)
+        logging.error('envVar -> %s' % testObj['server'].env)
+        logging.error('file -> %s' % testObj['server'].file)
         logging.warning('server capture output')
         logging.error('\n' + str(testObj['server'].output))
 
 
-testList = Shadowsocks.load(isExtra = True)
-for testObject in testList:
-    test(testObject)
+threads = []
+ss = Shadowsocks.load(isExtra = True)
+
+while True:
+    try:
+        for i in range(threadNum):
+            thread = Thread(target = test, args = (next(ss),))
+            thread.start()
+            threads.append(thread)
+        for thread in threads:
+            thread.join()
+        threads.clear()
+    except StopIteration:
+        break
+for thread in threads:
+    thread.join()
+
+logging.critical('test complete')
