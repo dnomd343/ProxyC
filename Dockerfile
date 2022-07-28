@@ -255,7 +255,7 @@ RUN \
   env CGO_ENABLED=0 go build -o v2ctl -trimpath -ldflags "-s -w" -tags confonly ./infra/control/main && \
   mv ./v2ctl ./v2ray /tmp/
 COPY --from=upx /upx/ /usr/
-RUN upx -9 /tmp/v2ray
+RUN upx -9 /tmp/v2*
 
 # Compile xray-core
 FROM golang:1.18-alpine3.16 AS xray
