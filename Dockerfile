@@ -90,6 +90,20 @@ RUN \
   mv ../bin/ss-bootstrap-* /tmp/
 RUN strip /tmp/ss-bootstrap-*
 
+# Combine shadowsocks dependencies
+FROM python:3.10-alpine3.16 AS shadowsocks
+COPY --from=ss-rust /tmp/ss-rust-* /release/
+COPY --from=ss-libev /tmp/ss-libev-* /release/
+COPY --from=ss-bootstrap /tmp/ss-bootstrap-* /release/
+RUN \
+  PYTHON_PACKAGE="/usr/local/lib/$(ls /usr/local/lib/ | grep ^python)/site-packages" && \
+  ln -s ${PYTHON_PACKAGE}/ssr-python/local.py /release/ssr-local && \
+  ln -s ${PYTHON_PACKAGE}/ssr-python/server.py /release/ssr-server && \
+  ln -s ${PYTHON_PACKAGE}/ss-python/local.py /release/ss-python-local && \
+  ln -s ${PYTHON_PACKAGE}/ss-python/server.py /release/ss-python-server && \
+  ln -s ${PYTHON_PACKAGE}/ss-python-legacy/local.py /release/ss-python-legacy-local && \
+  ln -s ${PYTHON_PACKAGE}/ss-python-legacy/server.py /release/ss-python-legacy-server
+
 # Compile openssl (old version, for shadowsocks method -> idea-cfb / seed-cfb)
 FROM alpine:3.16 AS openssl
 ENV OPENSSL_VER="1.0.2"
@@ -103,32 +117,16 @@ RUN \
   mv ./libcrypto.so.1.0.0 /tmp/
 RUN strip /tmp/libcrypto.so.1.0.0
 
-# Build numpy and salsa20 python module
-FROM python:3.10-alpine3.16 AS salsa20
+# Build python module (numpy salsa20 psutil)
+FROM python:3.10-alpine3.16 AS python-pkg
+RUN apk add build-base linux-headers
 RUN \
-  apk add build-base && \
-  pip3 install numpy salsa20 && \
+  pip3 install numpy salsa20 psutil && \
   cd /usr/local/lib/python*/site-packages/ && \
-  mkdir /packages/ && mv ./*numpy* ./*salsa20* /packages/ && \
-  rm -rf $(find /packages/ -name '__pycache__')
-
-# Combine shadowsocks dependencies
-FROM python:3.10-alpine3.16 AS shadowsocks
-COPY --from=ss-rust /tmp/ss-rust-* /release/
-COPY --from=ss-libev /tmp/ss-libev-* /release/
+  mkdir /site-packages/ && mv ./*numpy* ./*salsa20* ./psutil* /site-packages/ && \
+  rm -rf $(find /site-packages/ -name '__pycache__')
 COPY --from=ss-python /packages/ /site-packages/
-COPY --from=ss-bootstrap /tmp/ss-bootstrap-* /release/
-COPY --from=openssl /tmp/libcrypto.so* /release/
-COPY --from=salsa20 /packages/ /site-packages/
-RUN \
-  PYTHON_PACKAGE="/usr/local/lib/$(ls /usr/local/lib/ | grep ^python)/site-packages" && \
-  ln -s ${PYTHON_PACKAGE}/ssr-python/local.py /release/ssr-local && \
-  ln -s ${PYTHON_PACKAGE}/ssr-python/server.py /release/ssr-server && \
-  ln -s ${PYTHON_PACKAGE}/ss-python/local.py /release/ss-python-local && \
-  ln -s ${PYTHON_PACKAGE}/ss-python/server.py /release/ss-python-server && \
-  ln -s ${PYTHON_PACKAGE}/ss-python-legacy/local.py /release/ss-python-legacy-local && \
-  ln -s ${PYTHON_PACKAGE}/ss-python-legacy/server.py /release/ss-python-legacy-server && \
-  BZIP2=-9 tar cjf /release/packages.tar.bz2 ./site-packages/
+RUN BZIP2=-9 tar czf /packages.tar.gz ./site-packages/
 
 # Compile sip003 plugins (part1 -> gcc & cargo)
 FROM rust:1.62-alpine3.16 AS plugin-1
@@ -443,32 +441,31 @@ RUN upx -9 /tmp/dnsproxy
 
 # Combine all release
 FROM python:3.10-alpine3.16 AS asset
-COPY --from=shadowsocks /release/ /release/
-COPY --from=plugin /release/ /release/
-COPY --from=v2ray /tmp/v2* /release/
-COPY --from=xray /tmp/xray /release/
-COPY --from=trojan /tmp/trojan* /release/
-COPY --from=gost /tmp/gost* /release/
-COPY --from=brook /tmp/brook /release/
-COPY --from=clash /tmp/clash /release/
-COPY --from=snell /tmp/snell-* /release/
-COPY --from=hysteria /tmp/hysteria /release/
-COPY --from=naiveproxy /tmp/caddy /release/
-COPY --from=naiveproxy /tmp/naive /release/
-COPY --from=relaybaton /tmp/relaybaton /release/
-COPY --from=pingtunnel /tmp/pingtunnel /release/
-COPY --from=wireproxy /tmp/wireproxy /release/
-COPY --from=dnsproxy /tmp/dnsproxy /release/
+COPY --from=python-pkg /packages.tar.gz /
 RUN \
   PACKAGE_DIR="/asset/usr/local/lib/$(ls /usr/local/lib/ | grep ^python)" && \
-  mkdir -p ${PACKAGE_DIR}/ && tar xf /release/packages.tar.bz2 -C ${PACKAGE_DIR}/ && \
-  mkdir -p /asset/lib/ && mv /release/*.so* /asset/lib/ && \
-  rm -f /release/packages.tar.bz2 && \
-  mv /release/ /asset/usr/bin/
+  mkdir -p ${PACKAGE_DIR}/ && tar xf /packages.tar.gz -C ${PACKAGE_DIR}/
+COPY --from=openssl /tmp/libcrypto.so* /asset/lib/
+COPY --from=shadowsocks /release/ /asset/usr/bin/
+COPY --from=plugin /release/ /asset/usr/bin/
+COPY --from=v2ray /tmp/v2* /asset/usr/bin/
+COPY --from=xray /tmp/xray /asset/usr/bin/
+COPY --from=trojan /tmp/trojan* /asset/usr/bin/
+COPY --from=gost /tmp/gost* /asset/usr/bin/
+COPY --from=brook /tmp/brook /asset/usr/bin/
+COPY --from=clash /tmp/clash /asset/usr/bin/
+COPY --from=snell /tmp/snell-* /asset/usr/bin/
+COPY --from=hysteria /tmp/hysteria /asset/usr/bin/
+COPY --from=naiveproxy /tmp/caddy /asset/usr/bin/
+COPY --from=naiveproxy /tmp/naive /asset/usr/bin/
+COPY --from=relaybaton /tmp/relaybaton /asset/usr/bin/
+COPY --from=pingtunnel /tmp/pingtunnel /asset/usr/bin/
+COPY --from=wireproxy /tmp/wireproxy /asset/usr/bin/
+COPY --from=dnsproxy /tmp/dnsproxy /asset/usr/bin/
 
 # Release docker image
 FROM python:3.10-alpine3.16
-COPY --from=asset /asset /
 RUN \
   apk add --no-cache boost-program_options c-ares glib libev libsodium libstdc++ mbedtls pcre && \
   pip3 --no-cache-dir install colorlog pysocks requests
+COPY --from=asset /asset /

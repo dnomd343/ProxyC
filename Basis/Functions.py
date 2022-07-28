@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import time
+import psutil
 import random
-import socket
 from Basis.Logger import logging
 
 
@@ -31,38 +31,35 @@ def getAvailablePort(rangeStart: int = 41952, rangeEnd: int = 65535) -> int:  # 
 
 
 def checkPortStatus(port: int) -> bool:  # check if the port is occupied
-    ipv4Tcp = None
-    ipv4Udp = None
-    ipv6Tcp = None
-    ipv6Udp = None
-    try:
-        ipv4Tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        ipv4Udp = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        ipv4Tcp.bind(('0.0.0.0', port))
-        ipv4Udp.bind(('0.0.0.0', port))
-        ipv4Tcp.close()
-        ipv4Udp.close()
-        ipv6Tcp = socket.socket(socket.AF_INET6, socket.SOCK_STREAM)
-        ipv6Udp = socket.socket(socket.AF_INET6, socket.SOCK_DGRAM)
-        ipv6Tcp.bind(('::', port))
-        ipv6Udp.bind(('::', port))
-        ipv6Tcp.close()
-        ipv6Udp.close()
-        logging.debug('check status of port %i -> available' % port)
-        return True  # IPv4 TCP / IPv4 UDP / IPv6 TCP / IPv6 UDP are normal
-    except:
-        logging.debug('check status of port %i -> occupied' % port)
-        return False
-    finally:  # close socket
-        try:
-            ipv4Tcp.close()
-        except: pass
-        try:
-            ipv4Udp.close()
-        except: pass
-        try:
-            ipv6Tcp.close()
-        except: pass
-        try:
-            ipv6Udp.close()
-        except: pass
+    logging.debug('check status of port %i -> available' % port)
+    for connection in networkStatus():  # scan every connections
+        if connection['local']['port'] == port:  # port occupied (whatever ipv4-tcp / ipv4-udp / ipv6-tcp / ipv6-udp)
+            logging.debug('check status of port %i -> occupied' % port)
+            return False
+    return True
+
+
+def networkStatus() -> list:  # get all network connections
+    result = []
+    for connection in psutil.net_connections():
+        if not connection.family.name.startswith('AF_INET'):  # AF_INET / AF_INET6
+            continue
+        if connection.type.name not in ['SOCK_STREAM', 'SOCK_DGRAM']:  # TCP / UDP
+            continue
+        result.append({
+            'fd': connection.fd,
+            'family': 'ipv6' if connection.family.name[-1] == '6' else 'ipv4',  # ip version
+            'type': 'tcp' if connection.type.name == 'SOCK_STREAM' else 'udp',  # tcp or udp
+            'local': {  # local bind address
+                'addr': connection.laddr.ip,
+                'port': connection.laddr.port,
+            },
+            'remote': {  # remote address
+                'addr': connection.raddr.ip,
+                'port': connection.raddr.port,
+            } if len(connection.raddr) != 0 else None,
+            'status': connection.status,
+            'pid': connection.pid,  # process id
+        })
+    logging.debug('get network status -> found %i connections' % len(result))
+    return result

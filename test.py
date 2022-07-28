@@ -5,10 +5,11 @@ import time
 import requests
 from Tester import Shadowsocks
 from Basis.Logger import logging
-
+from Basis.Functions import networkStatus
 
 def test(testObj: dict) -> None:
     logging.warning(testObj['title'])
+    logging.debug('network status -> %s' % networkStatus())
     testObj['client'].start()
     testObj['server'].start()
 
