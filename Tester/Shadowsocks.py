@@ -136,9 +136,13 @@ def loadTest(serverType: str, clientType: str, method: str) -> dict:
         'title': 'Shadowsocks test: {%s <- %s -> %s}' % (serverType, method, clientType),
         'client': loadClient(clientType, configName + '_client.json', proxyInfo, socksInfo),
         'server': loadServer(serverType, configName + '_server.json', proxyInfo),
-        'socks': socksInfo,  # exposed socks5 interface
+        'socks': socksInfo,  # exposed socks5 address
+        'interface': {
+            'addr': proxyInfo['server'],
+            'port': proxyInfo['port']
+        }
     }
-    logging.debug('New shadowsocks test connection -> %s' % testInfo)
+    logging.debug('New shadowsocks test -> %s' % testInfo)
     return testInfo
 
 

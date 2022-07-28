@@ -5,16 +5,29 @@ import time
 import requests
 from threading import Thread
 from Tester import Shadowsocks
+from Tester import ShadowsocksR
 from Basis.Logger import logging
+from Basis.Functions import checkPortStatus
 
-testDelay = 1  # wait 1s before request test
-threadNum = 128  # thread number
+
+def waitForStart(port: int, times: int = 100, delay: int = 100) -> bool:
+    for i in range(times):
+        if not checkPortStatus(port):  # port occupied
+            return True
+        time.sleep(delay / 1000)  # default wait 100ms
+    return False  # timeout
+
 
 def test(testObj: dict) -> None:
     logging.warning(testObj['title'])
     testObj['client'].start()
     testObj['server'].start()
-    time.sleep(testDelay)
+    if waitForStart(testObj['socks']['port']):
+        logging.debug('client start complete')
+    if waitForStart(testObj['interface']['port']):
+        logging.debug('server start complete')
+    logging.debug('start test process')
+
     errFlag = False
     try:
         request = requests.get(
@@ -49,21 +62,36 @@ def test(testObj: dict) -> None:
         logging.error('\n' + str(testObj['server'].output))
 
 
-threads = []
-ss = Shadowsocks.load(isExtra = True)
+def runTest(testIter: iter, threadNum: int):
+    threads = []
+    while True:  # infinite loop
+        try:
+            for thread in threads:
+                if thread.is_alive(): continue
+                threads.remove(thread)  # remove dead thread
+            if len(threads) < threadNum:
+                for i in range(threadNum - len(threads)):  # start threads within limit
+                    thread = Thread(target=test, args=(next(testIter),))  # create new thread
+                    thread.start()
+                    threads.append(thread)  # record thread info
+            time.sleep(0.1)
+        except StopIteration:  # traverse completed
+            break
+    for thread in threads:  # wait until all threads exit
+        thread.join()
 
-while True:
-    try:
-        for i in range(threadNum):
-            thread = Thread(target = test, args = (next(ss),))
-            thread.start()
-            threads.append(thread)
-        for thread in threads:
-            thread.join()
-        threads.clear()
-    except StopIteration:
-        break
-for thread in threads:
-    thread.join()
+
+ss = Shadowsocks.load(isExtra = True)
+ssr = ShadowsocksR.load()
+logging.critical('test start')
+
+runTest(ss, 64)
+runTest(ssr, 64)
+# ssThread = Thread(target=runTest, args=(ss, 64))
+# ssrThread = Thread(target=runTest, args=(ssr, 64))
+# ssThread.start()
+# ssrThread.start()
+# ssThread.join()
+# ssrThread.join()
 
 logging.critical('test complete')
