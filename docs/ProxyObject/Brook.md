@@ -1,95 +1,84 @@
-## Brook
-
-> **remark**
-> 
-> + 类型：*str*
-> + 说明：节点备注名称
-> + 缺省：''
-> + 可选值：不限
+## brookObject
 
 ```
 {
-    'type': 'brook',
-    'server': ...,
-    'port': ...,
-    'passwd': ...,
-    'ws': ...
+    'server': ---,
+    'port': ---,
+    'passwd': ---,
+    'ws': ---,
 }
 ```
 
-**server**
+### server
 
 + 类型：*str*
-+ 说明：服务器地址
++ 说明：Brook服务地址
 + 缺省：必选
-+ 可选值：合法的IP地址或域名
++ 限制：IP地址或域名
 
-**port**
+### port
 
 + 类型：*int*
-+ 说明：服务器端口
++ 说明：Brook服务端口
 + 缺省：必选
-+ 可选值：1 ～ 65535
++ 限制：1 ～ 65535
 
-**passwd**
+### passwd
 
 + 类型：*str*
 + 说明：Brook连接密码
 + 缺省：必选
-+ 可选值：不限
++ 限制：无
 
-**ws**
+### ws
 
-+ 类型：*None* / *wsObject*
++ 类型：*None* / [*wsObject*](#wsobject)
 + 说明：WebSocket传输配置
-+ 缺省：None
-+ 可选值：不限
++ 缺省：`None`
++ 限制：无
 
-### wsObject
+## wsObject
 
 ```
 {
-    'host': ...,
-    'path': ...,
-    'secure': ...
+    'host': ---,
+    'path': ---,
+    'secure': ---,
 }
 ```
 
-**host**
+### host
 
 + 类型：*str*
 + 说明：Websocket连接域名
-+ 缺省：''
-+ 可选值：不限
-+ 建议值：合法域名
++ 缺省：`空`
++ 限制：无
 
-**path**
+### path
 
 + 类型：*str*
 + 说明：Websocket连接路径
-+ 缺省：'/'
-+ 可选值：不限
-+ 建议值：以`/`开头的合法路径
++ 缺省：`/`
++ 限制：无
 
-**secure**
+### secure
 
-+ 类型：*None* / *secureObject*
++ 类型：*None* / [*secureObject*](#secureobject)
 + 说明：TLS加密配置
-+ 缺省：None
-+ 可选值：不限
++ 缺省：`None`
++ 限制：无
 
-### secureObject
+## secureObject
 
 ```
 {
-    'verify': ...
+    'verify': ---,
 }
 ```
 
-**verify**
+### verify
 
 + 类型：*bool*
 + 说明：是否验证服务端证书
-+ 缺省：True
-+ 可选值：不限
-+ 建议值：True
++ 缺省：`True`
++ 限制：无

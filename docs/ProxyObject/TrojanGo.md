@@ -1,161 +1,155 @@
-## Trojan-Go
-
-> **remark**
-> 
-> + 类型：*str*
-> + 说明：节点备注名称
-> + 缺省：''
-> + 可选值：不限
+## trojanGoObject
 
 ```
 {
-    'type': 'trojan-go',
-    'server': ...,
-    'port': ...,
-    'passwd': ...,
-    'sni': ...,
-    'alpn': ...,
-    'verify': ...,
-    'ws': ...,
-    'ss': ...,
-    'plugin': ...
+    'server': ---,
+    'port': ---,
+    'passwd': ---,
+    'sni': ---,
+    'alpn': ---,
+    'verify': ---,
+    'ws': ---,
+    'ss': ---,
+    'plugin': ---,
 }
 ```
 
-**server**
+### server
 
 + 类型：*str*
-+ 说明：服务器地址
++ 说明：TrojanGo服务地址
 + 缺省：必选
-+ 可选值：合法的IP地址或域名
++ 限制：IP地址或域名
 
-**port**
+### port
 
 + 类型：*int*
-+ 说明：服务器端口
++ 说明：TrojanGo服务端口
 + 缺省：必选
-+ 可选值：1 ～ 65535
++ 限制：1 ～ 65535
 
-**passwd**
+### passwd
 
 + 类型：*str*
-+ 说明：Trojan连接密码
++ 说明：TrojanGo连接密码
 + 缺省：必选
-+ 可选值：不限
++ 限制：无
 
-**sni**
+### sni
 
 + 类型：*str*
 + 说明：TLS握手SNI字段
-+ 缺省： ''
-+ 可选值：不限
-+ 建议值：合法域名
++ 缺省：`无`
++ 限制：无
 
-**alpn**
+### alpn
 
 + 类型：*None* / *str*
 + 说明：TLS握手协商协议
-+ 缺省：None
-+ 可选值：`h2`,`http/1.1`,`h2,http/1.1`
-+ 建议值：'h2,http/1.1'
++ 缺省：`None`
++ 限制：`h2`, `http/1.1`, `h2,http/1.1`
 
-**verify**
+### verify
 
 + 类型：*bool*
 + 说明：是否验证服务端证书
-+ 缺省：True
-+ 可选值：不限
-+ 建议值：True
++ 缺省：`True`
++ 限制：无
 
-**ws**
+### ws
 
-+ 类型：*None* / *wsObject*
++ 类型：*None* / [*wsObject*](#wsobject)
 + 说明：WebSocket连接配置
-+ 缺省：None
-+ 可选值：不限
++ 缺省：`None`
++ 限制：无
 
-**ss**
+### ss
 
-+ 类型：*None* / *ssObject*
++ 类型：*None* / [*ssObject*](#ssobject)
 + 说明：Shadowsocks加密配置
-+ 缺省：None
-+ 可选值：不限
++ 缺省：`None`
++ 限制：无
 
-**plugin**
+### plugin
 
-+ 类型：*None* / *pluginObject*
-+ 说明：SIP003插件
-+ 缺省：None
-+ 可选值：不限
++ 类型：*None* / [*pluginObject*](#pluginobject)
++ 说明：SIP003插件选项
++ 缺省：`None`
++ 限制：无
 
-### wsObject
+## wsObject
 
 ```
 {
-    'host': ...,
-    'path': ...
+    'host': ---,
+    'path': ---,
 }
 ```
 
-**host**
+### host
 
 + 类型：*str*
 + 说明：Websocket连接域名
-+ 缺省：''
-+ 可选值：不限
-+ 建议值：合法域名
++ 缺省：`空`
++ 限制：无
 
-**path**
+### path
 
 + 类型：*str*
 + 说明：Websocket连接路径
-+ 缺省：'/'
-+ 可选值：不限
-+ 建议值：以`/`开头的合法路径
++ 缺省：`/`
++ 限制：无
 
-### ssObject
+## ssObject
 
 ```
 {
-    'method': ...,
-    'passwd': ...
+    'method': ---,
+    'passwd': ---,
 }
 ```
 
-**method**
+### method
 
 + 类型：*str*
 + 说明：Shadowsocks流加密方式
-+ 缺省：'AES-128-GCM'
-+ 可选值：`AES-128-GCM`,`AES-256-GCM`,`CHACHA20-IETF-POLY1305`
-+ 建议值：x86平台使用AES方式，ARM平台使用CHACHA20方式
++ 缺省：`aes-128-gcm`
++ 限制：`aes-128-gcm`, `aes-256-gcm`, `chacha20-ietf-poly1305`
 
-**passwd**
+### passwd
 
 + 类型：*str*
 + 说明：Shadowsocks密码
-+ 缺省：''
-+ 可选值：不限
++ 缺省：`空`
++ 限制：无
 
-### pluginObject
+## pluginObject
 
 ```
 {
-    'type': ...,
-    'param': ...
+    'type': ---,
+    'param': ---,
 }
 ```
 
-**type**
+### type
 
 + 类型：*str*
 + 说明：SIP003插件名称
 + 缺省：必选
-+ 可选值：`obfs-local`,`simple-tls`,`v2ray-plugin`,`xray-plugin`,`kcptun-client`,`gost-plugin`,`ck-client`,`gq-client`,`mtt-client`,`rabbit-plugin`,`qtun-client`,`gun-plugin`
++ 限制：（以下12种插件名称）
 
-**param**
+`obfs-local`, `simple-tls`
+
+`kcptun-client`, `qtun-client`, `gun-plugin`
+
+`v2ray-plugin`, `xray-plugin`, `gost-plugin`
+
+`ck-client`, `gq-client`, `mtt-client`, `rabbit-plugin`
+
+### param
 
 + 类型：*str*
 + 说明：SIP003插件参数
-+ 缺省：''
-+ 可选值：不限
++ 缺省：`空`
++ 限制：无
