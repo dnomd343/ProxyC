@@ -28,6 +28,8 @@ def test(testObj: dict) -> None:
         logging.debug('server start complete')
     logging.debug('start test process')
 
+    time.sleep(1)
+
     errFlag = False
     try:
         request = requests.get(
@@ -87,11 +89,5 @@ logging.critical('test start')
 
 runTest(ss, 64)
 runTest(ssr, 64)
-# ssThread = Thread(target=runTest, args=(ss, 64))
-# ssrThread = Thread(target=runTest, args=(ssr, 64))
-# ssThread.start()
-# ssrThread.start()
-# ssThread.join()
-# ssrThread.join()
 
 logging.critical('test complete')

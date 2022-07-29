@@ -83,11 +83,10 @@ def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, 
     for client in ssMethods:  # traverse all shadowsocks client
         if proxyInfo['method'] not in ssMethods[client]:
             continue
-        ssLoadConfig = {
+        ssConfig, ssClient = {
             'ss-rust': ssRust,
             'ss-libev': ssLibev,
             'ss-python': ssPython,
             'ss-python-legacy': ssPythonLegacy
-        }[client]
-        ssConfig, ssClient = ssLoadConfig(proxyInfo, socksInfo, isUdp)  # generate config file
+        }[client](proxyInfo, socksInfo, isUdp)  # generate config file
         return ssClient + ['-c', configFile], json.dumps(ssConfig), {}  # tuple[command, fileContent, envVar]

@@ -4,7 +4,12 @@
 import time
 import psutil
 import random
+import hashlib
 from Basis.Logger import logging
+
+
+def md5Sum(data: str, encode: str = 'UTF-8') -> str:
+    return hashlib.md5(data.encode(encoding = encode)).hexdigest()
 
 
 def genFlag(length: int = 12) -> str:  # generate random task flag

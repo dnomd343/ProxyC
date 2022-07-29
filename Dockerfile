@@ -132,8 +132,8 @@ RUN BZIP2=-9 tar czf /packages.tar.gz ./site-packages/
 FROM rust:1.62-alpine3.16 AS plugin-1
 RUN \
   apk add git && mkdir /plugins/ && \
-  git clone https://github.com/shadowsocks/simple-obfs.git && \
-  git clone https://github.com/shadowsocks/qtun.git
+  git clone https://github.com/shadowsocks/qtun.git && \
+  git clone https://github.com/shadowsocks/simple-obfs.git
 # Compile simple-obfs
 RUN \
   apk add autoconf automake build-base libev-dev libtool linux-headers && \
@@ -174,14 +174,12 @@ RUN \
   mv ./kcptun-client ./kcptun-server /plugins/
 # Compile gost-plugin
 RUN \
-  cd ./gost-plugin/ && \
-  git checkout ${GOST_PLUGIN} -b build && \
+  cd ./gost-plugin/ && git checkout ${GOST_PLUGIN} && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.VERSION=$(git describe --tags) -s -w" && \
   mv ./gost-plugin /plugins/
 # Compile GoQuiet
 RUN \
-  cd ./GoQuiet/ && \
-  go mod init github.com/cbeuw/GoQuiet && \
+  cd ./GoQuiet/ && go mod init github.com/cbeuw/GoQuiet && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.version=$(git describe --tags) -s -w" ./cmd/gq-client && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.version=$(git describe --tags) -s -w" ./cmd/gq-server && \
   mv ./gq-client ./gq-server /plugins/
@@ -213,6 +211,7 @@ RUN upx -9 /plugins/*
 # Compile sip003 plugins (part3 -> go1.17)
 FROM golang:1.17-alpine3.16 AS plugin-3
 ENV SIMPLE_TLS="v0.7.0"
+ENV CLOAK="v2.6.0"
 RUN \
   apk add git && mkdir /plugins/ && \
   git clone https://github.com/cbeuw/Cloak.git && \
@@ -220,8 +219,7 @@ RUN \
   git clone https://github.com/IrineSistiana/simple-tls.git
 # Compile simple-tls
 RUN \
-  cd ./simple-tls/ && \
-  git checkout ${SIMPLE_TLS} -b build && \
+  cd ./simple-tls/ && git checkout ${SIMPLE_TLS} && \
   sed -i 's/version = "unknown\/dev"/version = "'$(git describe --tags)'"/g' main.go && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" && \
   mv ./simple-tls /plugins/
@@ -232,7 +230,7 @@ RUN \
   mv ./xray-plugin /plugins/
 # Compile Cloak
 RUN \
-  cd ./Cloak/ && \
+  cd ./Cloak/ && git checkout ${CLOAK} && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.version=$(git describe --tags) -s -w" ./cmd/ck-client && \
   env CGO_ENABLED=0 go build -trimpath -ldflags "-X main.version=$(git describe --tags) -s -w" ./cmd/ck-server && \
   mv ./ck-client ./ck-server /plugins/

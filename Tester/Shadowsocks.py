@@ -5,9 +5,11 @@ import os
 import json
 import base64
 import itertools
+from Tester import Plugin
 from Builder import Shadowsocks
 from Basis.Logger import logging
 from Basis.Process import Process
+from Basis.Functions import md5Sum
 from Basis.Methods import ssMethods, ssAllMethods
 from Basis.Functions import genFlag, getAvailablePort
 
@@ -29,15 +31,6 @@ def loadConfig(proxyInfo: dict) -> dict:  # load basic config option
         config['plugin'] = proxyInfo['plugin']['type']
         config['plugin_opts'] = proxyInfo['plugin']['param']
     return config
-
-
-def pluginUdp(plugin: str, pluginParam: str) -> bool:  # whether the plugin uses UDP
-    if plugin in ['obfs-local', 'simple-tls', 'ck-client', 'gq-client', 'mtt-client', 'rabbit-plugin']:
-        return False  # UDP is not used
-    if plugin in ['v2ray-plugin', 'xray-plugin', 'gost-plugin']:
-        if 'mode=quic' not in pluginParam.split(';'):  # non-quic mode does not use UDP
-            return False
-    return True  # UDP is assumed by default
 
 
 def ssRust(proxyInfo: dict, isUdp: bool) -> tuple[dict, list]:
@@ -97,7 +90,7 @@ def loadClient(ssType: str, configFile: str, proxyInfo: dict, socksInfo: dict) -
         'ss-libev': Shadowsocks.ssLibev,
         'ss-python': Shadowsocks.ssPython,
         'ss-python-legacy': Shadowsocks.ssPythonLegacy
-    }[ssType](proxyInfo, socksInfo, isUdp = False)
+    }[ssType](proxyInfo, socksInfo, isUdp = False)  # disable udp in test mode
     clientFile = os.path.join(settings['workDir'], configFile)
     return Process(settings['workDir'], cmd = ssClient + ['-c', clientFile], file = {  # load client process
         'path': clientFile,
@@ -111,7 +104,7 @@ def loadServer(ssType: str, configFile: str, proxyInfo: dict) -> Process:
         'ss-libev': ssLibev,
         'ss-python': ssPython,
         'ss-python-legacy': ssPythonLegacy
-    }[ssType](proxyInfo, isUdp = False)
+    }[ssType](proxyInfo, isUdp = False)  # disable udp in test mode
     serverFile = os.path.join(settings['workDir'], configFile)
     return Process(settings['workDir'], cmd = ssServer + ['-c', serverFile], file = {  # load server process
         'path': serverFile,
@@ -119,42 +112,62 @@ def loadServer(ssType: str, configFile: str, proxyInfo: dict) -> Process:
     }, isStart = False)
 
 
-def loadTest(serverType: str, clientType: str, method: str) -> dict:
+def loadTest(serverType: str, clientType: str, method: str, plugin: dict or None = None) -> dict:
     proxyInfo = {  # connection info
         'server': settings['serverBind'],
         'port': getAvailablePort(),
         'method': method,
         'passwd': loadPassword(method),
-        'plugin': None
     }
     socksInfo = {  # socks5 interface for test
         'addr': settings['clientBind'],
         'port': getAvailablePort()
     }
+    pluginClient = {'plugin': None if plugin is None else plugin['client']}
+    pluginServer = {'plugin': None if plugin is None else plugin['server']}
     configName = '%s_%s_%s' % (serverType, clientType, method)  # prefix of config file name
+    if plugin is not None:
+        configName += '_%s_%s' % (plugin['type'], md5Sum(plugin['caption'])[:8])
+    pluginText = '' if plugin is None else (' [%s -> %s]' % (plugin['type'], plugin['caption']))
     testInfo = {  # release test info
-        'title': 'Shadowsocks test: {%s <- %s -> %s}' % (serverType, method, clientType),
-        'client': loadClient(clientType, configName + '_client.json', proxyInfo, socksInfo),
-        'server': loadServer(serverType, configName + '_server.json', proxyInfo),
+        'title': 'Shadowsocks test: {%s <- %s -> %s}%s' % (serverType, method, clientType, pluginText),
+        'client': loadClient(clientType, configName + '_client.json', {**proxyInfo, **pluginClient}, socksInfo),
+        'server': loadServer(serverType, configName + '_server.json', {**proxyInfo, **pluginServer}),
         'socks': socksInfo,  # exposed socks5 address
         'interface': {
             'addr': proxyInfo['server'],
             'port': proxyInfo['port']
         }
     }
+    if plugin is not None:
+        testInfo['server'] = plugin['inject'](testInfo['server'], plugin)
     logging.debug('New shadowsocks test -> %s' % testInfo)
     return testInfo
 
 
 def load(isExtra: bool = False):
+    pluginTest = []
+    pluginIter = Plugin.load()
+    while True:
+        try:
+            pluginTest.append(next(pluginIter))  # export data of plugin generator
+        except StopIteration:
+            break
     if not isExtra:  # just test basic connection
         for method in ssAllMethods:  # test every method for once
             for ssType in ssMethods:  # found the client which support this method
                 if method not in ssMethods[ssType]: continue
                 yield loadTest(ssType, ssType, method)  # ssType <-- method --> ssType
                 break  # don't need other client
+        for ssType in ssMethods:  # test plugin for every shadowsocks project
+            yield loadTest(ssType, ssType, ssMethods[ssType][0], pluginTest[0])
+        ssType = list(ssMethods.keys())[0]  # choose the first one
+        for plugin in pluginTest[1:]:  # test every plugin (except the first one that has been checked)
+            yield loadTest(ssType, ssType, ssMethods[ssType][0], plugin)
         return
     for ssServer in ssMethods:  # traverse all shadowsocks type as server
         for method, ssClient in itertools.product(ssMethods[ssServer], ssMethods):  # supported methods and clients
             if method not in ssMethods[ssClient]: continue
             yield loadTest(ssServer, ssClient, method)  # ssServer <-- method --> ssClient
+    for ssType, plugin in itertools.product(ssMethods, pluginTest):  # test every plugin with different ss project
+        yield loadTest(ssType, ssType, ssMethods[ssType][0], plugin)

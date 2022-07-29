@@ -91,3 +91,21 @@ ssrObfuscations = [ # obfuscations of ShadowsocksR (obfs)
     'plain', 'http_post', 'http_simple', 'random_head',
     'tls_simple', 'tls1.2_ticket_auth', 'tls1.2_ticket_fastauth',
 ]
+
+plugin = {
+    'simple-obfs': ['obfs-local', 'obfs-server'],
+    'simple-tls': ['simple-tls'],
+    'v2ray': ['v2ray-plugin'],
+    'xray': ['xray-plugin'],
+    'kcptun': ['kcptun-client', 'kcptun-server'],
+    'gost': ['gost-plugin'],
+    'cloak': ['ck-client', 'ck-server'],
+    'go-quiet': ['gq-client', 'gq-server'],
+    'mos-tls-tunnel': ['mtt-client', 'mtt-server'],
+    'rabbit': ['rabbit-plugin', 'rabbit'],
+    'qtun': ['qtun-client', 'qtun-server'],
+    'gun': ['gun-plugin'],
+}
+
+plugin = {x: [plugin[x][0], plugin[x][1 if len(plugin[x]) == 2 else 0]] for x in plugin}
+plugin = {x: {'client': plugin[x][0], 'server': plugin[x][1]} for x in plugin}  # format plugin info
