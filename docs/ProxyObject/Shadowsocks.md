@@ -85,7 +85,7 @@
 ### plugin
 
 + 类型：*None* / [*pluginObject*](#pluginobject)
-+ 说明：SIP003插件
++ 说明：SIP003插件选项
 + 缺省：`None`
 + 限制：无
 
@@ -94,7 +94,7 @@
 ```
 {
     'type': ---,
-    'param': ---，
+    'param': ---,
 }
 ```
 

@@ -212,7 +212,7 @@
 + 类型：*str*
 + 说明：数据包头部伪装类型
 + 缺省：`none`
-+ 限制：`none`,`srtp`,`utp`,`wechat-video`,`dtls`,`wireguard`
++ 限制：`none`, `srtp`, `utp`, `wechat-video`, `dtls`, `wireguard`
 
 ### secure
 
@@ -244,7 +244,7 @@
 + 类型：*str*
 + 说明：gRPC传输模式
 + 缺省：`gun`
-+ 限制：`gun`,`multi`
++ 限制：`gun`, `multi`
 
 ### secure
 

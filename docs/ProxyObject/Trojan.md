@@ -1,366 +1,341 @@
-## Trojan
-
-> **remark**
-> 
-> + 类型：*str*
-> + 说明：节点备注名称
-> + 缺省：''
-> + 可选值：不限
+## trojanObject
 
 ```
 {
-    'type': 'trojan',
-    'server': ...,
-    'port': ...,
-    'passwd': ...,
-    'stream': ...
+    'server': ---,
+    'port': ---,
+    'passwd': ---,
+    'stream': ---,
 }
 ```
 
-**server**
+### server
 
 + 类型：*str*
-+ 说明：服务器地址
++ 说明：Trojan服务地址
 + 缺省：必选
-+ 可选值：合法的IP地址或域名
++ 限制：IP地址或域名
 
-**port**
+### port
 
 + 类型：*int*
-+ 说明：服务器端口
++ 说明：Trojan服务端口
 + 缺省：必选
-+ 可选值：1 ～ 65535
++ 限制：1 ～ 65535
 
-**passwd**
+### passwd
 
 + 类型：*str*
 + 说明：Trojan连接密码
 + 缺省：必选
-+ 可选值：不限
++ 限制：无
 
-**stream**
+### stream
 
-+ 类型：*tcpObject* / *kcpObject* / *wsObject* / *h2Object* / *quicObject* / *grpcObject*
-+ 说明：Trojan底层传输方式
-+ 缺省：tcpObject
-+ 可选值：不限
++ 类型：[*tcpObject*](#tcpobject) / [*kcpObject*](#kcpobject) / [*wsObject*](#wsobject) / [*h2Object*](#h2object) / [*quicObject*](#quicobject) / [*grpcObject*](#grpcobject)
++ 说明：Trojan传输方式
++ 缺省：`tcpObject`
++ 限制：无
 
-### tcpObject
+## tcpObject
 
 ```
 {
     'type': 'tcp',
-    'obfs': ...,
-    'secure': ...
+    'obfs': ---,
+    'secure': ---,
 }
 ```
 
-**obfs**
+### obfs
 
-+ 类型：*None* / *obfsObject*
-+ 说明：http伪装
-+ 缺省：None
-+ 可选值：不限
++ 类型：*None* / [*obfsObject*](#obfsobject)
++ 说明：http伪装选项
++ 缺省：`None`
++ 限制：无
 
-**secure**
+### secure
 
-+ 类型：*None* / *tlsObject* / *xtlsObject*
-+ 说明：TLS加密
-+ 缺省：tlsObject
-+ 可选值：不限
++ 类型：*None* / [*tlsObject*](#tlsobject) / [*xtlsObject*](#xtlsobject)
++ 说明：TLS加密选项
++ 缺省：`tlsObject`
++ 限制：无
 
-### kcpObject
+## kcpObject
 
 ```
 {
     'type': 'kcp',
-    'seed': ...,
-    'obfs': ...,
-    'secure': ...
+    'seed': ---,
+    'obfs': ---,
+    'secure': ---,
 }
 ```
 
-**seed**
+### seed
 
 + 类型：*None* / *str*
 + 说明：mKCP混淆密码
-+ 缺省：None
-+ 可选值：不限
++ 缺省：`None`
++ 限制：无
 
-**obfs**
+### obfs
 
 + 类型：*str*
 + 说明：数据包头部伪装类型
-+ 缺省：'none'
-+ 可选值：`none`,`srtp`,`utp`,`wechat-video`,`dtls`,`wireguard`
++ 缺省：`none`
++ 限制：`none`, `srtp`, `utp`, `wechat-video`, `dtls`, `wireguard`
 
-**secure**
+### secure
 
-+ 类型：*None* / *tlsObject* / *xtlsObject*
-+ 说明：TLS加密
-+ 缺省：tlsObject
-+ 可选值：不限
++ 类型：*None* / [*tlsObject*](#tlsobject) / [*xtlsObject*](#xtlsobject)
++ 说明：TLS加密选项
++ 缺省：`tlsObject`
++ 限制：无
 
-### wsObject
+## wsObject
 
 ```
 {
     'type': 'ws',
-    'host': ...,
-    'path': ...,
-    'ed': ...,
-    'secure': ...
+    'host': ---,
+    'path': ---,
+    'ed': ---,
+    'secure': ---,
 }
 ```
 
-**host**
+### host
 
 + 类型：*str*
 + 说明：Websocket连接域名
-+ 缺省：''
-+ 可选值：不限
-+ 建议值：合法域名
++ 缺省：`空`
++ 限制：无
 
-**path**
+### path
 
 + 类型：*str*
 + 说明：Websocket连接路径
-+ 缺省：'/'
-+ 可选值：不限
-+ 建议值：以`/`开头的合法路径
++ 缺省：`/`
++ 限制：无
 
-**ed**
+### ed
 
 + 类型：*None* / *int*
-+ 说明：`Early Data`长度阈值
-+ 缺省：None
-+ 可选值：>0
-+ 建议值：2048
++ 说明：Early Data长度阈值
++ 缺省：`None`
++ 限制：>0
 
-**secure**
+### secure
 
-+ 类型：*None* / *tlsObject*
-+ 说明：TLS加密
-+ 缺省：tlsObject
-+ 可选值：不限
++ 类型：*None* / [*tlsObject*](#tlsobject)
++ 说明：TLS加密选项
++ 缺省：`tlsObject`
++ 限制：无
 
-### h2Object
+## h2Object
 
 ```
 {
     'type': 'h2',
-    'host': ...,
-    'path': ...,
-    'secure': ...
+    'host': ---,
+    'path': ---,
+    'secure': ---,
 }
 ```
 
-**host**
+### host
 
 + 类型：*str*
-+ 说明：HTTP/2通讯域名
-+ 缺省：''
-+ 可选值：不限
-+ 建议值：合法域名列表（逗号隔开）
++ 说明：HTTP/2连接域名
++ 缺省：`空`
++ 限制：无
 
-**path**
+### path
 
 + 类型：*str*
-+ 说明：HTTP/2通讯路径
-+ 缺省：'/'
-+ 可选值：不限
-+ 建议值：以`/`开头的合法路径
++ 说明：HTTP/2连接路径
++ 缺省：`/`
++ 限制：无
 
-**secure**
+### secure
 
-+ 类型：*tlsObject*
-+ 说明：TLS加密
-+ 缺省：tlsObject
-+ 可选值：不限
++ 类型：[*tlsObject*](#tlsobject)
++ 说明：TLS加密选项
++ 缺省：`tlsObject`
++ 限制：无
 
-### quicObject
+## quicObject
 
 ```
 {
     'type': 'quic',
-    'method': ...,
-    'passwd': ...,
-    'obfs': ...,
-    'secure': ...
+    'method': ---,
+    'passwd': ---,
+    'obfs': ---,
+    'secure': ---,
 }
 ```
 
-**method**
+### method
 
 + 类型：*str*
 + 说明：QUIC加密方式
-+ 缺省：'none'
-+ 可选值：`none`,`aes-128-gcm`,`chacha20-poly1305`
++ 缺省：`none`
++ 限制：`none`, `aes-128-gcm`, `chacha20-poly1305`
 
-**passwd**
+### passwd
 
 + 类型：*str*
 + 说明：QUIC连接密码
-+ 缺省：''
-+ 可选值：不限
++ 缺省：`空`
++ 限制：无
 
-**obfs**
+### obfs
 
 + 类型：*str*
 + 说明：数据包头部伪装类型
-+ 缺省：'none'
-+ 可选值：`none`,`srtp`,`utp`,`wechat-video`,`dtls`,`wireguard`
++ 缺省：`none`
++ 限制：`none`, `srtp`, `utp`, `wechat-video`, `dtls`, `wireguard`
 
-**secure**
+### secure
 
-+ 类型：*tlsObject*
-+ 说明：TLS加密
-+ 缺省：tlsObject
-+ 可选值：不限
++ 类型：[*tlsObject*](#tlsobject)
++ 说明：TLS加密选项
++ 缺省：`tlsObject`
++ 限制：无
 
-### grpcObject
+## grpcObject
 
 ```
 {
     'type': 'grpc',
-    'service': ...,
-    'mode': ...,
-    'secure': ...
+    'service': ---,
+    'mode': ---,
+    'secure': ---,
 }
 ```
 
-**service**
+### service
 
 + 类型：*str*
 + 说明：gRPC服务名称
 + 缺省：必选
-+ 可选值：不限
-+ 建议值：英文大小写字母、数字、下划线及英文句号组成
++ 限制：无
 
-**mode**
+### mode
 
 + 类型：*str*
 + 说明：gRPC传输模式
-+ 缺省：'gun'
-+ 可选值：`gun`,`multi`
-+ 建议值：'multi'
++ 缺省：`gun`
++ 限制：`gun`, `multi`
 
-**secure**
+### secure
 
-+ 类型：*None* / *tlsObject*
-+ 说明：TLS加密
-+ 缺省：tlsObject
-+ 可选值：不限
++ 类型：*None* / [*tlsObject*](#tlsobject)
++ 说明：TLS加密选项
++ 缺省：`tlsObject`
++ 限制：无
 
-### obfsObject
+## obfsObject
 
 ```
 {
-    'host': ...,
-    'path': ...
+    'host': ---,
+    'path': ---,
 }
 ```
 
-**host**
+### host
 
 + 类型：*str*
 + 说明：http伪装域名
-+ 缺省：''
-+ 可选值：不限
-+ 建议值：合法域名列表（逗号隔开）
++ 缺省：`空`
++ 限制：无
 
-**path**
+### path
 
 + 类型：*str*
 + 说明：http伪装路径
-+ 缺省：'/'
-+ 可选值：不限
-+ 建议值：以`/`开头的合法路径
++ 缺省：`/`
++ 限制：无
 
-### tlsObject
+## tlsObject
 
 ```
 {
     'type': 'tls',
-    'sni': ...,
-    'alpn': ...,
-    'verify': ...
+    'sni': ---,
+    'alpn': ---,
+    'verify': ---,
 }
 ```
 
-**sni**
+### sni
 
 + 类型：*str*
 + 说明：TLS握手SNI字段
-+ 缺省：obfsObject.host[0] / wsObject.host / h2Object.host[0] / ''
-+ 可选值：不限
-+ 建议值：合法域名
++ 缺省：`obfsObject.host[0]` / `wsObject.host` / `h2Object.host[0]` / `空`
++ 限制：无
 
-**alpn**
+### alpn
 
 + 类型：*None* / *str*
 + 说明：TLS握手协商协议
-+ 缺省：None
-+ 可选值：`h2`,`http/1.1`,`h2,http/1.1`
-+ 建议值：'h2,http/1.1'
++ 缺省：`None`
++ 限制：`h2`, `http/1.1`, `h2,http/1.1`
 
-**verify**
+### verify
 
 + 类型：*bool*
 + 说明：是否验证服务端证书
-+ 缺省：True
-+ 可选值：不限
-+ 建议值：True
++ 缺省：`True`
++ 限制：无
 
-### xtlsObject
+## xtlsObject
 
 ```
 {
     'type': 'xtls',
-    'sni': ...,
-    'alpn': ...,
-    'verify': ...，
-    'flow': ...,
-    'udp443': ...
+    'sni': ---,
+    'alpn': ---,
+    'verify': ---，
+    'flow': ---,
+    'udp443': ---,
 }
 ```
 
-**sni**
+### sni
 
 + 类型：*str*
 + 说明：TLS握手SNI字段
-+ 缺省：obfsObject.host[0] / wsObject.host / h2Object.host[0] / ''
-+ 可选值：不限
-+ 建议值：合法域名
++ 缺省：`obfsObject.host[0]` / `wsObject.host` / `h2Object.host[0]` / `空`
++ 限制：无
 
-**alpn**
+### alpn
 
 + 类型：*None* / *str*
 + 说明：TLS握手协商协议
-+ 缺省：None
-+ 可选值：`h2`,`http/1.1`,`h2,http/1.1`
-+ 建议值：'h2,http/1.1'
++ 缺省：`None`
++ 限制：`h2`, `http/1.1`, `h2,http/1.1`
 
-**verify**
+### verify
 
 + 类型：*bool*
 + 说明：是否验证服务端证书
-+ 缺省：True
-+ 可选值：不限
-+ 建议值：True
++ 缺省：`True`
++ 限制：无
 
-**flow**
+### flow
 
 + 类型：*str*
 + 说明：XTLS流控算法
-+ 缺省：'xtls-direct'
-+ 可选值：`xtls-origin`,`xtls-direct`,`xtls-splice`
-+ 建议值：'xtls-direct' (Linux平台建议`xtls-splice`)
++ 缺省：`xtls-direct`
++ 限制：`xtls-origin`, `xtls-direct`, `xtls-splice`
 
-**udp443**
+### udp443
 
 + 类型：*bool*
 + 说明：是否放行UDP/443端口流量
-+ 缺省：False
-+ 可选值：不限
-+ 建议值：False
++ 缺省：`False`
++ 限制：无
