@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# Shadowsocks Info
 ssMethods = { # methods support of different Shadowsocks project
     'ss-rust': [  # table method removed refer to https://github.com/shadowsocks/shadowsocks-rust/issues/887
         'none', 'plain', 'rc4', 'rc4-md5',
@@ -65,6 +66,26 @@ ssAllMethods = set()
 [ssAllMethods.update(ssMethods[x]) for x in ssMethods]
 ssAllMethods = sorted(list(ssAllMethods))  # methods of Shadowsocks
 
+# Plugin Info
+plugins = {
+    'simple-obfs': ['obfs-local', 'obfs-server'],
+    'simple-tls': ['simple-tls'],
+    'v2ray': ['v2ray-plugin'],
+    'xray': ['xray-plugin'],
+    'kcptun': ['kcptun-client', 'kcptun-server'],
+    'gost': ['gost-plugin'],
+    'cloak': ['ck-client', 'ck-server'],
+    'go-quiet': ['gq-client', 'gq-server'],
+    'mos-tls-tunnel': ['mtt-client', 'mtt-server'],
+    'rabbit': ['rabbit-plugin', 'rabbit'],
+    'qtun': ['qtun-client', 'qtun-server'],
+    'gun': ['gun-plugin'],
+}
+
+plugins = {x: [plugins[x][0], plugins[x][1 if len(plugins[x]) == 2 else 0]] for x in plugins}
+plugins = {x: {'client': plugins[x][0], 'server': plugins[x][1]} for x in plugins}  # format plugins info
+
+# ShadowsocksR Info
 ssrMethods = [  # methods of ShadowsocksR
     'aes-128-ctr', 'aes-192-ctr', 'aes-256-ctr',
     'aes-128-gcm', 'aes-192-gcm', 'aes-256-gcm',
@@ -91,21 +112,3 @@ ssrObfuscations = [ # obfuscations of ShadowsocksR (obfs)
     'plain', 'http_post', 'http_simple', 'random_head',
     'tls_simple', 'tls1.2_ticket_auth', 'tls1.2_ticket_fastauth',
 ]
-
-plugin = {
-    'simple-obfs': ['obfs-local', 'obfs-server'],
-    'simple-tls': ['simple-tls'],
-    'v2ray': ['v2ray-plugin'],
-    'xray': ['xray-plugin'],
-    'kcptun': ['kcptun-client', 'kcptun-server'],
-    'gost': ['gost-plugin'],
-    'cloak': ['ck-client', 'ck-server'],
-    'go-quiet': ['gq-client', 'gq-server'],
-    'mos-tls-tunnel': ['mtt-client', 'mtt-server'],
-    'rabbit': ['rabbit-plugin', 'rabbit'],
-    'qtun': ['qtun-client', 'qtun-server'],
-    'gun': ['gun-plugin'],
-}
-
-plugin = {x: [plugin[x][0], plugin[x][1 if len(plugin[x]) == 2 else 0]] for x in plugin}
-plugin = {x: {'client': plugin[x][0], 'server': plugin[x][1]} for x in plugin}  # format plugin info

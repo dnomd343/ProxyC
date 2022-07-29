@@ -5,22 +5,22 @@ import os
 import re
 import json
 from Basis.Logger import logging
-from Basis.Methods import plugin
 from Basis.Process import Process
+from Basis.Methods import plugins
 from Basis.Functions import genFlag, getAvailablePort
 
 settings = {
     'serverBind': '127.0.0.1',
-    'workDir': '/tmp/ProxyC'
+    'workDir': '/tmp/ProxyC',
 }
 
 pluginParams = {
     'SITE': 'www.bing.com',
-    'PATH': '/test',
     'HOST': '343.re',
     'CERT': '/etc/ssl/certs/343.re/fullchain.pem',
     'KEY': '/etc/ssl/certs/343.re/privkey.pem',
-    'PASSWD': 'dnomd343',
+    'PATH': '/' + genFlag(length = 6),
+    'PASSWD': genFlag(length = 8),
 }
 
 pluginConfig = {
@@ -231,8 +231,8 @@ def cloakLoad() -> None:
     pluginParams['CK_PUBLIC'] = re.search(r'\s+(\S+)$', ckKey.split('\n')[0])[1]
     pluginParams['CK_PRIVATE'] = re.search(r'\s+(\S+)$', ckKey.split('\n')[1])[1]
     pluginParams['CK_UID'] = re.search(r'\s+(\S+)\n', os.popen('ck-server -uid').read())[1]  # generate uid for clock
-    logging.info('generate clock uid -> %s' % pluginParams['CK_UID'])
-    logging.info('generate clock key -> %s (Public) | %s (Private)' % (
+    logging.info('generate cloak uid -> %s' % pluginParams['CK_UID'])
+    logging.info('generate cloak key -> %s (Public) | %s (Private)' % (
         pluginParams['CK_PUBLIC'], pluginParams['CK_PRIVATE']
     ))
     ckPrefix = 'UID=${CK_UID};PublicKey=${CK_PUBLIC};ServerName=${SITE};'  # cloak plugin's basic command
@@ -300,11 +300,11 @@ def load():
                 'type': pluginType,
                 'caption': pluginTest,
                 'server': {  # plugin info for server
-                    'type': plugin[pluginType]['server'],
+                    'type': plugins[pluginType]['server'],
                     'param': paramFill(pluginTestInfo[0]),
                 },
                 'client': {  # plugin info for client
-                    'type': plugin[pluginType]['client'],
+                    'type': plugins[pluginType]['client'],
                     'param': paramFill(pluginTestInfo[1]),
                 },
                 'inject': ssInject  # for some special plugins (only server part)

@@ -1,78 +1,121 @@
-## Shadowsocks
-
-> **remark**
-> 
-> + 类型：*str*
-> + 说明：节点备注名称
-> + 缺省：''
-> + 可选值：不限
+## ssObject
 
 ```
 {
-    'type': 'ss',
-    'server': ...,
-    'port': ...,
-    'method': ...,
-    'passwd': ...,
-    'plugin': ...
+    'server': ---,
+    'port': ---,
+    'method': ---,
+    'passwd': ---,
+    'plugin': ---,
 }
 ```
 
-**server**
+### server
 
 + 类型：*str*
-+ 说明：服务器地址
++ 说明：Shadowsocks服务地址
 + 缺省：必选
-+ 可选值：合法的IP地址或域名
++ 限制：IP地址或域名
 
-**port**
+### port
 
 + 类型：*int*
-+ 说明：服务器端口
++ 说明：Shadowsocks服务端口
 + 缺省：必选
-+ 可选值：1 ～ 65535
++ 限制：1 ～ 65535
 
-**method**
+### method
 
 + 类型：*str*
 + 说明：Shadowsocks加密方式
 + 缺省：必选
-+ 可选值：`aes-128-gcm`,`aes-192-gcm`,`aes-256-gcm`,`aes-128-ctr`,`aes-192-ctr`,`aes-256-ctr`,`aes-128-ocb`,`aes-192-ocb`,`aes-256-ocb`,`aes-128-ofb`,`aes-192-ofb`,`aes-256-ofb`,`aes-128-cfb`,`aes-192-cfb`,`aes-256-cfb`,`aes-128-cfb1`,`aes-192-cfb1`,`aes-256-cfb1`,`aes-128-cfb8`,`aes-192-cfb8`,`aes-256-cfb8`,`aes-128-cfb128`,`aes-192-cfb128`,`aes-256-cfb128`,`camellia-128-cfb`,`camellia-192-cfb`,`camellia-256-cfb`,`camellia-128-cfb128`,`camellia-192-cfb128`,`camellia-256-cfb128`,`plain`,`none`,`table`,`rc4`,`rc4-md5`,`rc2-cfb`,`bf-cfb`,`cast5-cfb`,`des-cfb`,`idea-cfb`,`seed-cfb`,`salsa20`,`salsa20-ctr`,`xchacha20`,`chacha20`,`chacha20-ietf`,`chacha20-poly1305`,`chacha20-ietf-poly1305`,`xchacha20-ietf-poly1305`
-+ 建议值：`aes-256-gcm`,`aes-128-gcm`,`chacha20-ietf-poly1305`
++ 限制：（以下69种加密方式）
 
-**passwd**
+`aes-128-ccm`, `aes-256-ccm`
+
+`aes-128-gcm-siv`, `aes-256-gcm-siv`
+
+`aes-128-gcm`, `aes-192-gcm`, `aes-256-gcm`
+
+`aes-128-ctr`, `aes-192-ctr`, `aes-256-ctr`
+
+`aes-128-ocb`, `aes-192-ocb`, `aes-256-ocb`
+
+`aes-128-ofb`, `aes-192-ofb`, `aes-256-ofb`
+
+`aes-128-cfb`, `aes-192-cfb`, `aes-256-cfb`
+
+`aes-128-cfb1`, `aes-192-cfb1`, `aes-256-cfb1`
+
+`aes-128-cfb8`, `aes-192-cfb8`, `aes-256-cfb8`
+
+`aes-128-cfb128`, `aes-192-cfb128`, `aes-256-cfb128`
+
+`camellia-128-ctr`, `camellia-192-ctr`, `camellia-256-ctr`
+
+`camellia-128-ofb`, `camellia-192-ofb`, `camellia-256-ofb`
+
+`camellia-128-cfb`, `camellia-192-cfb`, `camellia-256-cfb`
+
+`camellia-128-cfb1`, `camellia-192-cfb1`, `camellia-256-cfb1`
+
+`camellia-128-cfb8`, `camellia-192-cfb8`, `camellia-256-cfb8`
+
+`camellia-128-cfb128`, `camellia-192-cfb128`, `camellia-256-cfb128`
+
+`none`, `plain`, `table`, `rc4`, `rc4-md5`
+
+`bf-cfb`, `des-cfb`, `rc2-cfb`, `idea-cfb`, `seed-cfb`, `cast5-cfb`
+
+`salsa20`, `chacha20`, `xchacha20`, `salsa20-ctr`, `chacha20-ietf`
+
+`chacha20-poly1305`, `chacha20-ietf-poly1305`, `xchacha20-ietf-poly1305`
+
+`2022-blake3-aes-128-gcm`, `2022-blake3-aes-256-gcm`
+
+`2022-blake3-chacha8-poly1305`, `2022-blake3-chacha20-poly1305`
+
+### passwd
 
 + 类型：*str*
 + 说明：Shadowsocks连接密码
 + 缺省：必选
-+ 可选值：不限
++ 限制：无
 
-**plugin**
+### plugin
 
-+ 类型：*None* / *pluginObject*
++ 类型：*None* / [*pluginObject*](#pluginobject)
 + 说明：SIP003插件
-+ 缺省：None
-+ 可选值：不限
++ 缺省：`None`
++ 限制：无
 
-### pluginObject
+## pluginObject
 
 ```
 {
-    'type': ...,
-    'param': ...
+    'type': ---,
+    'param': ---，
 }
 ```
 
-**type**
+### type
 
 + 类型：*str*
-+ 说明：SIP003插件名称
++ 说明：插件名称
 + 缺省：必选
-+ 可选值：`obfs-local`,`simple-tls`,`v2ray-plugin`,`xray-plugin`,`kcptun-client`,`gost-plugin`,`ck-client`,`gq-client`,`mtt-client`,`rabbit-plugin`,`qtun-client`,`gun-plugin`
++ 限制：（以下12种插件名称）
 
-**param**
+`obfs-local`, `simple-tls`
+
+`kcptun-client`, `qtun-client`, `gun-plugin`
+
+`v2ray-plugin`, `xray-plugin`, `gost-plugin`
+
+`ck-client`, `gq-client`, `mtt-client`, `rabbit-plugin`
+
+### param
 
 + 类型：*str*
-+ 说明：SIP003插件参数
-+ 缺省：''
-+ 可选值：不限
++ 说明：插件参数
++ 缺省：`空`
++ 限制：无
