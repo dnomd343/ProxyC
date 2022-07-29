@@ -131,12 +131,12 @@ RUN BZIP2=-9 tar czf /packages.tar.gz ./site-packages/
 # Compile sip003 plugins (part1 -> gcc & cargo)
 FROM rust:1.62-alpine3.16 AS plugin-1
 RUN \
-  apk add git && mkdir /plugins/ && \
+  apk add autoconf automake build-base git libev-dev libtool linux-headers && \
+  git clone https://github.com/shadowsocks/simple-obfs.git && \
   git clone https://github.com/shadowsocks/qtun.git && \
-  git clone https://github.com/shadowsocks/simple-obfs.git
+  mkdir /plugins/
 # Compile simple-obfs
 RUN \
-  apk add autoconf automake build-base libev-dev libtool linux-headers && \
   cd ./simple-obfs/ && git submodule update --init --recursive && \
   ./autogen.sh && ./configure --disable-documentation && make && \
   cd ./src/ && mv ./obfs-local ./obfs-server /plugins/
