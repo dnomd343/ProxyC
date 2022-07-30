@@ -3,7 +3,6 @@
 
 import copy
 import itertools
-
 from Basis.Functions import genFlag
 from Basis.Methods import quicMethods
 from Basis.Methods import udpObfuscations
@@ -138,7 +137,7 @@ def h2Stream() -> dict:
             'type': 'h2',
             'host': settings['host'],
             'path': path,
-            'secure': None,  # HTTP/2 force enable tls
+            'secure': None,  # HTTP/2 stream force enable tls
         },
         'server': {
             'network': 'http',
@@ -159,7 +158,7 @@ def quicStream(method: str, obfs: str) -> dict:
             'method': method,
             'passwd': passwd,
             'obfs': obfs,
-            'secure': None,  # QUIC force enable tls
+            'secure': None,  # QUIC stream force enable tls
         },
         'server': {
             'network': 'quic',
@@ -213,10 +212,6 @@ def loadStream() -> list:
     for isMulti in [False, True]:
         addStream(grpcStream(isMulti))  # gRPC stream
         addStream(addSecure(grpcStream(isMulti)))  # gRPC stream with TLS
-
-    # for stream in streams:
-    #     os.system('echo \'%s\' | jq .' % json.dumps(stream))
-
     return streams
 
 

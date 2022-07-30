@@ -21,9 +21,6 @@ settings = {
     # 'serverBind': '::1',
     # 'clientBind': '::1',
     'workDir': '/tmp/ProxyC',
-    'host': '343.re',
-    'cert': '/etc/ssl/certs/343.re/fullchain.pem',
-    'key': '/etc/ssl/certs/343.re/privkey.pem',
 }
 
 
@@ -74,7 +71,7 @@ def loadTest(method: str, aid: int, stream: dict) -> dict:
     }
     configName = 'vmess_%s_%i_%s' % (method, aid, md5Sum(stream['caption'])[:8])
     testInfo = {  # release test info
-        'title': 'VMess test: security = %s | alterId = %i [%s]' % (method, aid, stream['caption']),
+        'title': 'VMess test: %s [security = %s | alterId = %i]' % (stream['caption'], method, aid),
         'client': loadClient(configName + '_client.json', proxyInfo, socksInfo),
         'server': loadServer(configName + '_server.json', proxyInfo, stream['server']),
         'socks': socksInfo,  # exposed socks5 address
@@ -88,32 +85,8 @@ def loadTest(method: str, aid: int, stream: dict) -> dict:
 
 
 def load():
-    stream = {
-        'caption': 'TCP stream (with tls)',
-        'info': {
-            'type': 'tcp',
-            'obfs': None,
-            'secure': {
-                'sni': settings['host'],
-                'alpn': None,
-                'verify': True,
-            },
-        },
-        'server': {
-            'network': 'tcp',
-            'tcpSettings': {},
-            'security': 'tls',
-            'tlsSettings': {
-                'alpn': ['h2', 'http/1.1'],
-                'certificates': [{
-                    'certificateFile': settings['cert'],
-                    'keyFile': settings['key'],
-                }]
-            }
-        }
-    }
-
-    # for method, aid in itertools.product(vmessMethods, [0, 64]):
-    #     yield loadTest(method, aid, stream)
-    for stream in V2ray.loadStream():
-        yield loadTest('auto', 0, stream)
+    streams = V2ray.loadStream()  # load v2ray-core stream list
+    for method, aid in itertools.product(vmessMethods, [0, 64]):  # test every methods (and whether enable aead)
+        yield loadTest(method, aid, streams[0])
+    for stream in streams[1:]:  # skip first stream that has benn checked
+        yield loadTest('auto', 0, stream)  # aead with auto security
