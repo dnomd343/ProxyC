@@ -6,10 +6,18 @@ import copy
 
 from Builder import Shadowsocks
 from Builder import ShadowsocksR
+from Builder import VMess
 
 from Basis.Logger import logging
 from Basis.Process import Process
 from Basis.Functions import genFlag, getAvailablePort
+
+pathEnv = '/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin'
+clientEntry = {
+    'ss': [Shadowsocks.load, '.json'],
+    'ssr': [ShadowsocksR.load, '.json'],
+    'vmess': [VMess.load, '.json'],
+}
 
 
 class Builder(object):
@@ -32,40 +40,38 @@ class Builder(object):
     output = None
 
     def __loadClient(self):
-        loadFunction = {
-            'ss': Shadowsocks.load,
-            'ssr': ShadowsocksR.load,
-        }
-        if self.proxyType not in loadFunction:
-            raise RuntimeError('Unknown proxy type')
         logging.info('[%s] Load %s proxy client at %s -> %s' % (self.id, self.proxyType, (
             (('[%s]' if ':' in self.socksAddr else '%s') + ':%i') % (self.socksAddr, self.socksPort)
         ), str(self.proxyInfo)))
-        configFile = os.path.join(self.__workDir, self.id + '.json')
-        command, fileContent, envVar = loadFunction[self.proxyType](self.proxyInfo, {
+        configFile = os.path.join(  # config file path
+            self.__workDir, self.id + clientEntry[self.proxyType][1]  # workDir + taskId + suffix
+        )
+        command, fileContent, envVar = clientEntry[self.proxyType][0](self.proxyInfo, {  # load client boot info
             'addr': self.socksAddr,
             'port': self.socksPort,
         }, configFile)
-        envVar['PATH'] = '/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin'
-        fileObject = {
+        fileObject = {  # add config file settings
             'path': configFile,
             'content': fileContent
         }
+        envVar['PATH'] = pathEnv  # add PATH env (some programs need it)
         self.__process = Process(self.__workDir, taskId = self.id, cmd = command, env = envVar, file = fileObject)
 
     def __init__(self, proxyType: str, proxyInfo: dict, taskId: str = '',
-                 bind: str = '127.0.0.1', workDir: str = '/tmp/ProxyC') -> None:
-        self.id = genFlag(length = 12) if taskId == '' else taskId
+                 bind: str = '127.0.0.1', workDir: str = '/tmp/ProxyC') -> None:  # init proxy client
+        if proxyType not in clientEntry:
+            raise RuntimeError('Unknown proxy type')
+        self.id = genFlag(length = 12) if taskId == '' else taskId  # load task ID
         self.__workDir = workDir
-        self.proxyType = proxyType
-        self.proxyInfo = copy.copy(proxyInfo)
+        self.proxyType = proxyType  # proxy type -> ss / ssr / vmess ...
+        self.proxyInfo = copy.copy(proxyInfo)  # proxy object -> contain connection info
         self.socksAddr = bind
-        self.socksPort = getAvailablePort()
+        self.socksPort = getAvailablePort()  # random port for socks5 exposed
         self.__loadClient()
 
-    def status(self) -> bool:
+    def status(self) -> bool:  # check if the sub process is still running
         return self.__process.status()
 
-    def destroy(self) -> None:
+    def destroy(self) -> None:  # kill sub process and remove config file
         self.__process.quit()
         self.output = self.__process.output

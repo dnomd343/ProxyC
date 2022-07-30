@@ -84,6 +84,7 @@ plugins = {
 
 plugins = {x: [plugins[x][0], plugins[x][1 if len(plugins[x]) == 2 else 0]] for x in plugins}
 plugins = {x: {'client': plugins[x][0], 'server': plugins[x][1]} for x in plugins}  # format plugins info
+pluginClients = [plugins[x]['client'] for x in plugins]  # plugin client list -> obfs-local / simple-tls / ...
 
 # ShadowsocksR Info
 ssrMethods = [  # methods of ShadowsocksR
@@ -112,3 +113,6 @@ ssrObfuscations = [ # obfuscations of ShadowsocksR (obfs)
     'plain', 'http_post', 'http_simple', 'random_head',
     'tls_simple', 'tls1.2_ticket_auth', 'tls1.2_ticket_fastauth',
 ]
+
+# VMess Info
+vmessMethods = ['aes-128-gcm', 'chacha20-poly1305', 'auto', 'none', 'zero']

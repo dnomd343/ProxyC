@@ -24,8 +24,26 @@ proxySSR = {
     'obfsParam': '',
 }
 
+proxyVMess = {
+    'server': '127.0.0.1',
+    'port': 12345,
+    'method': 'auto',
+    'id': '614d3a56-8a04-4c65-88a2-45896f0bd13c',
+    'aid': 0,
+    'stream': {
+        'type': 'tcp',
+        'obfs': None,
+        'secure': {
+            'sni': '343.re',
+            'alpn': None,
+            'verify': True,
+        },
+    }
+}
+
 # client = Builder('ss', proxySS)
-client = Builder('ssr', proxySSR)
+# client = Builder('ssr', proxySSR)
+client = Builder('vmess', proxyVMess)
 
 logging.critical(client.id)
 logging.critical(client.proxyType)
