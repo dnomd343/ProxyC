@@ -4,6 +4,7 @@
 import json
 from Builder import Xray
 
+
 def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, dict]:
     outboundConfig = {
         'protocol': 'vless',

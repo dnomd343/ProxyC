@@ -46,7 +46,6 @@ proxyVLESS = {
     'port': 12345,
     'method': 'none',
     'id': '614d3a56-8a04-4c65-88a2-45896f0bd13c',
-    'aid': 0,
     'stream': {
         'type': 'tcp',
         'obfs': None,
@@ -61,10 +60,27 @@ proxyVLESS = {
     }
 }
 
+proxyTrojan = {
+    'server': '127.0.0.1',
+    'port': 12345,
+    'passwd': 'dnomd343',
+    'stream': {
+        'type': 'tcp',
+        'obfs': None,
+        'secure': {
+            'type': 'tls',
+            'sni': '343.re',
+            'alpn': None,
+            'verify': True,
+        },
+    }
+}
+
 # client = Builder('ss', proxySS)
 # client = Builder('ssr', proxySSR)
 # client = Builder('vmess', proxyVMess)
-client = Builder('vless', proxyVLESS)
+# client = Builder('vless', proxyVLESS)
+client = Builder('trojan', proxyTrojan)
 
 logging.critical(client.id)
 logging.critical(client.proxyType)

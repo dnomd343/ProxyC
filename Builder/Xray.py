@@ -61,7 +61,7 @@ def loadStream(streamInfo: dict) -> dict:
 
 
 def xtlsFlow(streamInfo: dict or None) -> dict:
-    if streamInfo['secure'] is not None:  # without TLS / XTLS options
+    if streamInfo['secure'] is None:  # without TLS / XTLS options
         return {}
     if streamInfo['secure']['type'] != 'xtls':  # not XTLS secure type
         return {}
