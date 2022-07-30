@@ -27,7 +27,7 @@ def loadServer(configFile: str, proxyInfo: dict) -> Process:  # load server proc
         'protocol': proxyInfo['protocol'],
         'protocol_param': proxyInfo['protocolParam'],
         'obfs': proxyInfo['obfs'],
-        'obfs_param': proxyInfo['obfsParam']
+        'obfs_param': proxyInfo['obfsParam'],
     }
     serverFile = os.path.join(settings['workDir'], configFile)
     return Process(settings['workDir'], cmd = ['ssr-server', '-vv', '-c', serverFile], file = {
@@ -60,7 +60,7 @@ def loadTest(method: str, protocol: str, obfs: str) -> dict:
         'addr': settings['clientBind'],
         'port': getAvailablePort()
     }
-    configName = '%s_%s_%s' % (method, protocol, obfs)  # prefix of config file name
+    configName = 'ssr_%s_%s_%s' % (method, protocol, obfs)  # prefix of config file name
     testInfo = {  # release test info
         'title': 'ShadowsocksR test: method = %s | protocol = %s | obfs = %s' % (method, protocol, obfs),
         'client': loadClient(configName + '_client.json', proxyInfo, socksInfo),
@@ -68,7 +68,7 @@ def loadTest(method: str, protocol: str, obfs: str) -> dict:
         'socks': socksInfo,  # exposed socks5 address
         'interface': {
             'addr': proxyInfo['server'],
-            'port': proxyInfo['port']
+            'port': proxyInfo['port'],
         }
     }
     logging.debug('New shadowsocksr test -> %s' % testInfo)

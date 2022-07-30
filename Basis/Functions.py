@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import time
+import uuid
 import psutil
 import random
 import hashlib
@@ -30,6 +31,12 @@ def genFlag(length: int = 12) -> str:  # generate random task flag
             flag += str(tmp) # 0 ~ 9
     logging.debug('generate new flag -> ' + flag)
     return flag
+
+
+def genUUID() -> str:  # generate uuid v5
+    return str(uuid.uuid5(
+        uuid.NAMESPACE_DNS, genFlag(length = 16)
+    ))
 
 
 def getAvailablePort(rangeStart: int = 1024, rangeEnd: int = 65535, waitTime: int = 10) -> int:  # get available port

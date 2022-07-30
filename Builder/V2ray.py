@@ -121,7 +121,7 @@ def grpcStream(streamInfo: dict) -> dict:  # gRPC stream config
     grpcObject = {
         'serviceName': streamInfo['service']  # gRPC service name
     }
-    if streamInfo['mode'] == 'multi':  # gRPC multi-mode not work in v2fly-core
+    if streamInfo['mode'] == 'multi':
         grpcObject['multiMode'] = True
     return {
         'network': 'grpc',
@@ -147,7 +147,7 @@ def loadStream(streamInfo: dict) -> dict:
     }
 
 
-def loadConfig(socksInfo: dict, outboundObject: dict) -> dict:  # load config by socks and outbound info
+def loadConfig(socksInfo: dict, outbound: dict) -> dict:  # load config by socks and outbound info
     return {
         'log': {
             'loglevel': 'debug'
@@ -161,5 +161,5 @@ def loadConfig(socksInfo: dict, outboundObject: dict) -> dict:  # load config by
                 'auth': 'noauth'
             }
         }],
-        'outbounds': [outboundObject]  # outbound without route object
+        'outbounds': [outbound]  # outbound without route object
     }

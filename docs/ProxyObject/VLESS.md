@@ -116,14 +116,14 @@
 ### host
 
 + 类型：*str*
-+ 说明：Websocket连接域名
++ 说明：WebSocket连接域名
 + 缺省：`空`
 + 限制：无
 
 ### path
 
 + 类型：*str*
-+ 说明：Websocket连接路径
++ 说明：WebSocket连接路径
 + 缺省：`/`
 + 限制：无
 

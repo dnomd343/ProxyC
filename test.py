@@ -4,8 +4,11 @@
 import time
 import requests
 from threading import Thread
+
+from Tester import VMess
 from Tester import Shadowsocks
 from Tester import ShadowsocksR
+
 from Basis.Logger import logging
 from Basis.Functions import ipFormat
 from Basis.Functions import checkPortStatus
@@ -91,9 +94,10 @@ def runTest(testIter: iter, threadNum: int):
 ss = Shadowsocks.load(isExtra = True)
 # ss = Shadowsocks.load(isExtra = False)
 ssr = ShadowsocksR.load()
+vmess = VMess.load()
+
 logging.critical('test start')
-
-runTest(ss, 64)
-runTest(ssr, 64)
-
+# runTest(ss, 64)
+# runTest(ssr, 64)
+runTest(vmess, 1)
 logging.critical('test complete')

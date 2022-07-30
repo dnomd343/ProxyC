@@ -123,7 +123,7 @@ def loadTest(serverType: str, clientType: str, method: str, plugin: dict or None
     }
     socksInfo = {  # socks5 interface for test
         'addr': settings['clientBind'],
-        'port': getAvailablePort()
+        'port': getAvailablePort(),
     }
     pluginClient = {'plugin': None if plugin is None else plugin['client']}
     pluginServer = {'plugin': None if plugin is None else plugin['server']}
@@ -138,7 +138,7 @@ def loadTest(serverType: str, clientType: str, method: str, plugin: dict or None
         'socks': socksInfo,  # exposed socks5 address
         'interface': {
             'addr': proxyInfo['server'],
-            'port': proxyInfo['port']
+            'port': proxyInfo['port'],
         }
     }
     if plugin is not None:
