@@ -117,6 +117,10 @@ ssrObfuscations = [ # obfuscations of ShadowsocksR (obfs)
 # VMess Info
 vmessMethods = ['aes-128-gcm', 'chacha20-poly1305', 'auto', 'none', 'zero']
 
+# XTLS Info
+xtlsFlows = ['xtls-origin', 'xtls-direct', 'xtls-splice']
+xtlsFlows = {x: x.replace('-', '-rprx-') for x in xtlsFlows}
+
 # v2ray / Xray Info
 quicMethods = ['none', 'aes-128-gcm', 'chacha20-poly1305']
 udpObfuscations = ['none', 'srtp', 'utp', 'wechat-video', 'dtls', 'wireguard']

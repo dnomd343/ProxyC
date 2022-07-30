@@ -60,7 +60,7 @@ def loadTest(method: str, aid: int, stream: dict) -> dict:
     proxyInfo = {  # connection info
         'server': settings['serverBind'],
         'port': getAvailablePort(),
-        'method': 'auto',
+        'method': method,
         'id': genUUID(),  # random uuid v5
         'aid': aid,
         'stream': stream['info']

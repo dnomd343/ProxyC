@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from Builder import V2ray
+from Basis.Methods import xtlsFlows
 
-loadConfig = V2ray.loadConfig  # same basic config format
+loadConfig = V2ray.loadConfig
 
 
 def loadSecure(secureInfo: dict or None) -> dict:  # TLS / XTLS encrypt config
@@ -65,11 +66,6 @@ def xtlsFlow(streamInfo: dict or None) -> dict:
         return {}
     if streamInfo['secure']['type'] != 'xtls':  # not XTLS secure type
         return {}
-    xtlsFlows = {
-        'xtls-origin': 'xtls-rprx-origin',
-        'xtls-direct': 'xtls-rprx-direct',
-        'xtls-splice': 'xtls-rprx-splice',
-    }
     if streamInfo['secure']['flow'] not in xtlsFlows:
         raise RuntimeError('Unknown xtls flow')
     return {
