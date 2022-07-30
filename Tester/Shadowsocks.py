@@ -15,7 +15,9 @@ from Basis.Functions import genFlag, getAvailablePort
 
 settings = {
     'serverBind': '127.0.0.1',
-    'clientBind': '127.0.0.1',  # aka socks5 address
+    'clientBind': '127.0.0.1',
+    # 'serverBind': '::1',
+    # 'clientBind': '::1',
     'workDir': '/tmp/ProxyC'
 }
 

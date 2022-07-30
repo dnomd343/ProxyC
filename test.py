@@ -7,6 +7,7 @@ from threading import Thread
 from Tester import Shadowsocks
 from Tester import ShadowsocksR
 from Basis.Logger import logging
+from Basis.Functions import ipFormat
 from Basis.Functions import checkPortStatus
 
 
@@ -31,19 +32,23 @@ def test(testObj: dict) -> None:
     time.sleep(1)
 
     errFlag = False
+    socks5 = '%s:%i' % (
+        ipFormat(testObj['socks']['addr'], v6Bracket = True),
+        testObj['socks']['port']
+    )
     try:
         request = requests.get(
             'http://iserv.scutbot.cn',
             proxies = {
-                'http': 'socks5://127.0.0.1:%i' % testObj['socks']['port'],
-                'https': 'socks5://127.0.0.1:%i' % testObj['socks']['port'],
+                'http': 'socks5://' + socks5,
+                'https': 'socks5://' + socks5,
             },
             timeout = 10
         )
         request.raise_for_status()
-        logging.info('socks5 127.0.0.1:%i -> ok' % testObj['socks']['port'])
+        logging.info('socks5 %s -> ok' % socks5)
     except Exception as exp:
-        logging.error('socks5 127.0.0.1:%i -> error' % testObj['socks']['port'])
+        logging.error('socks5 %s -> error' % socks5)
         logging.error('requests exception\n' + str(exp))
         errFlag = True
 
@@ -84,6 +89,7 @@ def runTest(testIter: iter, threadNum: int):
 
 
 ss = Shadowsocks.load(isExtra = True)
+# ss = Shadowsocks.load(isExtra = False)
 ssr = ShadowsocksR.load()
 logging.critical('test start')
 

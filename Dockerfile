@@ -465,5 +465,5 @@ COPY --from=dnsproxy /tmp/dnsproxy /asset/usr/bin/
 FROM python:3.10-alpine3.16
 RUN \
   apk add --no-cache boost-program_options c-ares glib libev libsodium libstdc++ mbedtls pcre && \
-  pip3 --no-cache-dir install colorlog pysocks requests
+  pip3 --no-cache-dir install colorlog pysocks requests IPy
 COPY --from=asset /asset /

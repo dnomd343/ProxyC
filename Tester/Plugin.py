@@ -7,18 +7,24 @@ import json
 from Basis.Logger import logging
 from Basis.Process import Process
 from Basis.Methods import plugins
-from Basis.Functions import genFlag, getAvailablePort
+from Basis.Functions import genFlag
+from Basis.Functions import ipFormat
+from Basis.Functions import getAvailablePort
 
 settings = {
     'serverBind': '127.0.0.1',
     'workDir': '/tmp/ProxyC',
+    'site': 'www.bing.com',
+    'host': '343.re',
+    'cert': '/etc/ssl/certs/343.re/fullchain.pem',
+    'key': '/etc/ssl/certs/343.re/privkey.pem',
 }
 
 pluginParams = {
-    'SITE': 'www.bing.com',
-    'HOST': '343.re',
-    'CERT': '/etc/ssl/certs/343.re/fullchain.pem',
-    'KEY': '/etc/ssl/certs/343.re/privkey.pem',
+    'SITE': settings['site'],
+    'HOST': settings['host'],
+    'CERT': settings['cert'],
+    'KEY': settings['key'],
     'PATH': '/' + genFlag(length = 6),
     'PASSWD': genFlag(length = 8),
 }
@@ -270,7 +276,7 @@ def ssInject(server: Process, pluginInfo: dict) -> Process:
         ssConfig = json.loads(server.file[0]['content'])  # modify origin config
         ssConfig.pop('plugin')  # remove plugin option
         ssConfig.pop('plugin_opts')
-        rabbitBind = ('[%s]' if ':' in ssConfig['server'] else '%s') % ssConfig['server']  # ipv4 / [ipv6]
+        rabbitBind = ipFormat(ssConfig['server'], v6Bracket = True)  # ipv4 / [ipv6]
         rabbitPort = ssConfig['server_port']
         ssConfig['server'] = '127.0.0.1'  # SIP003 use ipv4 localhost for communication
         ssConfig['server_port'] = int(pluginInfo['server']['param'])  # aka ${RABBIT_PORT}

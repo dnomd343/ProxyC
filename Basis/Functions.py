@@ -5,11 +5,19 @@ import time
 import psutil
 import random
 import hashlib
+from IPy import IP
 from Basis.Logger import logging
 
 
 def md5Sum(data: str, encode: str = 'UTF-8') -> str:
     return hashlib.md5(data.encode(encoding = encode)).hexdigest()
+
+
+def ipFormat(ipAddr: str, v6Bracket: bool = False) -> str:
+    ip = IP(ipAddr)
+    if v6Bracket and ip.version() == 6:
+        return '[%s]' % str(ip)  # [IPv6]
+    return str(ip)  # IPv4 / IPV6
 
 
 def genFlag(length: int = 12) -> str:  # generate random task flag
