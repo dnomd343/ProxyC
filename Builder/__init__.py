@@ -7,6 +7,7 @@ import copy
 from Builder import VMess
 from Builder import VLESS
 from Builder import Trojan
+from Builder import TrojanGo
 from Builder import Shadowsocks
 from Builder import ShadowsocksR
 
@@ -21,6 +22,7 @@ clientEntry = {
     'vmess': [VMess.load, '.json'],
     'vless': [VLESS.load, '.json'],
     'trojan': [Trojan.load, '.json'],
+    'trojan-go': [TrojanGo.load, '.json'],
 }
 
 

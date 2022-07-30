@@ -76,11 +76,33 @@ proxyTrojan = {
     }
 }
 
+proxyTrojanGo = {
+    'server': '127.0.0.1',
+    'port': 12345,
+    'passwd': 'dnomd343',
+    'sni': '343.re',
+    'alpn': None,
+    'verify': True,
+    'ws': {
+        'host': '343.re',
+        'path': '/test',
+    },
+    'ss': {
+        'method': 'AES-128-GCM',
+        'passwd': 'dnomd343',
+    },
+    'plugin': {
+        'type': 'obfs-local',
+        'param': 'obfs=http;obfs-host=www.bing.com'
+    },
+}
+
 # client = Builder('ss', proxySS)
 # client = Builder('ssr', proxySSR)
 # client = Builder('vmess', proxyVMess)
 # client = Builder('vless', proxyVLESS)
-client = Builder('trojan', proxyTrojan)
+# client = Builder('trojan', proxyTrojan)
+client = Builder('trojan-go', proxyTrojanGo)
 
 logging.critical(client.id)
 logging.critical(client.proxyType)
