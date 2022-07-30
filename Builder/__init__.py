@@ -4,9 +4,10 @@
 import os
 import copy
 
+from Builder import VMess
+from Builder import VLESS
 from Builder import Shadowsocks
 from Builder import ShadowsocksR
-from Builder import VMess
 
 from Basis.Logger import logging
 from Basis.Process import Process
@@ -17,6 +18,7 @@ clientEntry = {
     'ss': [Shadowsocks.load, '.json'],
     'ssr': [ShadowsocksR.load, '.json'],
     'vmess': [VMess.load, '.json'],
+    'vless': [VLESS.load, '.json']
 }
 
 

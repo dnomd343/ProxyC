@@ -139,7 +139,7 @@ def loadStream(streamInfo: dict) -> dict:
         'grpc': grpcStream,
     }
     if streamInfo['type'] not in streamEntry:
-        raise Exception('Unknown stream type')
+        raise RuntimeError('Unknown stream type')
     streamObject = streamEntry[streamInfo['type']](streamInfo)
     return {
         **streamObject,
