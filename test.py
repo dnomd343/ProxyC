@@ -7,6 +7,7 @@ from threading import Thread
 
 from Tester import VMess
 from Tester import VLESS
+from Tester import Trojan
 from Tester import Shadowsocks
 from Tester import ShadowsocksR
 
@@ -97,10 +98,12 @@ ss = Shadowsocks.load(isExtra = True)
 ssr = ShadowsocksR.load()
 vmess = VMess.load()
 vless = VLESS.load()
+trojan = Trojan.load()
 
 logging.critical('test start')
 # runTest(ss, 64)
 # runTest(ssr, 64)
 # runTest(vmess, 64)
-runTest(vless, 64)
+# runTest(vless, 64)
+runTest(trojan, 64)
 logging.critical('test complete')
