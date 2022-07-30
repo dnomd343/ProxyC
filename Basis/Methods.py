@@ -124,3 +124,6 @@ xtlsFlows = {x: x.replace('-', '-rprx-') for x in xtlsFlows}
 # v2ray / Xray Info
 quicMethods = ['none', 'aes-128-gcm', 'chacha20-poly1305']
 udpObfuscations = ['none', 'srtp', 'utp', 'wechat-video', 'dtls', 'wireguard']
+
+# Trojan-Go Info
+trojanGoMethods = ['aes-128-gcm', 'aes-256-gcm', 'chacha20-ietf-poly1305']

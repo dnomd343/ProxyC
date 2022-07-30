@@ -256,7 +256,41 @@ def cloakLoad() -> None:
     ]
 
 
-def ssInject(server: Process, pluginInfo: dict) -> Process:
+def rabbitShadowsocks(server: Process, pluginInfo: dict) -> Process:
+    ssConfig = json.loads(server.file[0]['content'])  # modify origin config
+    ssConfig.pop('plugin')  # remove plugin option
+    ssConfig.pop('plugin_opts')
+    rabbitBind = ipFormat(ssConfig['server'], v6Bracket=True)  # ipv4 / [ipv6]
+    rabbitPort = ssConfig['server_port']
+    ssConfig['server'] = '127.0.0.1'  # SIP003 use ipv4 localhost for communication
+    ssConfig['server_port'] = int(pluginInfo['server']['param'])  # aka ${RABBIT_PORT}
+    server.file[0]['content'] = json.dumps(ssConfig)
+    server.setCmd(['sh', '-c', paramFill(
+        'rabbit -mode s -password ${PASSWD} -rabbit-addr %s:%s' % (rabbitBind, rabbitPort)  # start rabbit-tcp
+    ) + ' &\nexec ' + ' '.join(server.cmd)])  # shadowsocks as main process (rabbit as sub process)
+    return server
+
+
+def rabbitTrojanGo(server: Process, pluginInfo: dict) -> Process:
+    trojanConfig = json.loads(server.file[0]['content'])  # modify origin config
+    rabbitBind = ipFormat(trojanConfig['local_addr'], v6Bracket=True)  # ipv4 / [ipv6]
+    rabbitPort = trojanConfig['local_port']
+    trojanConfig['local_addr'] = '127.0.0.1'  # SIP003 use ipv4 localhost for communication
+    trojanConfig['local_port'] = int(pluginInfo['server']['param'])  # aka ${RABBIT_PORT}
+    trojanConfig['transport_plugin'] = {
+        'enabled': True,
+        'type': 'other',
+        'command': 'rabbit',
+        'arg': [
+            '-mode', 's', '-password', paramFill('${PASSWD}'),
+            '-rabbit-addr', '%s:%s' % (rabbitBind, rabbitPort)
+        ]
+    }
+    server.file[0]['content'] = json.dumps(trojanConfig)
+    return server
+
+
+def inject(server: Process, pluginInfo: dict) -> Process:
     if pluginInfo['type'] == 'cloak':
         ckConfig = paramFill(json.dumps({
             'BypassUID': ['${CK_UID}'],
@@ -272,19 +306,19 @@ def ssInject(server: Process, pluginInfo: dict) -> Process:
             'path': pluginInfo['server']['param'],
             'content': paramFill(json.dumps({'key': '${PASSWD}'}))
         }])
-    elif pluginInfo['type'] == 'rabbit':  # hijack rabbit plugin config
-        ssConfig = json.loads(server.file[0]['content'])  # modify origin config
-        ssConfig.pop('plugin')  # remove plugin option
-        ssConfig.pop('plugin_opts')
-        rabbitBind = ipFormat(ssConfig['server'], v6Bracket = True)  # ipv4 / [ipv6]
-        rabbitPort = ssConfig['server_port']
-        ssConfig['server'] = '127.0.0.1'  # SIP003 use ipv4 localhost for communication
-        ssConfig['server_port'] = int(pluginInfo['server']['param'])  # aka ${RABBIT_PORT}
-        server.file[0]['content'] = json.dumps(ssConfig)
-        server.setCmd(['sh', '-c', paramFill(
-            'rabbit -mode s -password ${PASSWD} -rabbit-addr %s:%s' % (rabbitBind, rabbitPort)  # start rabbit-tcp
-        ) + ' &\nexec ' + ' '.join(server.cmd)])  # shadowsocks as main process (rabbit as sub process)
     return server
+
+
+def ssInject(server: Process, pluginInfo: dict) -> Process:
+    if pluginInfo['type'] == 'rabbit':  # hijack rabbit plugin config
+        return rabbitShadowsocks(server, pluginInfo)
+    return inject(server, pluginInfo)
+
+
+def trojanInject(server: Process, pluginInfo: dict) -> Process:
+    if pluginInfo['type'] == 'rabbit':  # hijack rabbit plugin config
+        return rabbitTrojanGo(server, pluginInfo)
+    return inject(server, pluginInfo)
 
 
 def paramFill(param: str) -> str:
@@ -295,7 +329,9 @@ def paramFill(param: str) -> str:
     return param
 
 
-def load():
+def load(proxyType: str):
+    if proxyType not in ['ss', 'trojan-go']:
+        raise RuntimeError('Unknown proxy type for sip003 plugin')
     cloakLoad()  # init cloak config
     kcptunLoad()  # init kcptun config
     for pluginType in pluginConfig:
@@ -313,5 +349,5 @@ def load():
                     'type': plugins[pluginType]['client'],
                     'param': paramFill(pluginTestInfo[1]),
                 },
-                'inject': ssInject  # for some special plugins (only server part)
+                'inject': ssInject if proxyType == 'ss' else trojanInject  # for some special plugins
             }

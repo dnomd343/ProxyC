@@ -59,6 +59,6 @@ def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, 
         'ssl': sslConfig(proxyInfo),
         'websocket': wsConfig(proxyInfo),
         'shadowsocks': ssConfig(proxyInfo),
-        'transport_plugin': pluginConfig(proxyInfo)
+        'transport_plugin': pluginConfig(proxyInfo),
     }
     return ['trojan-go', '-config', configFile], json.dumps(trojanGoConfig), {}

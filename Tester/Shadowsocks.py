@@ -129,7 +129,7 @@ def loadTest(serverType: str, clientType: str, method: str, plugin: dict or None
     pluginServer = {'plugin': None if plugin is None else plugin['server']}
     configName = '%s_%s_%s' % (serverType, clientType, method)  # prefix of config file name
     if plugin is not None:
-        configName += '_%s_%s' % (plugin['type'], md5Sum(plugin['caption'])[:8])
+        configName += '_%s_%s' % (plugin['type'], md5Sum(plugin['type'] + plugin['caption'])[:8])
     pluginText = '' if plugin is None else (' [%s -> %s]' % (plugin['type'], plugin['caption']))
     testInfo = {  # release test info
         'title': 'Shadowsocks test: {%s <- %s -> %s}%s' % (serverType, method, clientType, pluginText),
@@ -149,7 +149,7 @@ def loadTest(serverType: str, clientType: str, method: str, plugin: dict or None
 
 def load(isExtra: bool = False):
     pluginTest = []
-    pluginIter = Plugin.load()
+    pluginIter = Plugin.load('ss')
     while True:
         try:
             pluginTest.append(next(pluginIter))  # export data of plugin generator
