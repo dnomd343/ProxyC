@@ -35,5 +35,4 @@ def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, 
     }[proxyInfo['stream']['type']](proxyInfo) + [
         '--socks5', '%s:%i' % (hostFormat(socksInfo['addr'], v6Bracket = True), socksInfo['port'])
     ]
-    print(brookCommand)
     return brookCommand, 'Config file %s no need' % configFile, {}

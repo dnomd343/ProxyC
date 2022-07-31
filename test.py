@@ -5,6 +5,7 @@ import time
 import requests
 from threading import Thread
 
+from Tester import Brook
 from Tester import VMess
 from Tester import VLESS
 from Tester import Trojan
@@ -101,6 +102,7 @@ vmess = VMess.load()
 vless = VLESS.load()
 trojan = Trojan.load()
 trojanGo = TrojanGo.load()
+brook = Brook.load()
 
 logging.critical('test start')
 # runTest(ss, 64)
@@ -108,5 +110,6 @@ logging.critical('test start')
 # runTest(vmess, 64)
 # runTest(vless, 64)
 # runTest(trojan, 64)
-runTest(trojanGo, 64)
+# runTest(trojanGo, 64)
+runTest(brook, 64)
 logging.critical('test complete')
