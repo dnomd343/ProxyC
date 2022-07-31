@@ -67,8 +67,11 @@ def runTest(testInfo: dict, testUrl: str, testFilter: set or None, delay: int = 
         logging.debug('start test process')
         time.sleep(delay)
         httpCheck(testInfo['socks'], testUrl)
+        testInfo['client'].quit()
+        testInfo['server'].quit()
     except:
         # client debug info
+        testInfo['client'].quit()
         logging.warning('client info')
         logging.error('command -> %s' % testInfo['client'].cmd)
         logging.error('envVar -> %s' % testInfo['client'].env)
@@ -76,15 +79,13 @@ def runTest(testInfo: dict, testUrl: str, testFilter: set or None, delay: int = 
         logging.warning('client capture output')
         logging.error('\n%s' % testInfo['client'].output)
         # server debug info
+        testInfo['server'].quit()
         logging.warning('server info')
         logging.error('command -> %s' % testInfo['server'].cmd)
         logging.error('envVar -> %s' % testInfo['server'].env)
         logging.error('file -> %s' % testInfo['server'].file)
         logging.warning('server capture output')
         logging.error('\n%s' % testInfo['server'].output)
-    finally:
-        testInfo['client'].quit()
-        testInfo['server'].quit()
 
 
 def test(testIter: iter, threadNum: int, testUrl: str, testFilter: set or None = None):
