@@ -3,10 +3,9 @@
 
 import copy
 import itertools
-from Tester import Settings
 from Basis.Functions import genFlag
-from Basis.Methods import quicMethods
-from Basis.Methods import udpObfuscations
+from Tester.Settings import Settings
+from Basis.Methods import quicMethods, udpObfuscations
 
 httpConfig = {
     'version': '1.1',

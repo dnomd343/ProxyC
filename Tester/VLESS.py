@@ -5,13 +5,11 @@ import os
 import json
 from Tester import Xray
 from Builder import VLESS
-from Tester import Settings
 from Basis.Logger import logging
 from Basis.Process import Process
-from Basis.Functions import md5Sum
 from Basis.Methods import xtlsFlows
-from Basis.Functions import genUUID
-from Basis.Functions import getAvailablePort
+from Tester.Settings import Settings
+from Basis.Functions import md5Sum, genUUID, getAvailablePort
 
 
 def loadServer(configFile: str, proxyInfo: dict, streamConfig: dict, xtlsFlow: str or None) -> Process:
@@ -63,7 +61,7 @@ def loadTest(stream: dict) -> dict:
         xtlsFlow = xtlsFlow.replace('splice', 'direct')  # XTLS on server should use xtls-rprx-direct flow
     configName = 'vless_%s' % (md5Sum(stream['caption'])[:8])
     testInfo = {  # release test info
-        'title': 'VLESS test: %s' % stream['caption'],
+        'caption': 'VLESS test: %s' % stream['caption'],
         'client': loadClient(configName + '_client.json', proxyInfo, socksInfo),
         'server': loadServer(configName + '_server.json', proxyInfo, stream['server'], xtlsFlow),
         'socks': socksInfo,  # exposed socks5 address

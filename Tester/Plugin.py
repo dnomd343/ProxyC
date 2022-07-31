@@ -4,13 +4,11 @@
 import os
 import re
 import json
-from Tester import Settings
 from Basis.Logger import logging
 from Basis.Process import Process
 from Basis.Methods import plugins
-from Basis.Functions import genFlag
-from Basis.Functions import hostFormat
-from Basis.Functions import getAvailablePort
+from Tester.Settings import Settings
+from Basis.Functions import genFlag, hostFormat, getAvailablePort
 
 
 pluginParams = {

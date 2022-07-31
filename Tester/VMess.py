@@ -6,14 +6,12 @@ import json
 import itertools
 from Tester import V2ray
 from Builder import VMess
-from Tester import Settings
 from Builder import pathEnv
 from Basis.Logger import logging
 from Basis.Process import Process
-from Basis.Functions import md5Sum
-from Basis.Functions import genUUID
+from Tester.Settings import Settings
 from Basis.Methods import vmessMethods
-from Basis.Functions import getAvailablePort
+from Basis.Functions import md5Sum, genUUID, getAvailablePort
 
 
 def loadServer(configFile: str, proxyInfo: dict, streamConfig: dict) -> Process:  # load server process
@@ -63,7 +61,7 @@ def loadTest(method: str, aid: int, stream: dict) -> dict:
     }
     configName = 'vmess_%s_%i_%s' % (method, aid, md5Sum(stream['caption'])[:8])
     testInfo = {  # release test info
-        'title': 'VMess test: %s [security = %s | alterId = %i]' % (stream['caption'], method, aid),
+        'caption': 'VMess test: %s [security = %s | alterId = %i]' % (stream['caption'], method, aid),
         'client': loadClient(configName + '_client.json', proxyInfo, socksInfo),
         'server': loadServer(configName + '_server.json', proxyInfo, stream['server']),
         'socks': socksInfo,  # exposed socks5 address

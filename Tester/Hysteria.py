@@ -4,14 +4,12 @@
 import os
 import json
 import itertools
-from Tester import Settings
 from Builder import Hysteria
 from Basis.Logger import logging
 from Basis.Process import Process
-from Basis.Functions import genFlag
-from Basis.Functions import hostFormat
+from Tester.Settings import Settings
 from Basis.Methods import hysteriaProtocols
-from Basis.Functions import getAvailablePort
+from Basis.Functions import hostFormat, genFlag, getAvailablePort
 
 
 def loadServer(configFile: str, hysteriaConfig: dict) -> Process:
@@ -71,7 +69,7 @@ def loadTest(protocol: str, isObfs: bool, isAuth: bool) -> dict:
             'config': [proxyInfo['passwd']]
         }
     testInfo = {
-        'title': caption,
+        'caption': caption,
         'client': loadClient(configName + '_client.json', proxyInfo, socksInfo),
         'server': loadServer(configName + '_server.json', serverConfig),
         'socks': socksInfo,  # exposed socks5 address

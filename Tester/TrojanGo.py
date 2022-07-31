@@ -4,14 +4,12 @@
 import os
 import json
 from Tester import Plugin
-from Tester import Settings
 from Builder import TrojanGo
 from Basis.Logger import logging
 from Basis.Process import Process
-from Basis.Functions import md5Sum
-from Basis.Functions import genFlag
+from Tester.Settings import Settings
 from Basis.Methods import trojanGoMethods
-from Basis.Functions import getAvailablePort
+from Basis.Functions import md5Sum, genFlag, getAvailablePort
 
 
 def loadServer(configFile: str, proxyInfo: dict) -> Process:
@@ -76,7 +74,7 @@ def loadTest(wsObject: dict or None, ssObject: dict or None, plugin: dict or Non
         ('' if wsObject is None else ' (with websocket)') + \
         ('' if plugin is None else ' [%s -> %s]' % (plugin['type'], plugin['caption']))
     testInfo = {  # release test info
-        'title': testTitle,
+        'caption': testTitle,
         'client': loadClient(configName + '_client.json', {**proxyInfo, **pluginClient}, socksInfo),
         'server': loadServer(configName + '_server.json', {**proxyInfo, **pluginServer}),
         'socks': socksInfo,  # exposed socks5 address

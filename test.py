@@ -1,118 +1,59 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import time
-import requests
-from threading import Thread
-
-from Tester import Brook
-from Tester import VMess
-from Tester import VLESS
-from Tester import Trojan
-from Tester import TrojanGo
-from Tester import Hysteria
-from Tester import Shadowsocks
-from Tester import ShadowsocksR
-
+import sys
+import Tester
+from Tester import testEntry
 from Basis.Logger import logging
-from Basis.Functions import hostFormat
-from Basis.Functions import checkPortStatus
+
+threadNum = 16
+testItem = None
+testFilter = None
+testUrl = 'http://baidu.com'
+helpMsg = '''
+  ./test.py [ITEM] [OPTIONS]
+
+    [ITEM]: ss / ss-all / ssr / vmess / vless / trojan / trojan-go / brook / hysteria
+
+    [OPTIONS]:
+      --thread NUM             thread number
+      --url URL                http check url
+      --filter ID1[,ID2...]    test the specified id
+      --all                    test extra shadowsocks items
+      --help                   show this message
+'''
 
 
-def waitForStart(port: int, times: int = 100, delay: int = 100) -> bool:
-    for i in range(times):
-        if not checkPortStatus(port):  # port occupied
-            return True
-        time.sleep(delay / 1000)  # default wait 100ms
-    return False  # timeout
-
-
-def test(testObj: dict) -> None:
-    logging.warning(testObj['title'])
-    testObj['server'].start()
-    time.sleep(0.2)
-    testObj['client'].start()
-    if waitForStart(testObj['interface']['port']):
-        logging.debug('server start complete')
-    if waitForStart(testObj['socks']['port']):
-        logging.debug('client start complete')
-    logging.debug('start test process')
-
-    time.sleep(1)
-    errFlag = False
-    socks5 = '%s:%i' % (
-        hostFormat(testObj['socks']['addr'], v6Bracket = True),
-        testObj['socks']['port']
-    )
+def getArg(field: str) -> str or None:
     try:
-        request = requests.get(
-            'http://iserv.scutbot.cn',
-            proxies = {
-                'http': 'socks5://' + socks5,
-                'https': 'socks5://' + socks5,
-            },
-            timeout = 10
-        )
-        request.raise_for_status()
-        logging.info('socks5 %s -> ok' % socks5)
-    except Exception as exp:
-        logging.error('socks5 %s -> error' % socks5)
-        logging.error('requests exception\n' + str(exp))
-        errFlag = True
+        index = sys.argv.index(field)
+        return sys.argv[index + 1]
+    except:
+        return None
 
-    testObj['client'].quit()
-    testObj['server'].quit()
-    if errFlag:
-        logging.warning('client info')
-        logging.error('command -> %s' % testObj['client'].cmd)
-        logging.error('envVar -> %s' % testObj['client'].env)
-        logging.error('file -> %s' % testObj['client'].file)
-        logging.warning('client capture output')
-        logging.error('\n' + str(testObj['client'].output))
-        logging.warning('server info')
-        logging.error('command -> %s' % testObj['server'].cmd)
-        logging.error('envVar -> %s' % testObj['server'].env)
-        logging.error('file -> %s' % testObj['server'].file)
-        logging.warning('server capture output')
-        logging.error('\n' + str(testObj['server'].output))
+if '--help' in sys.argv:
+    print(helpMsg)
+    sys.exit(0)
+if len(sys.argv) > 1 and not sys.argv[1].startswith('--'):
+    testItem = sys.argv[1]
+if getArg('--url') is not None:
+    testUrl = getArg('--url')
+if getArg('--thread') is not None:
+    threadNum = int(getArg('--thread'))
+if getArg('--filter') is not None:
+    testFilter = set(getArg('--filter').split(','))
 
-
-def runTest(testIter: iter, threadNum: int):
-    threads = []
-    while True:  # infinite loop
-        try:
-            for thread in threads:
-                if thread.is_alive(): continue
-                threads.remove(thread)  # remove dead thread
-            if len(threads) < threadNum:
-                for i in range(threadNum - len(threads)):  # start threads within limit
-                    thread = Thread(target=test, args=(next(testIter),))  # create new thread
-                    thread.start()
-                    threads.append(thread)  # record thread info
-            time.sleep(0.1)
-        except StopIteration:  # traverse completed
-            break
-    for thread in threads:  # wait until all threads exit
-        thread.join()
-
-
-ss = Shadowsocks.load(isExtra = True)
-# ss = Shadowsocks.load(isExtra = False)
-ssr = ShadowsocksR.load()
-vmess = VMess.load()
-vless = VLESS.load()
-trojan = Trojan.load()
-trojanGo = TrojanGo.load()
-brook = Brook.load()
-hysteria = Hysteria.load()
-
-logging.critical('test start')
-runTest(ss, 64)
-runTest(ssr, 64)
-runTest(vmess, 64)
-runTest(vless, 64)
-runTest(trojan, 64)
-runTest(trojanGo, 64)
-runTest(brook, 64)
-runTest(hysteria, 64)
-logging.critical('test complete')
+logging.critical('test item: ' + ('all' if testItem is None else testItem))
+logging.critical('filter: %s' % testFilter)
+logging.critical('url: ' + testUrl)
+logging.critical('thread number: %i' % threadNum)
+logging.critical('TEST START')
+if testItem is not None:
+    Tester.test(testEntry[testItem], threadNum, testUrl, testFilter)
+else:
+    for item in testEntry:
+        if item == ('ss' if '--all' in sys.argv else 'ss-all'):  # skip ss / ss-all
+            continue
+        logging.critical('TEST ITEM -> ' + item)
+        Tester.test(testEntry[item], threadNum, testUrl, testFilter)
+logging.critical('TEST COMPLETE')

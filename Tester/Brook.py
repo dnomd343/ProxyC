@@ -4,12 +4,10 @@
 import copy
 import itertools
 from Builder import Brook
-from Tester import Settings
 from Basis.Logger import logging
 from Basis.Process import Process
-from Basis.Functions import genFlag
-from Basis.Functions import hostFormat
-from Basis.Functions import getAvailablePort
+from Tester.Settings import Settings
+from Basis.Functions import hostFormat, genFlag, getAvailablePort
 
 
 def originStream(isUot: bool) -> dict:
@@ -68,7 +66,7 @@ def loadTest(stream: dict) -> dict:
     clientCommand, _, _ = Brook.load(proxyInfo, socksInfo, '')
     serverCommand = ['brook', '--debug', '--listen', ':'] + stream['command'](proxyInfo)
     testInfo = {  # release test info
-        'title': 'Brook test: ' + stream['caption'],
+        'caption': 'Brook test: ' + stream['caption'],
         'client': Process(Settings['workDir'], cmd = clientCommand, isStart = False),
         'server': Process(Settings['workDir'], cmd = serverCommand, isStart = False),
         'socks': socksInfo,  # exposed socks5 address

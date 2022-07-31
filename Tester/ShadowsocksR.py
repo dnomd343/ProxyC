@@ -3,12 +3,11 @@
 
 import os
 import json
-from Tester import Settings
-from Basis.Logger import logging
 from Builder import ShadowsocksR
+from Basis.Logger import logging
 from Basis.Process import Process
-from Basis.Functions import genFlag
-from Basis.Functions import getAvailablePort
+from Tester.Settings import Settings
+from Basis.Functions import genFlag, getAvailablePort
 from Basis.Methods import ssrMethods, ssrProtocols, ssrObfuscations
 
 
@@ -56,7 +55,7 @@ def loadTest(method: str, protocol: str, obfs: str) -> dict:
     }
     configName = 'ssr_%s_%s_%s' % (method, protocol, obfs)  # prefix of config file name
     testInfo = {  # release test info
-        'title': 'ShadowsocksR test: method = %s | protocol = %s | obfs = %s' % (method, protocol, obfs),
+        'caption': 'ShadowsocksR test: method = %s | protocol = %s | obfs = %s' % (method, protocol, obfs),
         'client': loadClient(configName + '_client.json', proxyInfo, socksInfo),
         'server': loadServer(configName + '_server.json', proxyInfo),
         'socks': socksInfo,  # exposed socks5 address

@@ -4,11 +4,9 @@
 import copy
 import itertools
 from Tester import V2ray
-from Tester import Settings
-from Basis.Methods import xtlsFlows
 from Basis.Functions import genFlag
-from Basis.Methods import quicMethods
-from Basis.Methods import udpObfuscations
+from Tester.Settings import Settings
+from Basis.Methods import xtlsFlows, quicMethods, udpObfuscations
 
 loadConfig = V2ray.loadConfig
 tcpStream = V2ray.tcpStream

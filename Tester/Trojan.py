@@ -5,13 +5,11 @@ import os
 import json
 from Tester import Xray
 from Builder import Trojan
-from Tester import Settings
 from Basis.Logger import logging
 from Basis.Process import Process
-from Basis.Functions import md5Sum
 from Basis.Methods import xtlsFlows
-from Basis.Functions import genFlag
-from Basis.Functions import getAvailablePort
+from Tester.Settings import Settings
+from Basis.Functions import md5Sum, genFlag, getAvailablePort
 
 
 def loadServer(configFile: str, proxyInfo: dict, streamConfig: dict, xtlsFlow: str or None) -> Process:
@@ -72,7 +70,7 @@ def loadBasicTest(tcpTlsStream: dict) -> dict:
         'content': json.dumps(trojanConfig)
     }, isStart = False)
     testInfo = {  # release test info
-        'title': 'Trojan test: basic connection',
+        'caption': 'Trojan test: basic connection',
         'client': loadClient('trojan_basic_client.json', proxyInfo, socksInfo),
         'server': trojanServer,
         'socks': socksInfo,  # exposed socks5 address
@@ -102,7 +100,7 @@ def loadTest(stream: dict) -> dict:
         xtlsFlow = xtlsFlow.replace('splice', 'direct')  # XTLS on server should use xtls-rprx-direct flow
     configName = 'trojan_%s' % (md5Sum(stream['caption'])[:8])
     testInfo = {  # release test info
-        'title': 'Trojan test: %s' % stream['caption'],
+        'caption': 'Trojan test: %s' % stream['caption'],
         'client': loadClient(configName + '_client.json', proxyInfo, socksInfo),
         'server': loadServer(configName + '_server.json', proxyInfo, stream['server'], xtlsFlow),
         'socks': socksInfo,  # exposed socks5 address

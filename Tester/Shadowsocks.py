@@ -6,14 +6,12 @@ import json
 import base64
 import itertools
 from Tester import Plugin
-from Tester import Settings
 from Builder import Shadowsocks
 from Basis.Logger import logging
 from Basis.Process import Process
-from Basis.Functions import md5Sum
-from Basis.Functions import genFlag
-from Basis.Functions import getAvailablePort
+from Tester.Settings import Settings
 from Basis.Methods import ssMethods, ssAllMethods
+from Basis.Functions import md5Sum, genFlag, getAvailablePort
 
 
 def loadConfig(proxyInfo: dict) -> dict:  # load basic config option
@@ -126,7 +124,7 @@ def loadTest(serverType: str, clientType: str, method: str, plugin: dict or None
         configName += '_%s_%s' % (plugin['type'], md5Sum(plugin['type'] + plugin['caption'])[:8])
     pluginText = '' if plugin is None else (' [%s -> %s]' % (plugin['type'], plugin['caption']))
     testInfo = {  # release test info
-        'title': 'Shadowsocks test: {%s <- %s -> %s}%s' % (serverType, method, clientType, pluginText),
+        'caption': 'Shadowsocks test: {%s <- %s -> %s}%s' % (serverType, method, clientType, pluginText),
         'client': loadClient(clientType, configName + '_client.json', {**proxyInfo, **pluginClient}, socksInfo),
         'server': loadServer(serverType, configName + '_server.json', {**proxyInfo, **pluginServer}),
         'socks': socksInfo,  # exposed socks5 address
