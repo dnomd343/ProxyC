@@ -5,7 +5,7 @@
     'server': ---,
     'port': ---,
     'passwd': ---,
-    'ws': ---,
+    'stream': ---,
 }
 ```
 
@@ -30,19 +30,37 @@
 + 缺省：必选
 + 限制：无
 
-### ws
+### stream
 
-+ 类型：*None* / [*wsObject*](#wsobject)
-+ 说明：WebSocket传输配置
-+ 缺省：`None`
++ 类型：[*originObject*](#originobject) / [*wsObject*](#wsobject)
++ 说明：Brook传输方式
++ 缺省：`originObject`
++ 限制：无
+
+## originObject
+
+```
+{
+    'type': 'origin',
+    'uot': ---,
+}
+```
+
+### uot
+
++ 类型：*bool*
++ 说明：UDP over TCP
++ 缺省：`False`
 + 限制：无
 
 ## wsObject
 
 ```
 {
+    'type': 'ws',
     'host': ---,
     'path': ---,
+    'raw': ---,
     'secure': ---,
 }
 ```
@@ -58,13 +76,20 @@
 
 + 类型：*str*
 + 说明：WebSocket连接路径
-+ 缺省：`/`
++ 缺省：`/ws`
++ 限制：无
+
+### raw
+
++ 类型：*bool*
++ 说明：是否直接传输原始数据（即`--withoutBrookProtocol`）
++ 缺省：`False`
 + 限制：无
 
 ### secure
 
 + 类型：*None* / [*secureObject*](#secureobject)
-+ 说明：TLS加密配置
++ 说明：TLS加密选项
 + 缺省：`None`
 + 限制：无
 
