@@ -127,3 +127,6 @@ udpObfuscations = ['none', 'srtp', 'utp', 'wechat-video', 'dtls', 'wireguard']
 
 # Trojan-Go Info
 trojanGoMethods = ['aes-128-gcm', 'aes-256-gcm', 'chacha20-ietf-poly1305']
+
+# Hysteria Info
+hysteriaProtocols = ['udp', 'wechat-video', 'faketcp']

@@ -11,6 +11,8 @@ def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, 
         'protocol': proxyInfo['protocol'],
         'up_mbps': proxyInfo['up'],
         'down_mbps': proxyInfo['down'],
+        'retry_interval': 2,
+        'retry': 3,
         'socks5': {
             'listen': '%s:%i' % (hostFormat(socksInfo['addr'], v6Bracket = True), socksInfo['port'])
         }
@@ -25,4 +27,4 @@ def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, 
     }), **({} if proxyInfo['verify'] else {
         'insecure': True
     })}
-    return ['hysteria', '-c', configFile, 'client'], json.dumps(hysteriaConfig), {}
+    return ['hysteria', '-c', configFile, 'client'], json.dumps(hysteriaConfig), {'LOGGING_LEVEL': 'trace'}

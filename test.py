@@ -10,6 +10,7 @@ from Tester import VMess
 from Tester import VLESS
 from Tester import Trojan
 from Tester import TrojanGo
+from Tester import Hysteria
 from Tester import Shadowsocks
 from Tester import ShadowsocksR
 
@@ -28,16 +29,16 @@ def waitForStart(port: int, times: int = 100, delay: int = 100) -> bool:
 
 def test(testObj: dict) -> None:
     logging.warning(testObj['title'])
-    testObj['client'].start()
     testObj['server'].start()
-    if waitForStart(testObj['socks']['port']):
-        logging.debug('client start complete')
+    time.sleep(0.2)
+    testObj['client'].start()
     if waitForStart(testObj['interface']['port']):
         logging.debug('server start complete')
+    if waitForStart(testObj['socks']['port']):
+        logging.debug('client start complete')
     logging.debug('start test process')
 
     time.sleep(1)
-
     errFlag = False
     socks5 = '%s:%i' % (
         hostFormat(testObj['socks']['addr'], v6Bracket = True),
@@ -103,6 +104,7 @@ vless = VLESS.load()
 trojan = Trojan.load()
 trojanGo = TrojanGo.load()
 brook = Brook.load()
+hysteria = Hysteria.load()
 
 logging.critical('test start')
 # runTest(ss, 64)
@@ -111,5 +113,6 @@ logging.critical('test start')
 # runTest(vless, 64)
 # runTest(trojan, 64)
 # runTest(trojanGo, 64)
-runTest(brook, 64)
+# runTest(brook, 64)
+runTest(hysteria, 64)
 logging.critical('test complete')
