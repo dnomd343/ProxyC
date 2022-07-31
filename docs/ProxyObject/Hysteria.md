@@ -5,10 +5,10 @@
     'server': ---,
     'port': ---,
     'protocol': ---,
-    'upMbps': ---,
-    'downMbps': ---,
     'obfs': ---,
-    'auth': ---,
+    'passwd': ---,
+    'up': ---,
+    'down': ---,
     'sni': ---,
     'alpn': ---,
     'verify': ---,
@@ -36,20 +36,6 @@
 + 缺省：`udp`
 + 限制：`udp`, `wechat-video`, `faketcp`
 
-### upMbps
-
-+ 类型：*int*
-+ 说明：Hysteria最大上行速率
-+ 缺省：`10`
-+ 限制：>0
-
-### downMbps
-
-+ 类型：*int*
-+ 说明：Hysteria最大下行速率
-+ 缺省：`50`
-+ 限制：>0
-
 ### obfs
 
 + 类型：*None* / *str*
@@ -57,12 +43,26 @@
 + 缺省：`None`
 + 限制：无
 
-### auth
+### passwd
 
 + 类型：*None* / *str*
 + 说明：Hysteria验证密码
 + 缺省：`None`
 + 限制：无
+
+### up
+
++ 类型：*int*
++ 说明：Hysteria最大上行速率（Mbps）
++ 缺省：`10`
++ 限制：>0
+
+### down
+
++ 类型：*int*
++ 说明：Hysteria最大下行速率（Mbps）
++ 缺省：`50`
++ 限制：>0
 
 ### sni
 

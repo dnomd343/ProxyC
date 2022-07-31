@@ -112,13 +112,27 @@ proxyBrook = {
     }
 }
 
+proxyHysteria = {
+    'server': '127.0.0.1',
+    'port': 12345,
+    'protocol': 'udp',
+    'obfs': 'obfs',
+    'passwd': 'dnomd343',
+    'up': 10,
+    'down': 50,
+    'sni': '343.re',
+    'alpn': 'h3',
+    'verify': False,
+}
+
 # client = Builder('ss', proxySS)
 # client = Builder('ssr', proxySSR)
 # client = Builder('vmess', proxyVMess)
 # client = Builder('vless', proxyVLESS)
 # client = Builder('trojan', proxyTrojan)
 # client = Builder('trojan-go', proxyTrojanGo)
-client = Builder('brook', proxyBrook)
+# client = Builder('brook', proxyBrook)
+client = Builder('hysteria', proxyHysteria)
 
 logging.critical(client.id)
 logging.critical(client.proxyType)

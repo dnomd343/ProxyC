@@ -9,6 +9,7 @@ from Builder import VMess
 from Builder import VLESS
 from Builder import Trojan
 from Builder import TrojanGo
+from Builder import Hysteria
 from Builder import Shadowsocks
 from Builder import ShadowsocksR
 
@@ -25,6 +26,7 @@ clientEntry = {
     'trojan': [Trojan.load, '.json'],
     'trojan-go': [TrojanGo.load, '.json'],
     'brook': [Brook.load, ''],
+    'hysteria': [Hysteria.load, '.json'],
 }
 
 
