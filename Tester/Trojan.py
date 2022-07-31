@@ -5,23 +5,13 @@ import os
 import json
 from Tester import Xray
 from Builder import Trojan
+from Tester import Settings
 from Basis.Logger import logging
 from Basis.Process import Process
 from Basis.Functions import md5Sum
 from Basis.Methods import xtlsFlows
 from Basis.Functions import genFlag
 from Basis.Functions import getAvailablePort
-
-settings = {
-    'serverBind': '127.0.0.1',
-    'clientBind': '127.0.0.1',
-    # 'serverBind': '::1',
-    # 'clientBind': '::1',
-    'workDir': '/tmp/ProxyC',
-    'host': '343.re',
-    'cert': '/etc/ssl/certs/343.re/fullchain.pem',
-    'key': '/etc/ssl/certs/343.re/privkey.pem',
-}
 
 
 def loadServer(configFile: str, proxyInfo: dict, streamConfig: dict, xtlsFlow: str or None) -> Process:
@@ -38,17 +28,17 @@ def loadServer(configFile: str, proxyInfo: dict, streamConfig: dict, xtlsFlow: s
         },
         'streamSettings': streamConfig
     })
-    serverFile = os.path.join(settings['workDir'], configFile)
-    return Process(settings['workDir'], cmd = ['xray', '-c', serverFile], file = {
+    serverFile = os.path.join(Settings['workDir'], configFile)
+    return Process(Settings['workDir'], cmd = ['xray', '-c', serverFile], file = {
         'path': serverFile,
         'content': json.dumps(trojanConfig)
     }, isStart = False)
 
 
 def loadClient(configFile: str, proxyInfo: dict, socksInfo: dict) -> Process:  # load client process
-    clientFile = os.path.join(settings['workDir'], configFile)
+    clientFile = os.path.join(Settings['workDir'], configFile)
     trojanCommand, trojanConfig, _ = Trojan.load(proxyInfo, socksInfo, clientFile)
-    return Process(settings['workDir'], cmd = trojanCommand, file = {
+    return Process(Settings['workDir'], cmd = trojanCommand, file = {
         'path': clientFile,
         'content': trojanConfig
     }, isStart = False)
@@ -56,13 +46,13 @@ def loadClient(configFile: str, proxyInfo: dict, socksInfo: dict) -> Process:  #
 
 def loadBasicTest(tcpTlsStream: dict) -> dict:
     proxyInfo = {  # connection info
-        'server': settings['serverBind'],
+        'server': Settings['serverBind'],
         'port': getAvailablePort(),
         'passwd': genFlag(length = 8),  # random password
         'stream': tcpTlsStream['info']
     }
     socksInfo = {  # socks5 interface for test
-        'addr': settings['clientBind'],
+        'addr': Settings['clientBind'],
         'port': getAvailablePort()
     }
     trojanConfig = {
@@ -72,12 +62,12 @@ def loadBasicTest(tcpTlsStream: dict) -> dict:
         'password': [proxyInfo['passwd']],
         'log_level': 0,  # 0 -> ALL / 1 -> INFO / 2 -> WARN / 3 -> ERROR / 4 -> FATAL / 5 -> OFF
         'ssl': {
-            'cert': settings['cert'],
-            'key': settings['key']
+            'cert': Settings['cert'],
+            'key': Settings['key']
         }
     }
-    serverFile = os.path.join(settings['workDir'], 'trojan_basic_server.json')
-    trojanServer = Process(settings['workDir'], cmd = ['trojan', '-c', serverFile], file = {
+    serverFile = os.path.join(Settings['workDir'], 'trojan_basic_server.json')
+    trojanServer = Process(Settings['workDir'], cmd = ['trojan', '-c', serverFile], file = {
         'path': serverFile,
         'content': json.dumps(trojanConfig)
     }, isStart = False)
@@ -97,13 +87,13 @@ def loadBasicTest(tcpTlsStream: dict) -> dict:
 
 def loadTest(stream: dict) -> dict:
     proxyInfo = {  # connection info
-        'server': settings['serverBind'],
+        'server': Settings['serverBind'],
         'port': getAvailablePort(),
         'passwd': genFlag(length = 8),  # random password
         'stream': stream['info']
     }
     socksInfo = {  # socks5 interface for test
-        'addr': settings['clientBind'],
+        'addr': Settings['clientBind'],
         'port': getAvailablePort()
     }
     xtlsFlow = None

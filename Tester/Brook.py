@@ -4,22 +4,12 @@
 import copy
 import itertools
 from Builder import Brook
+from Tester import Settings
 from Basis.Logger import logging
 from Basis.Process import Process
 from Basis.Functions import genFlag
 from Basis.Functions import hostFormat
 from Basis.Functions import getAvailablePort
-
-settings = {
-    'serverBind': '127.0.0.1',
-    'clientBind': '127.0.0.1',
-    # 'serverBind': '::1',
-    # 'clientBind': '::1',
-    'workDir': '/tmp/ProxyC',
-    'host': '343.re',
-    'cert': '/etc/ssl/certs/343.re/fullchain.pem',
-    'key': '/etc/ssl/certs/343.re/privkey.pem',
-}
 
 
 def originStream(isUot: bool) -> dict:
@@ -45,8 +35,8 @@ def loadWsCommand(proxyInfo: dict) -> list:  # load start command for brook serv
         '--path', proxyInfo['stream']['path'],
         '--password', proxyInfo['passwd'],
     ] + ([] if proxyInfo['stream']['secure'] is None else [
-        '--cert', settings['cert'],
-        '--certkey', settings['key'],
+        '--cert', Settings['cert'],
+        '--certkey', Settings['key'],
     ]) + (['--withoutBrookProtocol'] if proxyInfo['stream']['raw'] else [])
 
 
@@ -55,7 +45,7 @@ def wsStream(isRaw: bool, isSecure: bool):
         'caption': 'websocket' + (' (with tls)' if isSecure else '') + (' (without brook)' if isRaw else ''),
         'info': {
             'type': 'ws',
-            'host': settings['host'],
+            'host': Settings['host'],
             'path': '/' + genFlag(length = 6),
             'raw': isRaw,
             'secure': {'verify': True} if isSecure else None,
@@ -66,21 +56,21 @@ def wsStream(isRaw: bool, isSecure: bool):
 
 def loadTest(stream: dict) -> dict:
     proxyInfo = {
-        'server': settings['serverBind'],
+        'server': Settings['serverBind'],
         'port': getAvailablePort(),
         'passwd': genFlag(),
         'stream': stream['info']
     }
     socksInfo = {  # socks5 interface for test
-        'addr': settings['clientBind'],
+        'addr': Settings['clientBind'],
         'port': getAvailablePort()
     }
     clientCommand, _, _ = Brook.load(proxyInfo, socksInfo, '')
     serverCommand = ['brook', '--debug', '--listen', ':'] + stream['command'](proxyInfo)
     testInfo = {  # release test info
         'title': 'Brook test: ' + stream['caption'],
-        'client': Process(settings['workDir'], cmd = clientCommand, isStart = False),
-        'server': Process(settings['workDir'], cmd = serverCommand, isStart = False),
+        'client': Process(Settings['workDir'], cmd = clientCommand, isStart = False),
+        'server': Process(Settings['workDir'], cmd = serverCommand, isStart = False),
         'socks': socksInfo,  # exposed socks5 address
         'interface': {
             'addr': proxyInfo['server'],

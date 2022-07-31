@@ -3,8 +3,8 @@
 
 import copy
 import itertools
-
 from Tester import V2ray
+from Tester import Settings
 from Basis.Methods import xtlsFlows
 from Basis.Functions import genFlag
 from Basis.Methods import quicMethods
@@ -17,13 +17,6 @@ h2Stream = V2ray.h2Stream
 quicStream = V2ray.quicStream
 grpcStream = V2ray.grpcStream
 
-settings = {
-    'site': 'www.bing.com',
-    'host': '343.re',
-    'cert': '/etc/ssl/certs/343.re/fullchain.pem',
-    'key': '/etc/ssl/certs/343.re/privkey.pem',
-}
-
 
 def addSecure(streamConfig: dict, xtlsFlow: str or None = None, isUdp443: bool = False) -> dict:  # add TLS or XTLS
     streamConfig['caption'] += ' (with %s)' % (
@@ -31,7 +24,7 @@ def addSecure(streamConfig: dict, xtlsFlow: str or None = None, isUdp443: bool =
     )
     streamConfig['info']['secure'] = {**{  # secure options for client
         'type': 'tls' if xtlsFlow is None else 'xtls',
-        'sni': settings['host'],
+        'sni': Settings['host'],
         'alpn': None,
         'verify': True,
     }, **({} if xtlsFlow is None else {
@@ -42,8 +35,8 @@ def addSecure(streamConfig: dict, xtlsFlow: str or None = None, isUdp443: bool =
     streamConfig['server']['%sSettings' % streamConfig['server']['security']] = {  # cert and key for server
         'alpn': ['h2', 'http/1.1'],
         'certificates': [{
-            'certificateFile': settings['cert'],
-            'keyFile': settings['key'],
+            'certificateFile': Settings['cert'],
+            'keyFile': Settings['key'],
         }]
     }
     return streamConfig
@@ -55,7 +48,7 @@ def wsStream(isEd: bool) -> dict:
         'caption': 'WebSocket stream' + (' (Max-Early-Data 2048)' if isEd else ''),
         'info': {
             'type': 'ws',
-            'host': settings['host'],
+            'host': Settings['host'],
             'path': path,
             'ed': 2048 if isEd else None,
             'secure': None,
@@ -65,7 +58,7 @@ def wsStream(isEd: bool) -> dict:
             'wsSettings': {
                 'path': path + ('?ed=2048' if isEd else ''),
                 'headers': {
-                    'Host': settings['host']
+                    'Host': Settings['host']
                 }
             }
         }

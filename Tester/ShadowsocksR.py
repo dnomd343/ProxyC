@@ -3,19 +3,13 @@
 
 import os
 import json
-from Builder import ShadowsocksR
+from Tester import Settings
 from Basis.Logger import logging
+from Builder import ShadowsocksR
 from Basis.Process import Process
-from Basis.Functions import genFlag, getAvailablePort
+from Basis.Functions import genFlag
+from Basis.Functions import getAvailablePort
 from Basis.Methods import ssrMethods, ssrProtocols, ssrObfuscations
-
-settings = {
-    'serverBind': '127.0.0.1',
-    'clientBind': '127.0.0.1',
-    # 'serverBind': '::1',
-    # 'clientBind': '::1',
-    'workDir': '/tmp/ProxyC'
-}
 
 
 def loadServer(configFile: str, proxyInfo: dict) -> Process:  # load server process
@@ -29,17 +23,17 @@ def loadServer(configFile: str, proxyInfo: dict) -> Process:  # load server proc
         'obfs': proxyInfo['obfs'],
         'obfs_param': proxyInfo['obfsParam'],
     }
-    serverFile = os.path.join(settings['workDir'], configFile)
-    return Process(settings['workDir'], cmd = ['ssr-server', '-vv', '-c', serverFile], file = {
+    serverFile = os.path.join(Settings['workDir'], configFile)
+    return Process(Settings['workDir'], cmd = ['ssr-server', '-vv', '-c', serverFile], file = {
         'path': serverFile,
         'content': json.dumps(ssrConfig)
     }, isStart = False)
 
 
 def loadClient(configFile: str, proxyInfo: dict, socksInfo: dict) -> Process:  # load client process
-    clientFile = os.path.join(settings['workDir'], configFile)
+    clientFile = os.path.join(Settings['workDir'], configFile)
     ssrCommand, ssrConfig, _ = ShadowsocksR.load(proxyInfo, socksInfo, clientFile)
-    return Process(settings['workDir'], cmd = ssrCommand, file = {
+    return Process(Settings['workDir'], cmd = ssrCommand, file = {
         'path': clientFile,
         'content': ssrConfig
     }, isStart = False)
@@ -47,7 +41,7 @@ def loadClient(configFile: str, proxyInfo: dict, socksInfo: dict) -> Process:  #
 
 def loadTest(method: str, protocol: str, obfs: str) -> dict:
     proxyInfo = {  # connection info
-        'server': settings['serverBind'],
+        'server': Settings['serverBind'],
         'port': getAvailablePort(),
         'passwd': genFlag(length = 8),  # random password
         'method': method,
@@ -57,7 +51,7 @@ def loadTest(method: str, protocol: str, obfs: str) -> dict:
         'obfsParam': '',
     }
     socksInfo = {  # socks5 interface for test
-        'addr': settings['clientBind'],
+        'addr': Settings['clientBind'],
         'port': getAvailablePort()
     }
     configName = 'ssr_%s_%s_%s' % (method, protocol, obfs)  # prefix of config file name

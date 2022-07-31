@@ -5,20 +5,13 @@ import os
 import json
 from Tester import Xray
 from Builder import VLESS
+from Tester import Settings
 from Basis.Logger import logging
 from Basis.Process import Process
 from Basis.Functions import md5Sum
 from Basis.Methods import xtlsFlows
 from Basis.Functions import genUUID
 from Basis.Functions import getAvailablePort
-
-settings = {
-    'serverBind': '127.0.0.1',
-    'clientBind': '127.0.0.1',
-    # 'serverBind': '::1',
-    # 'clientBind': '::1',
-    'workDir': '/tmp/ProxyC',
-}
 
 
 def loadServer(configFile: str, proxyInfo: dict, streamConfig: dict, xtlsFlow: str or None) -> Process:
@@ -36,17 +29,17 @@ def loadServer(configFile: str, proxyInfo: dict, streamConfig: dict, xtlsFlow: s
         },
         'streamSettings': streamConfig
     })
-    serverFile = os.path.join(settings['workDir'], configFile)
-    return Process(settings['workDir'], cmd = ['xray', '-c', serverFile], file = {
+    serverFile = os.path.join(Settings['workDir'], configFile)
+    return Process(Settings['workDir'], cmd = ['xray', '-c', serverFile], file = {
         'path': serverFile,
         'content': json.dumps(vlessConfig)
     }, isStart = False)
 
 
 def loadClient(configFile: str, proxyInfo: dict, socksInfo: dict) -> Process:  # load client process
-    clientFile = os.path.join(settings['workDir'], configFile)
+    clientFile = os.path.join(Settings['workDir'], configFile)
     vlessCommand, vlessConfig, _ = VLESS.load(proxyInfo, socksInfo, clientFile)
-    return Process(settings['workDir'], cmd = vlessCommand, file = {
+    return Process(Settings['workDir'], cmd = vlessCommand, file = {
         'path': clientFile,
         'content': vlessConfig
     }, isStart = False)
@@ -54,14 +47,14 @@ def loadClient(configFile: str, proxyInfo: dict, socksInfo: dict) -> Process:  #
 
 def loadTest(stream: dict) -> dict:
     proxyInfo = {  # connection info
-        'server': settings['serverBind'],
+        'server': Settings['serverBind'],
         'port': getAvailablePort(),
         'method': 'none',
         'id': genUUID(),  # random uuid v5
         'stream': stream['info']
     }
     socksInfo = {  # socks5 interface for test
-        'addr': settings['clientBind'],
+        'addr': Settings['clientBind'],
         'port': getAvailablePort()
     }
     xtlsFlow = None

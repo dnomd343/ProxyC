@@ -6,20 +6,14 @@ import json
 import base64
 import itertools
 from Tester import Plugin
+from Tester import Settings
 from Builder import Shadowsocks
 from Basis.Logger import logging
 from Basis.Process import Process
 from Basis.Functions import md5Sum
+from Basis.Functions import genFlag
+from Basis.Functions import getAvailablePort
 from Basis.Methods import ssMethods, ssAllMethods
-from Basis.Functions import genFlag, getAvailablePort
-
-settings = {
-    'serverBind': '127.0.0.1',
-    'clientBind': '127.0.0.1',
-    # 'serverBind': '::1',
-    # 'clientBind': '::1',
-    'workDir': '/tmp/ProxyC'
-}
 
 
 def loadConfig(proxyInfo: dict) -> dict:  # load basic config option
@@ -93,8 +87,8 @@ def loadClient(ssType: str, configFile: str, proxyInfo: dict, socksInfo: dict) -
         'ss-python': Shadowsocks.ssPython,
         'ss-python-legacy': Shadowsocks.ssPythonLegacy
     }[ssType](proxyInfo, socksInfo, isUdp = False)  # disable udp in test mode
-    clientFile = os.path.join(settings['workDir'], configFile)
-    return Process(settings['workDir'], cmd = ssClient + ['-c', clientFile], file = {  # load client process
+    clientFile = os.path.join(Settings['workDir'], configFile)
+    return Process(Settings['workDir'], cmd = ssClient + ['-c', clientFile], file = {  # load client process
         'path': clientFile,
         'content': json.dumps(ssConfig)
     }, isStart = False)
@@ -107,8 +101,8 @@ def loadServer(ssType: str, configFile: str, proxyInfo: dict) -> Process:
         'ss-python': ssPython,
         'ss-python-legacy': ssPythonLegacy
     }[ssType](proxyInfo, isUdp = False)  # disable udp in test mode
-    serverFile = os.path.join(settings['workDir'], configFile)
-    return Process(settings['workDir'], cmd = ssServer + ['-c', serverFile], file = {  # load server process
+    serverFile = os.path.join(Settings['workDir'], configFile)
+    return Process(Settings['workDir'], cmd = ssServer + ['-c', serverFile], file = {  # load server process
         'path': serverFile,
         'content': json.dumps(ssConfig)
     }, isStart = False)
@@ -116,13 +110,13 @@ def loadServer(ssType: str, configFile: str, proxyInfo: dict) -> Process:
 
 def loadTest(serverType: str, clientType: str, method: str, plugin: dict or None = None) -> dict:
     proxyInfo = {  # connection info
-        'server': settings['serverBind'],
+        'server': Settings['serverBind'],
         'port': getAvailablePort(),
         'method': method,
         'passwd': loadPassword(method),
     }
     socksInfo = {  # socks5 interface for test
-        'addr': settings['clientBind'],
+        'addr': Settings['clientBind'],
         'port': getAvailablePort(),
     }
     pluginClient = {'plugin': None if plugin is None else plugin['client']}

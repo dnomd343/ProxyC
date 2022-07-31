@@ -4,6 +4,7 @@
 import os
 import json
 import itertools
+from Tester import Settings
 from Builder import Hysteria
 from Basis.Logger import logging
 from Basis.Process import Process
@@ -12,30 +13,19 @@ from Basis.Functions import hostFormat
 from Basis.Methods import hysteriaProtocols
 from Basis.Functions import getAvailablePort
 
-settings = {
-    'serverBind': '127.0.0.1',
-    'clientBind': '127.0.0.1',
-    # 'serverBind': '::1',
-    # 'clientBind': '::1',
-    'workDir': '/tmp/ProxyC',
-    'host': '343.re',
-    'cert': '/etc/ssl/certs/343.re/fullchain.pem',
-    'key': '/etc/ssl/certs/343.re/privkey.pem',
-}
-
 
 def loadServer(configFile: str, hysteriaConfig: dict) -> Process:
-    serverFile = os.path.join(settings['workDir'], configFile)
-    return Process(settings['workDir'], cmd = ['hysteria', '-c', serverFile, 'server'], file = {
+    serverFile = os.path.join(Settings['workDir'], configFile)
+    return Process(Settings['workDir'], cmd = ['hysteria', '-c', serverFile, 'server'], file = {
         'path': serverFile,
         'content': json.dumps(hysteriaConfig)
     }, isStart = False)
 
 
 def loadClient(configFile: str, proxyInfo: dict, socksInfo: dict) -> Process:
-    clientFile = os.path.join(settings['workDir'], configFile)
+    clientFile = os.path.join(Settings['workDir'], configFile)
     hysteriaCommand, hysteriaConfig, _ = Hysteria.load(proxyInfo, socksInfo, clientFile)
-    return Process(settings['workDir'], cmd = hysteriaCommand, file = {
+    return Process(Settings['workDir'], cmd = hysteriaCommand, file = {
         'path': clientFile,
         'content': hysteriaConfig
     }, isStart = False)
@@ -44,26 +34,26 @@ def loadClient(configFile: str, proxyInfo: dict, socksInfo: dict) -> Process:
 def loadTest(protocol: str, isObfs: bool, isAuth: bool) -> dict:
     proxyInfo = {
         'type': 'hysteria',
-        'server': settings['serverBind'],
+        'server': Settings['serverBind'],
         'port': getAvailablePort(),
         'protocol': protocol,
         'obfs': None,
         'passwd': None,
         'up': 10,
         'down': 50,
-        'sni': settings['host'],
+        'sni': Settings['host'],
         'alpn': None,
         'verify': True,
     }
     socksInfo = {  # socks5 interface for test
-        'addr': settings['clientBind'],
+        'addr': Settings['clientBind'],
         'port': getAvailablePort()
     }
     serverConfig = {
         'listen': '%s:%i' % (hostFormat(proxyInfo['server'], v6Bracket = True), proxyInfo['port']),
         'protocol': proxyInfo['protocol'],
-        'cert': settings['cert'],
-        'key': settings['key'],
+        'cert': Settings['cert'],
+        'key': Settings['key'],
     }
     configName = 'hysteria_' + protocol
     caption = 'Hysteria protocol ' + protocol

@@ -6,22 +6,14 @@ import json
 import itertools
 from Tester import V2ray
 from Builder import VMess
+from Tester import Settings
+from Builder import pathEnv
 from Basis.Logger import logging
 from Basis.Process import Process
 from Basis.Functions import md5Sum
 from Basis.Functions import genUUID
-from Basis.Functions import getAvailablePort
-
-from Builder import pathEnv
 from Basis.Methods import vmessMethods
-
-settings = {
-    'serverBind': '127.0.0.1',
-    'clientBind': '127.0.0.1',
-    # 'serverBind': '::1',
-    # 'clientBind': '::1',
-    'workDir': '/tmp/ProxyC',
-}
+from Basis.Functions import getAvailablePort
 
 
 def loadServer(configFile: str, proxyInfo: dict, streamConfig: dict) -> Process:  # load server process
@@ -37,8 +29,8 @@ def loadServer(configFile: str, proxyInfo: dict, streamConfig: dict) -> Process:
         },
         'streamSettings': streamConfig
     })
-    serverFile = os.path.join(settings['workDir'], configFile)
-    return Process(settings['workDir'], cmd = ['v2ray', '-c', serverFile], file = {
+    serverFile = os.path.join(Settings['workDir'], configFile)
+    return Process(Settings['workDir'], cmd = ['v2ray', '-c', serverFile], file = {
         'path': serverFile,
         'content': json.dumps(vmessConfig)
     }, env= {
@@ -48,9 +40,9 @@ def loadServer(configFile: str, proxyInfo: dict, streamConfig: dict) -> Process:
 
 
 def loadClient(configFile: str, proxyInfo: dict, socksInfo: dict) -> Process:  # load client process
-    clientFile = os.path.join(settings['workDir'], configFile)
+    clientFile = os.path.join(Settings['workDir'], configFile)
     vmessCommand, vmessConfig, _ = VMess.load(proxyInfo, socksInfo, clientFile)
-    return Process(settings['workDir'], cmd = vmessCommand, file = {
+    return Process(Settings['workDir'], cmd = vmessCommand, file = {
         'path': clientFile,
         'content': vmessConfig
     }, isStart = False)
@@ -58,7 +50,7 @@ def loadClient(configFile: str, proxyInfo: dict, socksInfo: dict) -> Process:  #
 
 def loadTest(method: str, aid: int, stream: dict) -> dict:
     proxyInfo = {  # connection info
-        'server': settings['serverBind'],
+        'server': Settings['serverBind'],
         'port': getAvailablePort(),
         'method': method,
         'id': genUUID(),  # random uuid v5
@@ -66,7 +58,7 @@ def loadTest(method: str, aid: int, stream: dict) -> dict:
         'stream': stream['info']
     }
     socksInfo = {  # socks5 interface for test
-        'addr': settings['clientBind'],
+        'addr': Settings['clientBind'],
         'port': getAvailablePort()
     }
     configName = 'vmess_%s_%i_%s' % (method, aid, md5Sum(stream['caption'])[:8])

@@ -4,6 +4,7 @@
 import os
 import re
 import json
+from Tester import Settings
 from Basis.Logger import logging
 from Basis.Process import Process
 from Basis.Methods import plugins
@@ -11,22 +12,12 @@ from Basis.Functions import genFlag
 from Basis.Functions import hostFormat
 from Basis.Functions import getAvailablePort
 
-settings = {
-    'serverBind': '127.0.0.1',
-    'workDir': '/tmp/ProxyC',
-    'site': 'www.bing.com',
-    'host': '343.re',
-    'cert': '/etc/ssl/certs/343.re/fullchain.pem',
-    'key': '/etc/ssl/certs/343.re/privkey.pem',
-}
 
 pluginParams = {
-    'SITE': settings['site'],
-    'HOST': settings['host'],
-    'CERT': settings['cert'],
-    'KEY': settings['key'],
-    'PATH': '/' + genFlag(length = 6),
-    'PASSWD': genFlag(length = 8),
+    'SITE': Settings['site'],
+    'HOST': Settings['host'],
+    'CERT': Settings['cert'],
+    'KEY': Settings['key'],
 }
 
 pluginConfig = {
@@ -169,11 +160,11 @@ pluginConfig = {
     'cloak': {},
     'go-quiet': {
         'chrome fingerprint': [
-            os.path.join(settings['workDir'], 'go-quiet_config_${RANDOM}.json'),
+            os.path.join(Settings['workDir'], 'go-quiet_config_${RANDOM}.json'),
             'ServerName=${SITE};key=${PASSWD};TicketTimeHint=300;Browser=chrome',
         ],
         'firefox fingerprint': [
-            os.path.join(settings['workDir'], 'go-quiet_config_${RANDOM}.json'),
+            os.path.join(Settings['workDir'], 'go-quiet_config_${RANDOM}.json'),
             'ServerName=${SITE};key=${PASSWD};TicketTimeHint=300;Browser=firefox',
         ],
     },
@@ -242,7 +233,7 @@ def cloakLoad() -> None:
         pluginParams['CK_PUBLIC'], pluginParams['CK_PRIVATE']
     ))
     ckPrefix = 'UID=${CK_UID};PublicKey=${CK_PUBLIC};ServerName=${SITE};'  # cloak plugin's basic command
-    ckConfigPath = os.path.join(settings['workDir'], 'cloak_config_${RANDOM}.json')  # clock server's config
+    ckConfigPath = os.path.join(Settings['workDir'], 'cloak_config_${RANDOM}.json')  # clock server's config
     for ckMethod in ['plain', 'aes-128-gcm', 'aes-256-gcm', 'chacha20-poly1305']:  # traverse cloak encrypt methods
         pluginConfig['cloak']['%s method' % ckMethod] = [
             ckConfigPath, ckPrefix + 'EncryptionMethod=' + ckMethod
@@ -322,8 +313,6 @@ def trojanInject(server: Process, pluginInfo: dict) -> Process:
 
 
 def paramFill(param: str) -> str:
-    if '${RANDOM}' in param:  # refresh RANDOM field
-        pluginParams['RANDOM'] = genFlag(length = 8)
     for field in pluginParams:
         param = param.replace('${%s}' % field, pluginParams[field])  # fill ${XXX} field
     return param
@@ -334,10 +323,12 @@ def load(proxyType: str):
         raise RuntimeError('Unknown proxy type for sip003 plugin')
     cloakLoad()  # init cloak config
     kcptunLoad()  # init kcptun config
+    pluginParams['PASSWD'] = genFlag(length = 8)  # random password for test
+    pluginParams['PATH'] = '/' + genFlag(length = 6)  # random uri path for test
     for pluginType in pluginConfig:
         for pluginTest, pluginTestInfo in pluginConfig[pluginType].items():  # traverse all plugin test item
-            if pluginType == 'rabbit':
-                pluginParams['RABBIT_PORT'] = str(getAvailablePort())  # allocate port before rabbit plugin start
+            pluginParams['RANDOM'] = genFlag(length = 8)  # refresh RANDOM field
+            pluginParams['RABBIT_PORT'] = str(getAvailablePort())  # allocate port before rabbit plugin start
             yield {
                 'type': pluginType,
                 'caption': pluginTest,
