@@ -8,7 +8,7 @@ from Basis.Logger import logging
 from Basis.Process import Process
 from Basis.Methods import plugins
 from Basis.Functions import genFlag
-from Basis.Functions import ipFormat
+from Basis.Functions import hostFormat
 from Basis.Functions import getAvailablePort
 
 settings = {
@@ -260,7 +260,7 @@ def rabbitShadowsocks(server: Process, pluginInfo: dict) -> Process:
     ssConfig = json.loads(server.file[0]['content'])  # modify origin config
     ssConfig.pop('plugin')  # remove plugin option
     ssConfig.pop('plugin_opts')
-    rabbitBind = ipFormat(ssConfig['server'], v6Bracket=True)  # ipv4 / [ipv6]
+    rabbitBind = hostFormat(ssConfig['server'], v6Bracket=True)  # ipv4 / [ipv6]
     rabbitPort = ssConfig['server_port']
     ssConfig['server'] = '127.0.0.1'  # SIP003 use ipv4 localhost for communication
     ssConfig['server_port'] = int(pluginInfo['server']['param'])  # aka ${RABBIT_PORT}
@@ -273,7 +273,7 @@ def rabbitShadowsocks(server: Process, pluginInfo: dict) -> Process:
 
 def rabbitTrojanGo(server: Process, pluginInfo: dict) -> Process:
     trojanConfig = json.loads(server.file[0]['content'])  # modify origin config
-    rabbitBind = ipFormat(trojanConfig['local_addr'], v6Bracket=True)  # ipv4 / [ipv6]
+    rabbitBind = hostFormat(trojanConfig['local_addr'], v6Bracket=True)  # ipv4 / [ipv6]
     rabbitPort = trojanConfig['local_port']
     trojanConfig['local_addr'] = '127.0.0.1'  # SIP003 use ipv4 localhost for communication
     trojanConfig['local_port'] = int(pluginInfo['server']['param'])  # aka ${RABBIT_PORT}

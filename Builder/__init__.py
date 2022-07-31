@@ -4,6 +4,7 @@
 import os
 import copy
 
+from Builder import Brook
 from Builder import VMess
 from Builder import VLESS
 from Builder import Trojan
@@ -23,6 +24,7 @@ clientEntry = {
     'vless': [VLESS.load, '.json'],
     'trojan': [Trojan.load, '.json'],
     'trojan-go': [TrojanGo.load, '.json'],
+    'brook': [Brook.load, ''],
 }
 
 

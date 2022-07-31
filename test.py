@@ -13,7 +13,7 @@ from Tester import Shadowsocks
 from Tester import ShadowsocksR
 
 from Basis.Logger import logging
-from Basis.Functions import ipFormat
+from Basis.Functions import hostFormat
 from Basis.Functions import checkPortStatus
 
 
@@ -39,7 +39,7 @@ def test(testObj: dict) -> None:
 
     errFlag = False
     socks5 = '%s:%i' % (
-        ipFormat(testObj['socks']['addr'], v6Bracket = True),
+        hostFormat(testObj['socks']['addr'], v6Bracket = True),
         testObj['socks']['port']
     )
     try:

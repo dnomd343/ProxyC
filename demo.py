@@ -97,12 +97,28 @@ proxyTrojanGo = {
     },
 }
 
+proxyBrook = {
+    'server': '::1',
+    'port': 12345,
+    'passwd': 'dnomd343',
+    'stream': {
+        'type': 'ws',
+        'host': '343.re',
+        'path': '/test',
+        'raw': True,
+        'secure': {
+            'verify': False
+        },
+    }
+}
+
 # client = Builder('ss', proxySS)
 # client = Builder('ssr', proxySSR)
 # client = Builder('vmess', proxyVMess)
 # client = Builder('vless', proxyVLESS)
 # client = Builder('trojan', proxyTrojan)
-client = Builder('trojan-go', proxyTrojanGo)
+# client = Builder('trojan-go', proxyTrojanGo)
+client = Builder('brook', proxyBrook)
 
 logging.critical(client.id)
 logging.critical(client.proxyType)
