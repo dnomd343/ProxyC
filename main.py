@@ -26,7 +26,7 @@ def daemonDnsproxy(dnsServers: list, localPort: int = 53, cacheSize: int = 41943
         dnsCommand += ['--upstream', dnsServer]
     dnsproxy = startDnsproxy(dnsCommand)
     while True:
-        time.sleep(1)  # daemon time gap
+        time.sleep(2)  # daemon time gap
         if dnsproxy.poll() is not None:  # unexpected exit
             logging.warning('dnsproxy unexpected exit')
             logging.debug('output of dnsproxy\n%s' % dnsproxy.stdout.read().decode('UTF-8'))
