@@ -26,9 +26,9 @@ def getVersion() -> Response:
 def startServer(apiPort: int = 7839, apiToken: str = '', isWsgi: bool = True) -> None:
     global webApi, webPath
     logging.warning(
-        'start api server at http://:%i/' % apiPort + (' (enable WSGI)' if isWsgi else '')
+        'API server at http://:%i/' % apiPort + (' (enable WSGI)' if isWsgi else '')
     )
-    logging.warning('server ' + ('without token' if apiToken == '' else 'api token -> %s' % apiToken))
+    logging.warning('API ' + ('without token' if apiToken == '' else 'token -> %s' % apiToken))
     if not isWsgi:
         webApi.run(host = '0.0.0.0', port = apiPort, debug = True, threaded = True)  # ordinary server (for debug)
     else:
