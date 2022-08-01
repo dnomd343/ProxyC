@@ -437,6 +437,17 @@ RUN \
 COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/dnsproxy
 
+# Compile mad
+FROM golang:1.16-alpine3.15 AS mad
+ENV MAD_VERSION="v20210401"
+RUN \
+  wget https://github.com/txthinking/mad/archive/refs/tags/${MAD_VERSION}.tar.gz && \
+  tar xf ${MAD_VERSION}.tar.gz && cd ./mad-*/cli/mad/ && \
+  CGO_ENABLED=0 go build -ldflags="-s -w" && \
+  mv ./mad /tmp/
+COPY --from=upx /upx/ /usr/
+RUN upx -9 /tmp/mad
+
 # Combine all release
 FROM python:3.10-alpine3.16 AS asset
 COPY --from=python-pkg /packages.tar.gz /
@@ -460,6 +471,7 @@ COPY --from=relaybaton /tmp/relaybaton /asset/usr/bin/
 COPY --from=pingtunnel /tmp/pingtunnel /asset/usr/bin/
 COPY --from=wireproxy /tmp/wireproxy /asset/usr/bin/
 COPY --from=dnsproxy /tmp/dnsproxy /asset/usr/bin/
+COPY --from=mad /tmp/mad /asset/usr/bin/
 
 # Release docker image
 FROM python:3.10-alpine3.16

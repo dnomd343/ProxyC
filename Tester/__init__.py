@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
 import time
 import requests
 from threading import Thread
 from Basis.Logger import logging
-from Basis.Functions import md5Sum, hostFormat, checkPortStatus
+from Tester.Settings import Settings
+from Basis.Functions import md5Sum, genFlag, hostFormat, checkPortStatus
 
 from Tester import Brook
 from Tester import VMess
@@ -16,7 +18,7 @@ from Tester import Hysteria
 from Tester import Shadowsocks
 from Tester import ShadowsocksR
 
-testEntry = {
+entry = {
     'ss': Shadowsocks.load(),
     'ss-all': Shadowsocks.load(isExtra = True),
     'ssr': ShadowsocksR.load(),
@@ -108,3 +110,35 @@ def test(testIter: iter, threadNum: int, testUrl: str, testFilter: set or None =
             break
     for thread in threads:  # wait until all threads exit
         thread.join()
+
+
+def loadCert(host: str = 'proxyc.net', remark: str = 'ProxyC'):
+    loadPath = lambda x: os.path.join(Settings['workDir'], x)
+    certFlag = genFlag(length = 8)
+    caCert = loadPath('proxyc_%s_ca.pem' % certFlag)
+    caKey = loadPath('proxyc_%s_ca_key.pem' % certFlag)
+    cert = loadPath('proxyc_%s_cert.pem' % certFlag)
+    key = loadPath('proxyc_%s_cert_key.pem' % certFlag)
+    logging.critical('Create self-signed certificate')
+    os.system('mkdir -p %s' % Settings['workDir'])  # create work directory
+    logging.critical('Create CA certificate and key')
+    os.system(' '.join(['mad', 'ca'] + [
+        '--ca', caCert, '--key', caKey,
+        '--commonName', remark,
+        '--organization', remark,
+        '--organizationUnit', remark,
+    ]))
+    logging.critical('Signing certificate')
+    os.system(' '.join(['mad', 'cert'] + [
+        '--ca', caCert, '--ca_key', caKey,
+        '--cert', cert, '--key', key,
+        '--domain', host,
+        '--organization', remark,
+        '--organizationUnit', remark,
+    ]))
+    logging.critical('Install CA certificate')
+    os.system('cat %s >> /etc/ssl/certs/ca-certificates.crt' % caCert)
+    Settings['host'] = host
+    Settings['cert'] = cert
+    Settings['key'] = key
+    logging.warning('Certificate loading complete')

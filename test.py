@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
 import sys
 import Tester
-from Tester import testEntry
 from Basis.Logger import logging
 
 threadNum = 16
@@ -31,6 +31,7 @@ def getArg(field: str) -> str or None:
     except:
         return None
 
+
 if '--help' in sys.argv:
     print(helpMsg)
     sys.exit(0)
@@ -43,17 +44,18 @@ if getArg('--thread') is not None:
 if getArg('--filter') is not None:
     testFilter = set(getArg('--filter').split(','))
 
-logging.critical('test item: ' + ('all' if testItem is None else testItem))
-logging.critical('filter: %s' % testFilter)
-logging.critical('url: ' + testUrl)
-logging.critical('thread number: %i' % threadNum)
+Tester.loadCert('proxyc.net', 'ProxyC')
+logging.critical('TEST ITEM: ' + ('all' if testItem is None else testItem))
+logging.critical('FILTER: %s' % testFilter)
+logging.critical('URL: ' + testUrl)
+logging.critical('THREAD NUMBER: %i' % threadNum)
 logging.critical('TEST START')
 if testItem is not None:
-    Tester.test(testEntry[testItem], threadNum, testUrl, testFilter)
+    Tester.test(Tester.entry[testItem], threadNum, testUrl, testFilter)
 else:
-    for item in testEntry:
+    for item in Tester.entry:
         if item == ('ss' if '--all' in sys.argv else 'ss-all'):  # skip ss / ss-all
             continue
         logging.critical('TEST ITEM -> ' + item)
-        Tester.test(testEntry[item], threadNum, testUrl, testFilter)
+        Tester.test(Tester.entry[item], threadNum, testUrl, testFilter)
 logging.critical('TEST COMPLETE')
