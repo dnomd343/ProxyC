@@ -20,6 +20,7 @@ helpMsg = '''
       --url URL                http check url
       --filter ID1[,ID2...]    test the specified id
       --all                    test extra shadowsocks items
+      --ipv6                   test on ipv6 network
       --help                   show this message
 '''
 
@@ -44,6 +45,8 @@ if getArg('--thread') is not None:
 if getArg('--filter') is not None:
     testFilter = set(getArg('--filter').split(','))
 
+isV6 = '--ipv6' in sys.argv
+Tester.loadBind(serverV6 = isV6, clientV6 = isV6)
 Tester.loadCert('proxyc.net', 'ProxyC')
 logging.critical('TEST ITEM: ' + ('all' if testItem is None else testItem))
 logging.critical('FILTER: %s' % testFilter)

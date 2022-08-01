@@ -3,8 +3,8 @@
 
 Settings = {
     'workDir': '/tmp/ProxyC',
-    'serverBind': '127.0.0.1',
-    'clientBind': '127.0.0.1',
+    'serverBind': '',
+    'clientBind': '',
     'site': 'www.bing.com',
     'host': '',
     'cert': '',

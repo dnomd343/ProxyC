@@ -39,7 +39,7 @@ def waitPort(port: int, times: int = 100, delay: int = 100) -> bool:  # wait unt
     return False  # timeout
 
 
-def httpCheck(socksInfo: dict, url: str, timeout: int = 10):
+def httpCheck(socksInfo: dict, url: str, timeout: int = 10) -> None:
     socksProxy = 'socks5://%s:%i' % (hostFormat(socksInfo['addr'], v6Bracket = True), socksInfo['port'])
     try:
         proxy = {
@@ -90,7 +90,7 @@ def runTest(testInfo: dict, testUrl: str, testFilter: set or None, delay: int = 
         logging.error('\n%s' % testInfo['server'].output)
 
 
-def test(testIter: iter, threadNum: int, testUrl: str, testFilter: set or None = None):
+def test(testIter: iter, threadNum: int, testUrl: str, testFilter: set or None = None) -> None:
     threads = []
     while True:  # infinite loop
         try:
@@ -112,7 +112,12 @@ def test(testIter: iter, threadNum: int, testUrl: str, testFilter: set or None =
         thread.join()
 
 
-def loadCert(host: str = 'proxyc.net', remark: str = 'ProxyC'):
+def loadBind(serverV6: bool = False, clientV6: bool = False) -> None:
+    Settings['serverBind'] = '::1' if serverV6 else '127.0.0.1'
+    Settings['clientBind'] = '::1' if clientV6 else '127.0.0.1'
+
+
+def loadCert(host: str = 'proxyc.net', remark: str = 'ProxyC') -> None:
     loadPath = lambda x: os.path.join(Settings['workDir'], x)
     certFlag = genFlag(length = 8)
     caCert = loadPath('proxyc_%s_ca.pem' % certFlag)
