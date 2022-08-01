@@ -49,7 +49,7 @@ logging.critical('TEST ITEM: ' + ('all' if testItem is None else testItem))
 logging.critical('FILTER: %s' % testFilter)
 logging.critical('URL: ' + testUrl)
 logging.critical('THREAD NUMBER: %i' % threadNum)
-logging.critical('TEST START')
+logging.critical('-------------------------------- TEST START --------------------------------')
 if testItem is not None:
     Tester.test(Tester.entry[testItem], threadNum, testUrl, testFilter)
 else:
@@ -58,4 +58,4 @@ else:
             continue
         logging.critical('TEST ITEM -> ' + item)
         Tester.test(Tester.entry[item], threadNum, testUrl, testFilter)
-logging.critical('TEST COMPLETE')
+logging.critical('-------------------------------- TEST COMPLETE --------------------------------')
