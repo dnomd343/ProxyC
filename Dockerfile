@@ -479,5 +479,6 @@ RUN \
   apk add --no-cache boost-program_options c-ares \
     ca-certificates glib libev libsodium libstdc++ mbedtls pcre redis && \
   pip3 --no-cache-dir install colorlog flask IPy pysocks redis requests && \
+  rm -rf $(find / -name '__pycache__') && \
   echo "daemonize yes" >> /etc/redis.conf
 COPY --from=asset /asset /
