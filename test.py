@@ -13,7 +13,7 @@ testUrl = 'http://baidu.com'
 helpMsg = '''
   ./test.py [ITEM] [OPTIONS]
 
-    [ITEM]: ss / ss-all / ssr / vmess / vless / trojan / trojan-go / brook / hysteria
+    [ITEM]: ss / ssr / vmess / vless / trojan / trojan-go / brook / hysteria
 
     [OPTIONS]:
       --thread NUM             thread number
@@ -54,6 +54,8 @@ logging.critical('URL: ' + testUrl)
 logging.critical('THREAD NUMBER: %i' % threadNum)
 logging.critical('-------------------------------- TEST START --------------------------------')
 if testItem is not None:
+    if testItem == 'ss' and '--all' in sys.argv:
+        testItem = 'ss-all'
     Tester.test(Tester.entry[testItem], threadNum, testUrl, testFilter)
 else:
     for item in Tester.entry:
