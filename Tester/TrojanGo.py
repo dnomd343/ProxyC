@@ -8,7 +8,7 @@ from Builder import TrojanGo
 from Basis.Logger import logging
 from Basis.Process import Process
 from Tester.Settings import Settings
-from Basis.Methods import trojanGoMethods
+from Basis.Constant import trojanGoMethods
 from Basis.Functions import md5Sum, genFlag, getAvailablePort
 
 

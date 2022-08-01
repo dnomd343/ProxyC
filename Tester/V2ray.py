@@ -5,7 +5,7 @@ import copy
 import itertools
 from Basis.Functions import genFlag
 from Tester.Settings import Settings
-from Basis.Methods import quicMethods, udpObfuscations
+from Basis.Constant import quicMethods, udpObfuscations
 
 httpConfig = {
     'version': '1.1',

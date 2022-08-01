@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from Builder import V2ray
-from Basis.Methods import xtlsFlows
+from Basis.Constant import xtlsFlows
 
 loadConfig = V2ray.loadConfig
 

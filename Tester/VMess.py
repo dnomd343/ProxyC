@@ -10,7 +10,7 @@ from Builder import pathEnv
 from Basis.Logger import logging
 from Basis.Process import Process
 from Tester.Settings import Settings
-from Basis.Methods import vmessMethods
+from Basis.Constant import vmessMethods
 from Basis.Functions import md5Sum, genUUID, getAvailablePort
 
 

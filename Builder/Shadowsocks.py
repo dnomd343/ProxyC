@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import json
-from Basis.Methods import ssMethods, ssAllMethods
+from Basis.Constant import ssMethods, ssAllMethods
 
 
 def loadConfig(proxyInfo: dict, socksInfo: dict) -> dict:  # load basic config option

@@ -8,7 +8,7 @@ from Basis.Logger import logging
 from Basis.Process import Process
 from Tester.Settings import Settings
 from Basis.Functions import genFlag, getAvailablePort
-from Basis.Methods import ssrMethods, ssrProtocols, ssrObfuscations
+from Basis.Constant import ssrMethods, ssrProtocols, ssrObfuscations
 
 
 def loadServer(configFile: str, proxyInfo: dict) -> Process:  # load server process

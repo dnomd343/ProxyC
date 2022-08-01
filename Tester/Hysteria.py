@@ -8,7 +8,7 @@ from Builder import Hysteria
 from Basis.Logger import logging
 from Basis.Process import Process
 from Tester.Settings import Settings
-from Basis.Methods import hysteriaProtocols
+from Basis.Constant import hysteriaProtocols
 from Basis.Functions import hostFormat, genFlag, getAvailablePort
 
 

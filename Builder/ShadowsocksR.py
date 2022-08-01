@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import json
-from Basis.Methods import ssrMethods, ssrProtocols, ssrObfuscations
+from Basis.Constant import ssrMethods, ssrProtocols, ssrObfuscations
 
 
 def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, dict]:

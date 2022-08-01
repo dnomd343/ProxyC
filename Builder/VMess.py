@@ -3,7 +3,7 @@
 
 import json
 from Builder import V2ray
-from Basis.Methods import vmessMethods
+from Basis.Constant import vmessMethods
 
 
 def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, dict]:

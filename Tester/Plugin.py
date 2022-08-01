@@ -6,7 +6,7 @@ import re
 import json
 from Basis.Logger import logging
 from Basis.Process import Process
-from Basis.Methods import plugins
+from Basis.Constant import plugins
 from Tester.Settings import Settings
 from Basis.Functions import genFlag, hostFormat, getAvailablePort
 

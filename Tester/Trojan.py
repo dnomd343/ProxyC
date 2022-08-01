@@ -7,7 +7,7 @@ from Tester import Xray
 from Builder import Trojan
 from Basis.Logger import logging
 from Basis.Process import Process
-from Basis.Methods import xtlsFlows
+from Basis.Constant import xtlsFlows
 from Tester.Settings import Settings
 from Basis.Functions import md5Sum, genFlag, getAvailablePort
 

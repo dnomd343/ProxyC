@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+version = 'dev'
+
 # Shadowsocks Info
 ssMethods = { # methods support of different Shadowsocks project
     'ss-rust': [  # table method removed refer to https://github.com/shadowsocks/shadowsocks-rust/issues/887
