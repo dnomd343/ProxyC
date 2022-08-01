@@ -6,7 +6,7 @@ import re
 import json
 from Basis.Logger import logging
 from Basis.Process import Process
-from Basis.Constant import plugins
+from Basis.Constant import Plugins
 from Tester.Settings import Settings
 from Basis.Functions import genFlag, hostFormat, getAvailablePort
 
@@ -333,11 +333,11 @@ def load(proxyType: str):
                 'type': pluginType,
                 'caption': pluginTest,
                 'server': {  # plugin info for server
-                    'type': plugins[pluginType]['server'],
+                    'type': Plugins[pluginType]['server'],
                     'param': paramFill(pluginTestInfo[0]),
                 },
                 'client': {  # plugin info for client
-                    'type': plugins[pluginType]['client'],
+                    'type': Plugins[pluginType]['client'],
                     'param': paramFill(pluginTestInfo[1]),
                 },
                 'inject': ssInject if proxyType == 'ss' else trojanInject  # for some special plugins

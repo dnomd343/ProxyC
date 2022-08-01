@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-version = 'dev'
+Version = 'dev'
 
 # Shadowsocks Info
 ssMethods = { # methods support of different Shadowsocks project
@@ -69,7 +69,7 @@ ssAllMethods = set()
 ssAllMethods = sorted(list(ssAllMethods))  # methods of Shadowsocks
 
 # Plugin Info
-plugins = {
+Plugins = {
     'simple-obfs': ['obfs-local', 'obfs-server'],
     'simple-tls': ['simple-tls'],
     'v2ray': ['v2ray-plugin'],
@@ -84,9 +84,9 @@ plugins = {
     'gun': ['gun-plugin'],
 }
 
-plugins = {x: [plugins[x][0], plugins[x][1 if len(plugins[x]) == 2 else 0]] for x in plugins}
-plugins = {x: {'client': plugins[x][0], 'server': plugins[x][1]} for x in plugins}  # format plugins info
-pluginClients = [plugins[x]['client'] for x in plugins]  # plugin client list -> obfs-local / simple-tls / ...
+Plugins = {x: [Plugins[x][0], Plugins[x][1 if len(Plugins[x]) == 2 else 0]] for x in Plugins}
+Plugins = {x: {'client': Plugins[x][0], 'server': Plugins[x][1]} for x in Plugins}  # format plugins info
+pluginClients = [Plugins[x]['client'] for x in Plugins]  # plugin client list -> obfs-local / simple-tls / ...
 
 # ShadowsocksR Info
 ssrMethods = [  # methods of ShadowsocksR
