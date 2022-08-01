@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+import os
 import time
 import _thread
 import subprocess
@@ -9,21 +9,28 @@ from Basis.Api import startServer
 from Basis.Constant import Version
 from Basis.Compile import startCompile
 
+dnsServers = None
+# dnsServers = ['223.5.5.5', '119.28.28.28']
+
 
 def startDnsproxy(command: list) -> subprocess.Popen:
     logging.debug('start dnsproxy -> %s' % command)
     return subprocess.Popen(command, stdout = subprocess.PIPE, stderr = subprocess.STDOUT)
 
 
-def daemonDnsproxy(dnsServers: list, localPort: int = 53, cacheSize: int = 4194304) -> None:  # default cache -> 4MiB
-    logging.info('start dnsproxy at port %i -> %s' % (localPort, dnsServers))
+def daemonDnsproxy(servers: list or None, port: int = 53, cache: int = 4194304) -> None:  # default cache size -> 4MiB
+    if servers is None or len(servers) == 0:
+        logging.info('skip dnsproxy process')
+        return
+    logging.info('start dnsproxy at port %i -> %s' % (port, servers))
+    os.system('echo "nameserver 127.0.0.1" > /etc/resolv.conf')  # system dns settings
     dnsCommand = [
         'dnsproxy', '--all-servers',
-        '--port', str(localPort),
-        '--cache', '--cache-size', str(cacheSize)
+        '--port', str(port),
+        '--cache', '--cache-size', str(cache)
     ]
-    for dnsServer in dnsServers:
-        dnsCommand += ['--upstream', dnsServer]
+    for server in servers:
+        dnsCommand += ['--upstream', server]
     dnsproxy = startDnsproxy(dnsCommand)
     while True:
         time.sleep(2)  # daemon time gap
@@ -33,10 +40,24 @@ def daemonDnsproxy(dnsServers: list, localPort: int = 53, cacheSize: int = 41943
             dnsproxy = startDnsproxy(dnsCommand)
 
 
+from Basis.Check import Check
+from Basis.Manage import Manage
+
+def loopCheck() -> None:
+    while True:
+        time.sleep(2)  # TODO: thread pool working
+        subTaskId, subTask = Manage.popSubTask()
+        if subTaskId is None: continue
+        logging.info('new sub task -> %s', subTask)
+        ret = Check(subTask['type'], subTask['info'], {})
+        logging.info('check result -> %s' % ret)
+        subTask.pop('check')
+        subTask['result'] = ret
+        Manage.updateSubTask(subTaskId, subTask)
+
+
 logging.warning('ProxyC starts running (%s)' % Version)
-
-_thread.start_new_thread(startCompile, ('/usr', ))
-
-_thread.start_new_thread(daemonDnsproxy, (['223.5.5.5', '119.28.28.28'], 53))
-
-startServer(apiToken = 'dnomd343')
+_thread.start_new_thread(startCompile, ('/usr', ))  # python compile (generate .pyc file)
+_thread.start_new_thread(daemonDnsproxy, (dnsServers, 53))  # set system's dns server
+_thread.start_new_thread(loopCheck, ())  # start loop check
+startServer(apiToken = '')  # start api server

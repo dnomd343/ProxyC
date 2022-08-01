@@ -3,6 +3,7 @@
 
 import json
 from gevent import pywsgi
+from Basis.Manage import Manage
 from Basis.Logger import logging
 from Basis.Constant import Version
 from flask import Flask, Response, request
@@ -37,35 +38,80 @@ def tokenCheck() -> bool:
 def getTaskList() -> Response:
     if not tokenCheck():  # token check
         return tokenError()
-    logging.critical('get task list')
-    return jsonResponse({})
+    try:
+        taskList = Manage.listTask()
+        logging.debug('api get task list -> %s' % taskList)
+        return jsonResponse({
+            'success': True,
+            'task': taskList,
+        })
+    except:
+        return jsonResponse({
+            'success': False,
+            'message': 'Unknown error'
+        })
 
 
 @webApi.route('/task', methods = ['POST'])
 def createTask() -> Response:
     if not tokenCheck():  # token check
         return tokenError()
-    logging.critical('create task')
-    return jsonResponse({})
+    checkList = request.json.get('check')
+    proxyList = request.json.get('proxy')
+    if checkList is None or type(checkList) != list:
+        return jsonResponse({
+            'success': False,
+            'message': 'invalid check list',
+        })
+    if proxyList is None or type(proxyList) != list:
+        return jsonResponse({
+            'success': False,
+            'message': 'invalid proxy list',
+        })
+    logging.debug('api create task -> check: %s | proxy: %s' % (checkList, proxyList))
+
+    # TODO: format check and proxy list
+
+    tasks = []
+    for proxy in proxyList:
+        tasks.append({**proxy, 'check': checkList})
+    checkId = Manage.addTask(tasks)
+    logging.debug('api return check id %s' % checkId)
+
+    return jsonResponse({
+        'success': True,
+        'id': checkId,
+        'check': checkList,
+        'proxy': proxyList,
+    })
 
 
 @webApi.route('/task/<taskId>', methods = ['GET'])
-def getTaskInfo() -> Response:
+def getTaskInfo(taskId: str) -> Response:
     if not tokenCheck():  # token check
         return tokenError()
-    logging.critical('get task info')
-    return jsonResponse({})
+    logging.critical('API get task %s info' % taskId)
+    if not Manage.isTask(taskId):
+        return jsonResponse({
+            'success': False,
+            'message': 'task id not found',
+        })
+    return jsonResponse({
+        'success': True,
+        **Manage.getTask(taskId)
+    })
 
 
 @webApi.route('/version', methods = ['GET'])
 def getVersion() -> Response:
     logging.debug('get version -> %s' + Version)
     return jsonResponse({
-        'version': Version
+        'success': True,
+        'version': Version,
     })
 
 
-def startServer(apiPort: int = 7839, apiToken: str = '') -> None:
+def startServer(apiToken: str = '', apiPort: int = 7839) -> None:
     global token
     token = apiToken
     logging.warning('API server at http://:%i/' % apiPort)

@@ -132,17 +132,20 @@ proxyHysteria = {
 # client = Builder('trojan', proxyTrojan)
 # client = Builder('trojan-go', proxyTrojanGo)
 # client = Builder('brook', proxyBrook)
-client = Builder('hysteria', proxyHysteria)
+# client = Builder('hysteria', proxyHysteria)
+#
+# logging.critical(client.id)
+# logging.critical(client.proxyType)
+# logging.critical(client.proxyInfo)
+# logging.critical(client.socksAddr)
+# logging.critical(client.socksPort)
+#
+# time.sleep(15)
+# logging.critical(client.status())
+#
+# client.destroy()
+# logging.critical(client.status())
+# logging.critical('Client output:\n' + str(client.output))
 
-logging.critical(client.id)
-logging.critical(client.proxyType)
-logging.critical(client.proxyInfo)
-logging.critical(client.socksAddr)
-logging.critical(client.socksPort)
-
-time.sleep(15)
-logging.critical(client.status())
-
-client.destroy()
-logging.critical(client.status())
-logging.critical('Client output:\n' + str(client.output))
+from Basis.Check import Check
+Check('ss', proxySS, {})

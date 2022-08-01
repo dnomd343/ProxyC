@@ -50,9 +50,8 @@ class Task(object):
         if completed < len(subList):  # some sub tasks are not completed
             logging.debug('[%s] task still running' % taskId)
             return {
-                'done': False,
-                'total': len(subList),
-                'finish': completed,
+                'finish': False,
+                'percent': '%i%%' % (completed / len(subList))
             }
         logging.debug('[%s] task work complete' % taskId)  # all sub tasks completed
         result = []
@@ -62,7 +61,7 @@ class Task(object):
             result.append(subTask['data'])
         logging.debug('release sub tasks -> %s' % result)
         return {
-            'done': True,
+            'finish': True,
             'result': result
         }
 
