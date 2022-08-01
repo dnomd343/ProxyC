@@ -39,7 +39,7 @@ def waitPort(port: int, times: int = 100, delay: int = 100) -> bool:  # wait unt
     return False  # timeout
 
 
-def httpCheck(socksInfo: dict, url: str, timeout: int = 10) -> None:
+def httpCheck(socksInfo: dict, url: str, testId: str, timeout: int = 10) -> None:
     socksProxy = 'socks5://%s:%i' % (hostFormat(socksInfo['addr'], v6Bracket = True), socksInfo['port'])
     try:
         proxy = {
@@ -48,9 +48,9 @@ def httpCheck(socksInfo: dict, url: str, timeout: int = 10) -> None:
         }
         request = requests.get(url, timeout = timeout, proxies = proxy)
         request.raise_for_status()
-        logging.info('%s -> ok' % socksProxy)
+        logging.info('[%s] %s -> ok' % (testId, socksProxy))
     except Exception as exp:
-        logging.error('%s -> error' % socksProxy)
+        logging.error('[%s] %s -> error' % (testId, socksProxy))
         logging.error('requests exception\n' + str(exp))
         raise RuntimeError('socks5 test failed')
 
@@ -68,25 +68,25 @@ def runTest(testInfo: dict, testUrl: str, testFilter: set or None, delay: int = 
     try:
         logging.debug('start test process')
         time.sleep(delay)
-        httpCheck(testInfo['socks'], testUrl)
+        httpCheck(testInfo['socks'], testUrl, testInfo['hash'])
         testInfo['client'].quit()
         testInfo['server'].quit()
     except:
         # client debug info
         testInfo['client'].quit()
-        logging.warning('client info')
+        logging.warning('[%s] client info' % testInfo['hash'])
         logging.error('command -> %s' % testInfo['client'].cmd)
         logging.error('envVar -> %s' % testInfo['client'].env)
         logging.error('file -> %s' % testInfo['client'].file)
-        logging.warning('client capture output')
+        logging.warning('[%s] client capture output' % testInfo['hash'])
         logging.error('\n%s' % testInfo['client'].output)
         # server debug info
         testInfo['server'].quit()
-        logging.warning('server info')
+        logging.warning('[%s] server info' % testInfo['hash'])
         logging.error('command -> %s' % testInfo['server'].cmd)
         logging.error('envVar -> %s' % testInfo['server'].env)
         logging.error('file -> %s' % testInfo['server'].file)
-        logging.warning('server capture output')
+        logging.warning('[%s] server capture output' % testInfo['hash'])
         logging.error('\n%s' % testInfo['server'].output)
 
 
