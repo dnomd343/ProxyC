@@ -476,6 +476,8 @@ COPY --from=mad /tmp/mad /asset/usr/bin/
 # Release docker image
 FROM python:3.10-alpine3.16
 RUN \
-  apk add --no-cache boost-program_options c-ares glib libev libsodium libstdc++ mbedtls pcre && \
-  pip3 --no-cache-dir install colorlog pysocks requests IPy
+  apk add --no-cache boost-program_options c-ares \
+    ca-certificates glib libev libsodium libstdc++ mbedtls pcre redis && \
+  pip3 --no-cache-dir install colorlog flask IPy pysocks redis requests && \
+  echo "daemonize yes" >> /etc/redis.conf
 COPY --from=asset /asset /
