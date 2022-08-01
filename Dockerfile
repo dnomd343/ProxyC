@@ -477,8 +477,7 @@ COPY --from=mad /tmp/mad /asset/usr/bin/
 FROM python:3.10-alpine3.16
 RUN \
   apk add --no-cache boost-program_options c-ares \
-    ca-certificates glib libev libsodium libstdc++ mbedtls pcre redis && \
-  pip3 --no-cache-dir install colorlog flask gevent IPy pysocks redis requests && \
-  rm -rf $(find / -name '__pycache__') && \
-  echo "daemonize yes" >> /etc/redis.conf
+    ca-certificates glib libev libsodium libstdc++ mbedtls pcre && \
+  pip3 --no-cache-dir install colorlog flask gevent IPy pysocks requests && \
+  rm -rf $(find / -name '__pycache__')
 COPY --from=asset /asset /
