@@ -20,15 +20,16 @@ def addSecure(streamConfig: dict, xtlsFlow: str or None = None, isUdp443: bool =
     streamConfig['caption'] += ' (with %s)' % (
         'tls' if xtlsFlow is None else (xtlsFlow + ('-udp443' if isUdp443 else ''))
     )
-    streamConfig['info']['secure'] = {**{  # secure options for client
+    streamConfig['info']['secure'] = {  # secure options for client
         'type': 'tls' if xtlsFlow is None else 'xtls',
         'sni': Settings['host'],
         'alpn': None,
         'verify': True,
-    }, **({} if xtlsFlow is None else {
-        'flow': xtlsFlow,
-        'udp443': isUdp443,
-    })}
+        **({} if xtlsFlow is None else {
+            'flow': xtlsFlow,
+            'udp443': isUdp443,
+        })
+    }
     streamConfig['server']['security'] = 'tls' if xtlsFlow is None else 'xtls'
     streamConfig['server']['%sSettings' % streamConfig['server']['security']] = {  # cert and key for server
         'alpn': ['h2', 'http/1.1'],

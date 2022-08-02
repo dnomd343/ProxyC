@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from Basis.Constant import WorkDir
+
 Settings = {
-    'workDir': '/tmp/ProxyC',
+    'workDir': WorkDir,
+    'site': 'www.bing.com',
     'serverBind': '',
     'clientBind': '',
-    'site': 'www.bing.com',
     'host': '',
     'cert': '',
     'key': '',

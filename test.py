@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os
 import sys
 import Tester
 from Basis.Logger import logging
@@ -46,12 +45,13 @@ if getArg('--filter') is not None:
     testFilter = set(getArg('--filter').split(','))
 
 isV6 = '--ipv6' in sys.argv
-Tester.loadBind(serverV6 = isV6, clientV6 = isV6)
-Tester.loadCert('proxyc.net', 'ProxyC')
+Tester.loadBind(serverV6 = isV6, clientV6 = isV6)  # ipv4 / ipv6 (127.0.0.1 / ::1)
+Tester.loadCert('proxyc.net', 'ProxyC')  # default cert config
 logging.critical('TEST ITEM: ' + ('all' if testItem is None else testItem))
 logging.critical('FILTER: %s' % testFilter)
 logging.critical('URL: ' + testUrl)
 logging.critical('THREAD NUMBER: %i' % threadNum)
+
 logging.critical('-------------------------------- TEST START --------------------------------')
 if testItem is not None:
     if testItem == 'ss' and '--all' in sys.argv:

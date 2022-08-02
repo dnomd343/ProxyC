@@ -108,15 +108,16 @@ def wsStream(isEd: bool) -> dict:
         },
         'server': {
             'network': 'ws',
-            'wsSettings': {**{
+            'wsSettings': {
                 'path': path,
                 'headers': {
                     'Host': Settings['host']
-                }
-            }, **({} if not isEd else {
-                'maxEarlyData': 2048,
-                'earlyDataHeaderName': 'Sec-WebSocket-Protocol'
-            })}
+                },
+                **({} if not isEd else {
+                    'maxEarlyData': 2048,
+                    'earlyDataHeaderName': 'Sec-WebSocket-Protocol'
+                })
+            }
         }
     }
 
@@ -177,11 +178,12 @@ def grpcStream(isMulti: bool) -> dict:
         },
         'server': {
             'network': 'grpc',
-            'grpcSettings': {**{
-                'serviceName': service
-            }, **({} if not isMulti else {
-                'multiMode': True
-            })}
+            'grpcSettings': {
+                'serviceName': service,
+                **({} if not isMulti else {
+                    'multiMode': True
+                })
+            }
         }
     }
 

@@ -25,17 +25,20 @@ def originStream(isUot: bool) -> dict:
 
 
 def loadWsCommand(proxyInfo: dict) -> list:  # load start command for brook server
-    return ([
+    brookCommand = [
         'wsserver', '--listen', '%s:%i' % (hostFormat(proxyInfo['server'], v6Bracket = True), proxyInfo['port'])
     ] if proxyInfo['stream']['secure'] is None else [
         'wssserver', '--domainaddress', '%s:%i' % (proxyInfo['stream']['host'], proxyInfo['port'])
-    ]) + [
+    ]
+    brookCommand += [
         '--path', proxyInfo['stream']['path'],
         '--password', proxyInfo['passwd'],
-    ] + ([] if proxyInfo['stream']['secure'] is None else [
+    ]
+    brookCommand += ([] if proxyInfo['stream']['secure'] is None else [
         '--cert', Settings['cert'],
         '--certkey', Settings['key'],
-    ]) + (['--withoutBrookProtocol'] if proxyInfo['stream']['raw'] else [])
+    ])
+    return brookCommand + (['--withoutBrookProtocol'] if proxyInfo['stream']['raw'] else [])
 
 
 def wsStream(isRaw: bool, isSecure: bool):

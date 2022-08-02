@@ -10,10 +10,7 @@ from Basis.Constant import Plugins
 from Tester.Settings import Settings
 from Basis.Functions import genFlag, hostFormat, getAvailablePort
 
-
-pluginParams = {
-    'SITE': Settings['site']
-}
+pluginParams = {}
 
 pluginConfig = {
     'simple-obfs': {
@@ -316,15 +313,16 @@ def paramFill(param: str) -> str:
 def load(proxyType: str):
     if proxyType not in ['ss', 'trojan-go']:
         raise RuntimeError('Unknown proxy type for sip003 plugin')
-    cloakLoad()  # init cloak config
-    kcptunLoad()  # init kcptun config
     pluginParams.update({
+        'SITE': Settings['site'],
         'HOST': Settings['host'],
         'CERT': Settings['cert'],
         'KEY': Settings['key'],
         'PASSWD': genFlag(length = 8),  # random password for test
         'PATH': '/' + genFlag(length = 6),  # random uri path for test
     })
+    cloakLoad()  # init cloak config
+    kcptunLoad()  # init kcptun config
     for pluginType in pluginConfig:
         for pluginTest, pluginTestInfo in pluginConfig[pluginType].items():  # traverse all plugin test item
             pluginParams['RANDOM'] = genFlag(length = 8)  # refresh RANDOM field

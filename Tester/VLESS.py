@@ -18,11 +18,12 @@ def loadServer(configFile: str, proxyInfo: dict, streamConfig: dict, xtlsFlow: s
         'listen': proxyInfo['server'],
         'port': proxyInfo['port'],
         'settings': {
-            'clients': [{**{
+            'clients': [{
                 'id': proxyInfo['id'],
-            }, **({} if xtlsFlow is None else {
-                'flow': xtlsFlow
-            })}],
+                **({} if xtlsFlow is None else {
+                    'flow': xtlsFlow
+                })
+            }],
             'decryption': 'none'
         },
         'streamSettings': streamConfig

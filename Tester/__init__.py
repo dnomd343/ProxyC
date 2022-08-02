@@ -127,14 +127,14 @@ def loadCert(host: str = 'proxyc.net', remark: str = 'ProxyC') -> None:
     logging.critical('Load self-signed certificate')
     os.system('mkdir -p %s' % Settings['workDir'])  # create work directory
     logging.critical('Creating CA certificate and key...')
-    os.system(' '.join(['mad', 'ca'] + [
+    os.system(' '.join(['mad', 'ca'] + [  # generate CA certificate and privkey
         '--ca', caCert, '--key', caKey,
         '--commonName', remark,
         '--organization', remark,
         '--organizationUnit', remark,
     ]))
     logging.critical('Signing certificate...')
-    os.system(' '.join(['mad', 'cert'] + [
+    os.system(' '.join(['mad', 'cert'] + [  # generate certificate and privkey, then signed by CA
         '--ca', caCert, '--ca_key', caKey,
         '--cert', cert, '--key', key,
         '--domain', host,
@@ -142,7 +142,7 @@ def loadCert(host: str = 'proxyc.net', remark: str = 'ProxyC') -> None:
         '--organizationUnit', remark,
     ]))
     logging.critical('Installing CA certificate...')
-    os.system('cat %s >> /etc/ssl/certs/ca-certificates.crt' % caCert)
+    os.system('cat %s >> /etc/ssl/certs/ca-certificates.crt' % caCert)  # add into system's trust list
     Settings['host'] = host
     Settings['cert'] = cert
     Settings['key'] = key
