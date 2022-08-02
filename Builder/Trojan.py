@@ -9,13 +9,14 @@ def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, 
     outboundConfig = {
         'protocol': 'trojan',
         'settings': {
-            'servers': [{**{
+            'servers': [{
                 'address': proxyInfo['server'],
                 'port': proxyInfo['port'],
                 'password': proxyInfo['passwd'],
-            }, **Xray.xtlsFlow(proxyInfo['stream'])}]
+                **Xray.xtlsFlow(proxyInfo['stream'])
+            }]
         },
         'streamSettings': Xray.loadStream(proxyInfo['stream'])
     }
     trojanConfig = Xray.loadConfig(socksInfo, outboundConfig)  # load config file for xray-core
-    return ['xray', '-c', configFile], json.dumps(trojanConfig), {}
+    return ['xray', '-c', configFile], json.dumps(trojanConfig), {}  # command, fileContent, envVar

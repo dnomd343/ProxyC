@@ -50,7 +50,6 @@ def loopCheck() -> None:
         try:
             taskId, taskInfo = Manager.popTask()
         except:
-            logging.debug('no more task')
             continue
         logging.info('new task %s -> %s' % (taskId, taskInfo))
         ret = Check(taskId, taskInfo)

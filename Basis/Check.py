@@ -23,14 +23,14 @@ def Check(taskId: str, taskInfo: dict) -> dict:
     except Exception as reason:
         logging.error('[%s] Client build error -> %s' % (taskId, reason))
         raise RuntimeError('Client build error')
-    logging.info('[%s] Client loaded successfully')
+    logging.info('[%s] Client loaded successfully' % taskId)
 
     # TODO: wait port occupied (client.socksPort)
     time.sleep(1)
     if not client.status():  # client unexpected exit
-        logging.warning('[%s] Client unexpected exit')
+        logging.warning('[%s] Client unexpected exit' % taskId)
         client.destroy()  # remove file and kill sub process
-        logging.debug('[%s] Client output\n%s', client.output)
+        logging.debug('[%s] Client output\n%s', (taskId, client.output))
         raise RuntimeError('Client unexpected exit')
 
     checkResult = Checker(taskId, taskInfo['check'], {

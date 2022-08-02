@@ -24,4 +24,4 @@ def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, 
         'obfs': proxyInfo['obfs'],
         'obfs_param': proxyInfo['obfsParam']
     }
-    return ['ssr-local', '-vv', '-c', configFile], json.dumps(ssrConfig), {}  # tuple[command, fileContent, envVar]
+    return ['ssr-local', '-vv', '-c', configFile], json.dumps(ssrConfig), {}  # command, fileContent, envVar

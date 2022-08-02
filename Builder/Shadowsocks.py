@@ -72,12 +72,9 @@ def ssPythonLegacy(proxyInfo: dict, socksInfo: dict, isUdp: bool) -> tuple[dict,
 
 
 def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, dict]:
-    if proxyInfo['plugin'] is None:  # UDP is enabled when server without plugin
-        isUdp = True
-    else:
-        isUdp = not pluginUdp(  # check the UDP conflict status of plugins
-            proxyInfo['plugin']['type'], proxyInfo['plugin']['param']
-        )
+    isUdp = True if proxyInfo['plugin'] is None else (  # UDP enabled when server without plugin
+        not pluginUdp(proxyInfo['plugin']['type'], proxyInfo['plugin']['param'])  # UDP conflict status of plugins
+    )
     if proxyInfo['method'] not in ssAllMethods:  # unknown shadowsocks method
         raise RuntimeError('Unknown shadowsocks method')
     for client in ssMethods:  # traverse all shadowsocks client
@@ -89,4 +86,4 @@ def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, 
             'ss-python': ssPython,
             'ss-python-legacy': ssPythonLegacy
         }[client](proxyInfo, socksInfo, isUdp)  # generate config file
-        return ssClient + ['-c', configFile], json.dumps(ssConfig), {}  # tuple[command, fileContent, envVar]
+        return ssClient + ['-c', configFile], json.dumps(ssConfig), {}  # command, fileContent, envVar

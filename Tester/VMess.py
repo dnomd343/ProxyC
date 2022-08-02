@@ -6,11 +6,10 @@ import json
 import itertools
 from Tester import V2ray
 from Builder import VMess
-from Builder import pathEnv
 from Basis.Logger import logging
 from Basis.Process import Process
 from Tester.Settings import Settings
-from Basis.Constant import vmessMethods
+from Basis.Constant import PathEnv, vmessMethods
 from Basis.Functions import md5Sum, genUUID, getAvailablePort
 
 
@@ -31,8 +30,8 @@ def loadServer(configFile: str, proxyInfo: dict, streamConfig: dict) -> Process:
     return Process(Settings['workDir'], cmd = ['v2ray', '-c', serverFile], file = {
         'path': serverFile,
         'content': json.dumps(vmessConfig)
-    }, env= {
-        'PATH': pathEnv,
+    }, env = {
+        'PATH': PathEnv,
         'v2ray.vmess.aead.forced': 'false'  # enable non-aead test (aid not 0)
     }, isStart = False)
 

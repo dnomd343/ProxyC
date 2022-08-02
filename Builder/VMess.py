@@ -25,4 +25,4 @@ def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, 
         'streamSettings': V2ray.loadStream(proxyInfo['stream'])
     }
     vmessConfig = V2ray.loadConfig(socksInfo, outboundConfig)  # load config file for v2ray-core
-    return ['v2ray', '-c', configFile], json.dumps(vmessConfig), {}
+    return ['v2ray', '-c', configFile], json.dumps(vmessConfig), {}  # command, fileContent, envVar

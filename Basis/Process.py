@@ -73,13 +73,13 @@ class Process(object):
                 logging.error('[%s] %s already exist but not folder' % (self.id, self.workDir))
             else:
                 logging.error('[%s] Unable to create new folder -> %s' % (self.id, self.workDir))
-            raise RuntimeError('working directory error')  # fatal error
+            raise RuntimeError('Working directory error')  # fatal error
 
     def __killProcess(self, killSignal: int) -> None:
         try:
             pgid = os.getpgid(self.__process.pid)  # progress group id
             os.killpg(pgid, killSignal)  # kill sub process group
-            logging.debug('[%s] Send kill signal to PGID %i' % (self.id, pgid))
+            logging.debug('[%s] Send signal %i to PGID %i' % (self.id, killSignal, pgid))
         except:
             logging.warning('[%s] Failed to get PGID of sub process (PID = %i)' % (self.id, self.__process.pid))
 
@@ -129,15 +129,15 @@ class Process(object):
 
     def start(self, isCapture: bool = True) -> None:
         self.__capture = isCapture
-        logging.debug('[%s] Process ready to start (%s)' % (self.id, (
-            'with output capture' if self.__capture else 'without output capture'
-        )))
+        logging.debug('[%s] Process ready to start (%s)' % (
+            self.id, ('with' if self.__capture else 'without') + ' output capture'
+        ))
         if self.cmd is None:  # ERROR CASE
             logging.error('[%s] Process miss start command' % self.id)
-            raise RuntimeError('miss start command')
+            raise RuntimeError('Miss start command')
         if self.__process is not None and self.__process.poll() is None:  # ERROR CASE
-            logging.error('[%s] Sub process is still running' % self.id)
-            raise RuntimeError('sub process is still running')
+            logging.error('[%s] Process is still running' % self.id)
+            raise RuntimeError('Process is still running')
         if self.env is not None and 'PATH' not in self.env and '/' not in self.cmd[0]:  # WARNING CASE
             logging.warning('[%s] Executable file in relative path but miss PATH in environ' % self.id)
         if self.file is not None:  # create and write file contents
@@ -147,7 +147,7 @@ class Process(object):
                     logging.debug('[%s] File %s -> %s' % (self.id, file['path'], file['content']))
         if self.__capture:  # with output capture
             self.__logfile = os.path.join(self.workDir, self.id + '.log')
-            logging.debug('[%s] Output capture file -> %s' % (self.id, self.__logfile))
+            logging.debug('[%s] Process output capture -> %s' % (self.id, self.__logfile))
             stdout = open(self.__logfile, 'w', encoding = 'utf-8')
             stderr = STDOUT  # combine the stderr with stdout
         else:  # discard all the output of sub process
@@ -170,20 +170,20 @@ class Process(object):
 
     def status(self) -> bool:  # check if the sub process is still running
         status = self.__process.poll() is None
-        logging.debug('[%s] Check status -> %s' % (self.id, 'running' if status else 'exit'))
+        logging.debug('[%s] Process check status -> %s' % (self.id, 'running' if status else 'exit'))
         return status
 
     def wait(self, timeout: int or None = None) -> None:  # blocking wait sub process
         logging.info('[%s] Process wait -> timeout = %s' % (self.id, str(timeout)))
         try:
             self.__process.wait(timeout = timeout)
-            logging.info('[%s] Process wait timeout -> sub process exit' % self.id)
+            logging.info('[%s] Process wait timeout -> exit' % self.id)
         except:
-            logging.info('[%s] Process wait timeout -> sub process still running' % self.id)
+            logging.info('[%s] Process wait timeout -> running' % self.id)
 
     def quit(self, isForce: bool = False, waitTime: int = 50) -> None:  # wait 50ms in default
         killSignal = signal.SIGKILL if isForce else signal.SIGTERM  # 9 -> force kill / 15 -> terminate signal
-        logging.debug('[%s] Kill signal = %i (%s)' % (self.id, killSignal, signal.Signals(killSignal).name))
+        logging.debug('[%s] Kill signal -> %i (%s)' % (self.id, killSignal, signal.Signals(killSignal).name))
         self.__killProcess(killSignal)
         time.sleep(waitTime / 1000)  # sleep (ms -> s)
         while self.__process.poll() is None:  # confirm sub process exit

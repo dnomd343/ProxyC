@@ -32,7 +32,7 @@ def genFlag(length: int = 12) -> str:  # generate random task flag
             flag += chr(tmp + 87) # a ~ f
         else:
             flag += str(tmp) # 0 ~ 9
-    logging.debug('generate new flag -> ' + flag)
+    logging.debug('Generate new flag -> ' + flag)
     return flag
 
 
@@ -44,21 +44,21 @@ def genUUID() -> str:  # generate uuid v5
 
 def getAvailablePort(rangeStart: int = 1024, rangeEnd: int = 65535, waitTime: int = 10) -> int:  # get available port
     if rangeStart > rangeEnd or rangeStart < 1 or rangeEnd > 65535:
-        raise RuntimeError('invalid port range')
+        raise RuntimeError('Invalid port range')
     while True:
         port = random.randint(rangeStart, rangeEnd)  # choose randomly
         if checkPortStatus(port):
-            logging.debug('get new port -> %i' % port)
+            logging.debug('Get new port -> %i' % port)
             return port
         time.sleep(waitTime / 1000)  # ms -> s (default 10ms)
 
 
 def checkPortStatus(port: int) -> bool:  # check if the port is occupied
-    logging.debug('check status of port %i -> available' % port)
     for connection in networkStatus():  # scan every connections
         if connection['local']['port'] == port:  # port occupied (whatever ipv4-tcp / ipv4-udp / ipv6-tcp / ipv6-udp)
-            logging.debug('check status of port %i -> occupied' % port)
+            logging.debug('Check port %i -> occupied' % port)
             return False
+    logging.debug('Check port %i -> available' % port)
     return True
 
 
@@ -84,5 +84,5 @@ def networkStatus() -> list:  # get all network connections
             'status': connection.status,
             'pid': connection.pid,  # process id
         })
-    logging.debug('get network status -> found %i connections' % len(result))
+    logging.debug('Network status -> found %i connections' % len(result))
     return result

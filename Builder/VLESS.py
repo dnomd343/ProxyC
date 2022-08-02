@@ -12,13 +12,14 @@ def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, 
             'vnext': [{
                 'address': proxyInfo['server'],
                 'port': proxyInfo['port'],
-                'users': [{**{
+                'users': [{
                     'id': proxyInfo['id'],
-                    'encryption': proxyInfo['method']
-                }, **Xray.xtlsFlow(proxyInfo['stream'])}]
+                    'encryption': proxyInfo['method'],
+                    **Xray.xtlsFlow(proxyInfo['stream'])
+                }]
             }]
         },
         'streamSettings': Xray.loadStream(proxyInfo['stream'])
     }
     vlessConfig = Xray.loadConfig(socksInfo, outboundConfig)  # load config file for xray-core
-    return ['xray', '-c', configFile], json.dumps(vlessConfig), {}
+    return ['xray', '-c', configFile], json.dumps(vlessConfig), {}  # command, fileContent, envVar

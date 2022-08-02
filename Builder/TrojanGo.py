@@ -5,13 +5,15 @@ import json
 
 
 def sslConfig(proxyInfo: dict) -> dict:
-    return {**{
-        'verify': proxyInfo['verify']
-    }, **({} if proxyInfo['sni'] == '' else {
-        'sni': proxyInfo['sni']
-    }), **({} if proxyInfo['alpn'] is None else {
-        'alpn': proxyInfo['alpn'].split(',')
-    })}
+    return {
+        'verify': proxyInfo['verify'],
+        **({} if proxyInfo['sni'] == '' else {
+            'sni': proxyInfo['sni']
+        }),
+        **({} if proxyInfo['alpn'] is None else {
+            'alpn': proxyInfo['alpn'].split(',')
+        }),
+    }
 
 
 def wsConfig(proxyInfo: dict) -> dict:
@@ -27,22 +29,24 @@ def wsConfig(proxyInfo: dict) -> dict:
 
 
 def ssConfig(proxyInfo: dict) -> dict:
-    return {**{
-        'enabled': False if proxyInfo['ss'] is None else True
-    }, **({} if proxyInfo['ss'] is None else {
-        'method': proxyInfo['ss']['method'],
-        'password': proxyInfo['ss']['passwd'],
-    })}
+    return {
+        'enabled': False if proxyInfo['ss'] is None else True,
+        **({} if proxyInfo['ss'] is None else {
+            'method': proxyInfo['ss']['method'],
+            'password': proxyInfo['ss']['passwd'],
+        })
+    }
 
 
 def pluginConfig(proxyInfo: dict) -> dict:
-    return {**{
-        'enabled': False if proxyInfo['plugin'] is None else True
-    }, **({} if proxyInfo['plugin'] is None else {
-        'type': 'shadowsocks',
-        'command': proxyInfo['plugin']['type'],
-        'option': proxyInfo['plugin']['param'],
-    })}
+    return {
+        'enabled': False if proxyInfo['plugin'] is None else True,
+        **({} if proxyInfo['plugin'] is None else {
+            'type': 'shadowsocks',
+            'command': proxyInfo['plugin']['type'],
+            'option': proxyInfo['plugin']['param'],
+        })
+    }
 
 
 def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, dict]:
@@ -61,4 +65,4 @@ def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, 
         'shadowsocks': ssConfig(proxyInfo),
         'transport_plugin': pluginConfig(proxyInfo),
     }
-    return ['trojan-go', '-config', configFile], json.dumps(trojanGoConfig), {}
+    return ['trojan-go', '-config', configFile], json.dumps(trojanGoConfig), {}  # command, fileContent, envVar

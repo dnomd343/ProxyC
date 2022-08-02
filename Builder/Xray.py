@@ -34,9 +34,9 @@ def wsStream(streamInfo: dict) -> dict:  # WebSocket stream config (different ed
         wsObject['headers']['Host'] = streamInfo['host']
     if streamInfo['ed'] is not None:  # ed value into uri path -> /...?ed=xxx
         if wsObject['path'].find('?') == -1:  # no params in raw path
-            wsObject['path'] += '?ed=' + str(streamInfo['ed'])
+            wsObject['path'] += '?ed=%i' % streamInfo['ed']
         else:
-            wsObject['path'] += '&ed=' + str(streamInfo['ed'])
+            wsObject['path'] += '&ed=%i' % streamInfo['ed']
     return {
         'network': 'ws',
         'wsSettings': wsObject
