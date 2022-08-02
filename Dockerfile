@@ -479,5 +479,9 @@ RUN \
   apk add --no-cache boost-program_options c-ares \
     ca-certificates glib libev libsodium libstdc++ mbedtls pcre && \
   pip3 --no-cache-dir install colorlog flask gevent IPy pysocks requests && \
+  ln -s /usr/local/share/ProxyC/main.py /usr/bin/proxyc && \
   rm -rf $(find / -name '__pycache__')
 COPY --from=asset /asset /
+COPY . /usr/local/share/ProxyC/
+EXPOSE 7839
+CMD ["proxyc"]
