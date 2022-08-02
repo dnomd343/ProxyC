@@ -14,6 +14,20 @@ webPath = '/'  # root of api server
 webApi = Flask(__name__)  # init flask server
 
 
+def formatProxy(raw: str or dict) -> dict:
+    from ProxyFilter import filte
+    from ProxyDecoder import decode
+    if type(raw) == str:
+        raw = decode(raw)
+        if raw is None:
+            raise RuntimeError('decode error')
+        print(raw)
+    status, raw = filte(raw, isExtra = True)
+    if not status:
+        raise RuntimeError('filter error')
+    return raw
+
+
 def jsonResponse(data: dict) -> Response:  # return json mime
     return Response(json.dumps(data), mimetype = 'application/json')
 
@@ -54,7 +68,10 @@ def createTask() -> Response:
 
     # TODO: format check and proxy list
     checkList = formatCheck(request.json.get('check'))
-    proxyList = request.json.get('proxy')
+    proxyList = []
+    for proxy in request.json.get('proxy'):
+        proxyList.append(formatProxy(proxy))
+    logging.critical(proxyList)
 
     logging.debug('API create task -> check = %s | proxy = %s' % (checkList, proxyList))
     tasks = []
@@ -79,7 +96,7 @@ def getTaskInfo(taskId: str) -> Response:
         return genError('Invalid token')
     logging.debug('API get task -> %s' % taskId)
     if not Manager.isUnion(taskId):
-        return genError('Task id not found')
+        return genError('Task not found')
     return jsonResponse({
         'success': True,
         **Manager.getUnion(taskId)

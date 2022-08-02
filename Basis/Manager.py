@@ -58,7 +58,7 @@ class Task(object):
             logging.debug('Manager union [%s] still working' % unionId)
             return {
                 'finish': False,
-                'percent': '%f' % (round(finishNum / len(tasks), 2))
+                'percent': round(finishNum / len(tasks), 2)
             }
         self.__unions.pop(unionId)  # remove from union list
         unionResult = []  # temporary storage

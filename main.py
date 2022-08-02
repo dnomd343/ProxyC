@@ -10,26 +10,28 @@ from Basis.Manager import Manager
 from Basis.Api import startServer
 from Basis.Constant import Version
 from Basis.Compile import startCompile
+from concurrent.futures import ThreadPoolExecutor
 
 # dnsServers = None
 dnsServers = ['223.5.5.5', '119.28.28.28']
 
 
-def runCheck() -> None:  # try to pop a task and check
-    try:
-        taskId, taskInfo = Manager.popTask()
-        logging.warning('[%s] Load new task' % taskId)
-    except:
-        return  # no more task
+def runCheck(taskId: str, taskInfo: dict) -> None:
     checkResult = Check(taskId, taskInfo)
     logging.warning('[%s] Task finish' % taskId)
     Manager.finishTask(taskId, checkResult)
 
 
-def loopCheck() -> None:
-    while True:  # TODO: thread pool working
-        runCheck()
-        time.sleep(2)
+def loopCheck(threadNum: int = 16) -> None:
+    threadPool = ThreadPoolExecutor(max_workers = threadNum)
+    while True:
+        try:
+            taskId, taskInfo = Manager.popTask()
+            logging.warning('[%s] Load new task' % taskId)
+        except:  # no more task
+            time.sleep(2)
+            continue
+        threadPool.submit(runCheck, taskId, taskInfo)
 
 
 logging.warning('ProxyC starts running (%s)' % Version)

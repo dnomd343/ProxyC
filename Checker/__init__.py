@@ -14,7 +14,7 @@ def formatCheck(rawInfo: list) -> dict:
     return {
         'http': {
             'times': 3,
-            'url': 'http://baidu.com',
+            'url': 'http://gstatic.com/generate_204',
             'timeout': 20,
         }
     }
