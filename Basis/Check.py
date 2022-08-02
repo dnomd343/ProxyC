@@ -1,50 +1,47 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+import copy
 import time
+from Checker import Checker
 from Basis.Logger import logging
 from Builder import Builder, clientEntry
 
-from ProxyChecker import httpCheck  # TODO: refactor in the future
 
-
-def Check(proxyType: str, proxyInfo: dict, checkInfo: dict) -> dict:
-    # TODO: checkInfo -> [...] (only check http for now)
-    if proxyType not in clientEntry:
-        logging.error('Unknown proxy type %s' % proxyType)
+def Check(taskId: str, taskInfo: dict) -> dict:
+    logging.info('[%s] Start checking process -> %s' % (taskId, taskInfo))
+    if taskInfo['type'] not in clientEntry:
+        logging.error('[%s] Unknown proxy type %s' % (taskId, taskInfo['type']))
         raise RuntimeError('Unknown proxy type')
+
     try:
-        client = Builder(proxyType, proxyInfo)
+        client = Builder(
+            proxyType = taskInfo['type'],
+            proxyInfo = taskInfo['info'],
+            bindAddr = '127.0.0.1',  # socks5 exposed host
+            taskId = taskId,
+        )
     except Exception as reason:
-        logging.error('Client build error -> %s' % reason)
+        logging.error('[%s] Client build error -> %s' % (taskId, reason))
         raise RuntimeError('Client build error')
+    logging.info('[%s] Client loaded successfully')
 
-    # TODO: debug combine output
-    logging.debug(client.id)
-    logging.debug(client.proxyType)
-    logging.debug(client.proxyInfo)
-    logging.debug(client.socksAddr)
-    logging.debug(client.socksPort)
-
-    # TODO: wait port occupied
+    # TODO: wait port occupied (client.socksPort)
     time.sleep(1)
     if not client.status():  # client unexpected exit
+        logging.warning('[%s] Client unexpected exit')
         client.destroy()  # remove file and kill sub process
-        logging.error('Client unexpected exit\n%s', client.output)
+        logging.debug('[%s] Client output\n%s', client.output)
         raise RuntimeError('Client unexpected exit')
 
-    # TODO: check process
-    status, _ = httpCheck(client.socksPort)  # TODO: add socks5 addr
-
-    logging.critical('http check status -> %s' % status)
-
+    checkResult = Checker(taskId, taskInfo['check'], {
+        'addr': client.socksAddr,
+        'port': client.socksPort,
+    })
+    logging.info('[%s] Client check result -> %s' % (taskId, checkResult))
     client.destroy()  # clean up the client
-
+    taskInfo = copy.deepcopy(taskInfo)
+    taskInfo.pop('check')
     return {
-        'http': {
-            'status': status,
-            # TODO: more http check info
-        },
-        # TODO: more check items (from checkInfo list)
+        **taskInfo,
+        'result': checkResult,
     }
-

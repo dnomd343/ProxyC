@@ -10,7 +10,7 @@ from IPy import IP
 from Basis.Logger import logging
 
 
-def md5Sum(data: str, encode: str = 'UTF-8') -> str:
+def md5Sum(data: str, encode: str = 'utf-8') -> str:
     return hashlib.md5(data.encode(encoding = encode)).hexdigest()
 
 

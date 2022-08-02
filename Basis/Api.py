@@ -3,8 +3,8 @@
 
 import json
 from gevent import pywsgi
-from Basis.Manage import Manage
 from Basis.Logger import logging
+from Basis.Manager import Manager
 from Basis.Constant import Version
 from flask import Flask, Response, request
 
@@ -39,7 +39,7 @@ def getTaskList() -> Response:
     if not tokenCheck():  # token check
         return tokenError()
     try:
-        taskList = Manage.listTask()
+        taskList = Manager.listUnion()
         logging.debug('api get task list -> %s' % taskList)
         return jsonResponse({
             'success': True,
@@ -75,7 +75,7 @@ def createTask() -> Response:
     tasks = []
     for proxy in proxyList:
         tasks.append({**proxy, 'check': checkList})
-    checkId = Manage.addTask(tasks)
+    checkId = Manager.addUnion(tasks)
     logging.debug('api return check id %s' % checkId)
 
     return jsonResponse({
@@ -91,14 +91,14 @@ def getTaskInfo(taskId: str) -> Response:
     if not tokenCheck():  # token check
         return tokenError()
     logging.critical('API get task %s info' % taskId)
-    if not Manage.isTask(taskId):
+    if not Manager.isUnion(taskId):
         return jsonResponse({
             'success': False,
             'message': 'task id not found',
         })
     return jsonResponse({
         'success': True,
-        **Manage.getTask(taskId)
+        **Manager.getUnion(taskId)
     })
 
 

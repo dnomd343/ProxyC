@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+
 import os
 import time
 import _thread
@@ -36,24 +37,25 @@ def daemonDnsproxy(servers: list or None, port: int = 53, cache: int = 4194304) 
         time.sleep(2)  # daemon time gap
         if dnsproxy.poll() is not None:  # unexpected exit
             logging.warning('dnsproxy unexpected exit')
-            logging.debug('output of dnsproxy\n%s' % dnsproxy.stdout.read().decode('UTF-8'))
+            logging.debug('output of dnsproxy\n%s' % dnsproxy.stdout.read().decode('utf-8'))
             dnsproxy = startDnsproxy(dnsCommand)
 
 
 from Basis.Check import Check
-from Basis.Manage import Manage
+from Basis.Manager import Manager
 
 def loopCheck() -> None:
     while True:
         time.sleep(2)  # TODO: thread pool working
-        subTaskId, subTask = Manage.popSubTask()
-        if subTaskId is None: continue
-        logging.info('new sub task -> %s', subTask)
-        ret = Check(subTask['type'], subTask['info'], {})
+        try:
+            taskId, taskInfo = Manager.popTask()
+        except:
+            logging.debug('no more task')
+            continue
+        logging.info('new task %s -> %s' % (taskId, taskInfo))
+        ret = Check(taskId, taskInfo)
         logging.info('check result -> %s' % ret)
-        subTask.pop('check')
-        subTask['result'] = ret
-        Manage.updateSubTask(subTaskId, subTask)
+        Manager.finishTask(taskId, ret)
 
 
 logging.warning('ProxyC starts running (%s)' % Version)

@@ -153,8 +153,11 @@ class Process(object):
         else:  # discard all the output of sub process
             stdout = DEVNULL
             stderr = DEVNULL
-        self.__process = Popen(self.cmd, env = self.env, stdout = stdout,
-                             stderr = stderr, preexec_fn = None if libcPath is None else Process.__preExec)
+        self.__process = Popen(
+            self.cmd, env = self.env,
+            stdout = stdout, stderr = stderr,
+            preexec_fn = None if libcPath is None else Process.__preExec
+        )
         logging.info('[%s] Process running -> PID = %i' % (self.id, self.__process.pid))
 
     def signal(self, signalNum: int) -> None:  # send specified signal to sub process

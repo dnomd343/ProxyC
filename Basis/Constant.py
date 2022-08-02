@@ -2,6 +2,8 @@
 # -*- coding: utf-8 -*-
 
 Version = 'dev'
+WorkDir = '/tmp/ProxyC'
+PathEnv = '/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin'
 
 # Shadowsocks Info
 ssMethods = { # methods support of different Shadowsocks project
