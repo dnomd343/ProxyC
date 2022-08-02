@@ -28,7 +28,7 @@
 + type：节点类型
 + name：节点名称（可选）
 + group：节点群组（可选）
-+ [ShadowsocksR](./ProxyObject/ShadowsocksR.md)：节点信息
++ [ssrObject](./ProxyObject/ShadowsocksR.md)：节点信息
 
 ## VMess
 
