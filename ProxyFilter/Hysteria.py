@@ -85,8 +85,6 @@ def filte(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
     try:
         if not isExtra: # 去除非必要参数
             hysteriaFilterRules['rootObject'].pop('remark')
-        return baseFunc.ruleFilter(rawInfo, hysteriaFilterRules, {
-            'type': 'hysteria'
-        })
+        return baseFunc.ruleFilter(rawInfo, hysteriaFilterRules, {})
     except:
         return False, 'Unknown error'

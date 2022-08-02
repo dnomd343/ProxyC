@@ -133,8 +133,6 @@ def trojanGoFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
     try:
         if not isExtra: # 去除非必要参数
             trojanGoFilterRules['rootObject'].pop('remark')
-        return baseFunc.ruleFilter(rawInfo, trojanGoFilterRules, {
-            'type': 'trojan-go'
-        })
+        return baseFunc.ruleFilter(rawInfo, trojanGoFilterRules, {})
     except:
         return False, 'Unknown error'

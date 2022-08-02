@@ -76,9 +76,7 @@ def vlessFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
             vlessFilterRules['rootObject'].pop('remark')
         for key, obj in Xray.xrayStreamRules.items(): # xray.stream -> vless
             vlessFilterRules[key] = obj
-        status, result = baseFunc.ruleFilter(rawInfo, vlessFilterRules, {
-            'type': 'vless'
-        })
+        status, result = baseFunc.ruleFilter(rawInfo, vlessFilterRules, {})
         if not status: # 节点格式错误
             return False, result
         Xray.addSni(result)

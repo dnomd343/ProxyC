@@ -83,9 +83,7 @@ def filte(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
     try:
         if not isExtra: # 去除非必要参数
             brookFilterRules['rootObject'].pop('remark')
-        status, result = baseFunc.ruleFilter(rawInfo, brookFilterRules, {
-            'type': 'brook'
-        })
+        status, result = baseFunc.ruleFilter(rawInfo, brookFilterRules, {})
         if not status: # 节点格式错误
             return False, result
         if result['ws'] is not None and result['ws']['host'] == '':

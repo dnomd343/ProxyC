@@ -28,23 +28,24 @@ def filte(raw: dict, isExtra: bool = False) -> tuple[bool, str or dict]:
         if 'type' not in raw:
             return False, 'Missing `type` option'
         if raw['type'] == 'ss':
-            return Shadowsocks.ssFilter(raw, isExtra)
+            status, raw['info'] = Shadowsocks.ssFilter(raw['info'], isExtra)
         elif raw['type'] == 'ssr':
-            return ShadowsocksR.ssrFilter(raw, isExtra)
+            status, raw['info'] = ShadowsocksR.ssrFilter(raw['info'], isExtra)
         elif raw['type'] == 'vmess':
-            return VMess.vmessFilter(raw, isExtra)
+            status, raw['info'] = VMess.vmessFilter(raw['info'], isExtra)
         elif raw['type'] == 'vless':
-            return VLESS.vlessFilter(raw, isExtra)
+            status, raw['info'] = VLESS.vlessFilter(raw['info'], isExtra)
         elif raw['type'] == 'trojan':
-            return Trojan.trojanFilter(raw, isExtra)
+            status, raw['info'] = Trojan.trojanFilter(raw['info'], isExtra)
         elif raw['type'] == 'trojan-go':
-            return TrojanGo.trojanGoFilter(raw, isExtra)
+            status, raw['info'] = TrojanGo.trojanGoFilter(raw['info'], isExtra)
         elif raw['type'] == 'brook':
-            return Brook.filte(raw, isExtra)
+            status, raw['info'] = Brook.filte(raw['info'], isExtra)
         elif raw['type'] == 'hysteria':
-            return Hysteria.filte(raw, isExtra)
+            status, raw['info'] = Hysteria.filte(raw['info'], isExtra)
         else:
             return False, 'Unknown proxy type'
+        return status, raw
     except:
         pass
     return False, 'Unknown error'

@@ -90,9 +90,7 @@ def vmessFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
             vmessFilterRules['rootObject'].pop('remark')
         for key, obj in V2ray.v2rayStreamRules.items(): # v2ray.stream -> vmess
             vmessFilterRules[key] = obj
-        status, result = baseFunc.ruleFilter(rawInfo, vmessFilterRules, {
-            'type': 'vmess'
-        })
+        status, result = baseFunc.ruleFilter(rawInfo, vmessFilterRules, {})
         if not status: # 节点格式错误
             return False, result
         V2ray.addSni(result)

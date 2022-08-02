@@ -173,9 +173,7 @@ def ssrFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
         if not isExtra: # 去除非必要参数
             ssrFilterRules['rootObject'].pop('remark')
             ssrFilterRules['rootObject'].pop('group')
-        status, result = baseFunc.ruleFilter(rawInfo, ssrFilterRules, {
-            'type': 'ssr'
-        })
+        status, result = baseFunc.ruleFilter(rawInfo, ssrFilterRules, {})
         if not status: # 节点格式错误
             return False, result
         if result['protocol'] == 'origin': # origin无参数

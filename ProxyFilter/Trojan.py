@@ -66,9 +66,7 @@ def trojanFilter(rawInfo: dict, isExtra: bool) -> tuple[bool, str or dict]:
             trojanFilterRules['rootObject'].pop('remark')
         for key, obj in Xray.xrayStreamRules.items(): # xray.stream -> trojan
             trojanFilterRules[key] = obj
-        status, result = baseFunc.ruleFilter(rawInfo, trojanFilterRules, {
-            'type': 'trojan'
-        })
+        status, result = baseFunc.ruleFilter(rawInfo, trojanFilterRules, {})
         if not status: # 节点格式错误
             return False, result
         Xray.addSni(result)
