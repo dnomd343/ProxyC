@@ -28,7 +28,7 @@ def httpPing(taskId: str, url: str, socksAddr: str, socksPort: int, timeout: int
 
 
 def check(taskId: str, socksInfo: dict, options: dict) -> dict:
-    # TODO: multi check
-    return {  # TODO: just demo
+    # TODO: multi check (options -> times)
+    return {
         'delay': httpPing(taskId, options['url'], socksInfo['addr'], socksInfo['port'], options['timeout'])
     }

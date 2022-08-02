@@ -3,6 +3,7 @@
 
 import json
 from gevent import pywsgi
+from Checker import formatCheck
 from Basis.Logger import logging
 from Basis.Manager import Manager
 from Basis.Constant import Version
@@ -52,7 +53,7 @@ def createTask() -> Response:
         return genError('Invalid token')
 
     # TODO: format check and proxy list
-    checkList = request.json.get('check')
+    checkList = formatCheck(request.json.get('check'))
     proxyList = request.json.get('proxy')
 
     logging.debug('API create task -> check = %s | proxy = %s' % (checkList, proxyList))

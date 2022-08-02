@@ -1,18 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+import logging
 
 from Checker import Http
 
-def Checker(taskId: str, checkInfo: dict, socksInfo: dict) -> dict:
+checkEntry = {
+    'http': Http.check
+}
 
-    # TODO: ignore checkInfo for now
-
-    httpRet = Http.check(taskId, socksInfo, {
-        'url': 'http://baidu.com/',
-        'timeout': 20,
-    })
+def formatCheck(rawInfo: list) -> dict:
+    # TODO: format check info
+    # TODO: rawInfo -> ['...', {'type': '...', ...}, ...]
     return {
-        'http': httpRet  # TODO: just check http delay for now
+        'http': {
+            'times': 3,
+            'url': 'http://baidu.com',
+            'timeout': 20,
+        }
     }
 
-    # TODO: return check result
+
+def Checker(taskId: str, checkInfo: dict, socksInfo: dict) -> dict:
+    diffItems = {x for x in checkInfo} - {x for x in checkEntry}
+    if len(diffItems) != 0:  # include unknown check items
+        logging.error('[%s] Unknown check items -> %s' % (taskId, diffItems))
+        raise RuntimeError('Unknown check items')
+    result = {}
+    for checkItem, checkOptions in checkInfo.items():
+        result[checkItem] = checkEntry[checkItem](taskId, socksInfo, checkOptions)
+    return result
