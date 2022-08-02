@@ -194,10 +194,10 @@ class Process(object):
             try:
                 with open(self.__logfile, 'r', encoding = 'utf-8') as fileObject:  # read sub process output
                     self.output = fileObject.read()
-                logging.debug('[%s] Process output -> length = %s' % (self.id, len(self.output)))
+                logging.debug('[%s] Process output capture -> length = %s' % (self.id, len(self.output)))
                 self.__deleteFile(self.__logfile)
             except:
-                logging.error('[%s] Failed to read capture log file -> %s' % (self.id, self.__logfile))
+                logging.error('[%s] Failed to read capture file -> %s' % (self.id, self.__logfile))
         if self.file is not None:  # with config file
             for file in self.file:
                 self.__deleteFile(file['path'])

@@ -27,10 +27,10 @@ class Task(object):
     def addUnion(self, union: list) -> str:  # add union to manager (include multi tasks)
         tasks = {}  # temporary task storage
         taskIds = []  # task id list for manage union
-        unionId = genFlag(length = 16)  # generate union id (16 bytes)
+        unionId = genFlag(length = 12)  # generate union id (12 bytes)
         logging.debug('Manager start to load union [%s]' % unionId)
         for task in union:
-            taskId = genFlag(length = 24)  # generate task id (24 bytes)
+            taskId = genFlag(length = 16)  # generate task id (16 bytes)
             taskIds.append(taskId)
             tasks[taskId] = {
                 'status': self.__TASK_LOADED,  # task status -> loaded

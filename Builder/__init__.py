@@ -47,7 +47,7 @@ class Builder(object):
     output = None
 
     def __loadClient(self):
-        logging.info('[%s] Builder load %s proxy client at %s -> %s' % (
+        logging.info('[%s] Builder load %s client at %s -> %s' % (
             self.id, self.proxyType,
             'socks5://%s:%i' % (hostFormat(self.socksAddr, v6Bracket = True), self.socksPort), self.proxyInfo
         ))

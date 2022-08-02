@@ -17,10 +17,10 @@ def jsonResponse(data: dict) -> Response:  # return json mime
     return Response(json.dumps(data), mimetype = 'application/json')
 
 
-def tokenError() -> Response:
+def genError(message: str) -> Response:
     return jsonResponse({
         'success': False,
-        'message': 'Invalid token'
+        'message': message,
     })
 
 
@@ -37,47 +37,33 @@ def tokenCheck() -> bool:
 @webApi.route('/task', methods = ['GET'])
 def getTaskList() -> Response:
     if not tokenCheck():  # token check
-        return tokenError()
-    try:
-        taskList = Manager.listUnion()
-        logging.debug('api get task list -> %s' % taskList)
-        return jsonResponse({
-            'success': True,
-            'task': taskList,
-        })
-    except:
-        return jsonResponse({
-            'success': False,
-            'message': 'Unknown error'
-        })
+        return genError('Invalid token')
+    taskList = Manager.listUnion()
+    logging.debug('API get task list -> %s' % taskList)
+    return jsonResponse({
+        'success': True,
+        'task': taskList,
+    })
 
 
 @webApi.route('/task', methods = ['POST'])
 def createTask() -> Response:
     if not tokenCheck():  # token check
-        return tokenError()
-    checkList = request.json.get('check')
-    proxyList = request.json.get('proxy')
-    if checkList is None or type(checkList) != list:
-        return jsonResponse({
-            'success': False,
-            'message': 'invalid check list',
-        })
-    if proxyList is None or type(proxyList) != list:
-        return jsonResponse({
-            'success': False,
-            'message': 'invalid proxy list',
-        })
-    logging.debug('api create task -> check: %s | proxy: %s' % (checkList, proxyList))
+        return genError('Invalid token')
 
     # TODO: format check and proxy list
+    checkList = request.json.get('check')
+    proxyList = request.json.get('proxy')
 
+    logging.debug('API create task -> check = %s | proxy = %s' % (checkList, proxyList))
     tasks = []
     for proxy in proxyList:
-        tasks.append({**proxy, 'check': checkList})
-    checkId = Manager.addUnion(tasks)
-    logging.debug('api return check id %s' % checkId)
-
+        tasks.append({
+            **proxy,
+            'check': checkList  # load check items
+        })
+    checkId = Manager.addUnion(tasks)  # add into manager -> get id
+    logging.debug('API return task id -> %s' % checkId)
     return jsonResponse({
         'success': True,
         'id': checkId,
@@ -89,13 +75,10 @@ def createTask() -> Response:
 @webApi.route('/task/<taskId>', methods = ['GET'])
 def getTaskInfo(taskId: str) -> Response:
     if not tokenCheck():  # token check
-        return tokenError()
-    logging.critical('API get task %s info' % taskId)
+        return genError('Invalid token')
+    logging.debug('API get task -> %s' % taskId)
     if not Manager.isUnion(taskId):
-        return jsonResponse({
-            'success': False,
-            'message': 'task id not found',
-        })
+        return genError('Task id not found')
     return jsonResponse({
         'success': True,
         **Manager.getUnion(taskId)
@@ -104,7 +87,7 @@ def getTaskInfo(taskId: str) -> Response:
 
 @webApi.route('/version', methods = ['GET'])
 def getVersion() -> Response:
-    logging.debug('get version -> %s' + Version)
+    logging.debug('API get version -> %s' + Version)
     return jsonResponse({
         'success': True,
         'version': Version,
@@ -113,7 +96,7 @@ def getVersion() -> Response:
 
 def startServer(apiToken: str = '', apiPort: int = 7839) -> None:
     global token
-    token = apiToken
+    token = apiToken  # api token (default empty)
     logging.warning('API server at http://:%i/' % apiPort)
     logging.warning('API ' + ('without token' if apiToken == '' else 'token -> %s' % apiToken))
     pywsgi.WSGIServer(('0.0.0.0', apiPort), webApi).serve_forever()  # powered by gevent
