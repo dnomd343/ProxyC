@@ -137,6 +137,6 @@ def decode(url: str, compatible: bool = False) -> dict or None:
     if compatible and 'remark' in ssInfo: # 向后兼容部分客户端
         ssInfo['remark'] = ssInfo['remark'].replace('+', ' ')
     return {
-        **{'type': 'ss'},
-        **ssInfo
+        'type': 'ss',
+        'info': ssInfo,
     }

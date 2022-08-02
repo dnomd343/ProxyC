@@ -129,6 +129,6 @@ def decode(url: str) -> dict:
     if url.split('://')[0] != 'trojan':
         raise Exception('Unexpected scheme')
     return {
-        **{'type': 'trojan'},
-        **__trojanDecode(url)
+        'type': 'trojan',
+        'info': __trojanDecode(url),
     }

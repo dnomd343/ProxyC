@@ -81,6 +81,6 @@ def decode(url: str) -> dict:
     if url.split('://')[0] != 'brook':
         raise Exception('Unexpected scheme')
     return {
-        **{'type': 'brook'},
-        **__brookDecode(url)
+        'type': 'brook',
+        'info': __brookDecode(url),
     }

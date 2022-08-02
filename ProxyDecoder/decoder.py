@@ -20,7 +20,7 @@ def decode(url: str) -> dict or None:
         链接有效:
             return {
                 'type': ...,
-                ...
+                'info': {...},
             }
     """
     try:

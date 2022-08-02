@@ -222,6 +222,6 @@ def decode(url: str) -> dict:
         except:
             raise Exception('Url could not be parsed')
     return {
-        **{'type': 'vmess'},
-        **vmessInfo
+        'type': 'vmess',
+        'info': vmessInfo,
     }

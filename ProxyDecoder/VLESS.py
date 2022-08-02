@@ -127,6 +127,6 @@ def decode(url: str) -> dict:
     if url.split('://')[0] != 'vless':
         raise Exception('Unexpected scheme')
     return {
-        **{'type': 'vless'},
-        **__vlessDecode(url)
+        'type': 'vless',
+        'info': __vlessDecode(url),
     }

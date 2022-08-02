@@ -44,7 +44,13 @@ def __ssrDecode(url: str) -> dict: # SSR分享链接解码
 def decode(url: str) -> dict:
     if url.split('://')[0] != 'ssr':
         raise Exception('Unexpected scheme')
+    ssrObject = __ssrDecode(url)
+    group = ''
+    if 'group' in ssrObject:
+        group = ssrObject['group']
+        ssrObject.pop('group')
     return {
-        **{'type': 'ssr'},
-        **__ssrDecode(url)
+        'type': 'ssr',
+        'group': group,
+        'info': ssrObject,
     }
