@@ -1,3 +1,10 @@
+ARG ALPINE="alpine:3.16"
+ARG PYTHON="python:3.10-alpine3.16"
+ARG RUST="rust:1.62-alpine3.16"
+ARG GO18="golang:1.18-alpine3.16"
+ARG GO17="golang:1.17-alpine3.16"
+ARG GO16="golang:1.16-alpine3.15"
+
 # Compile upx (can't use gcc11 for now)
 FROM alpine:3.15 AS upx
 ENV UPX_VERSION="3.96"
@@ -13,25 +20,37 @@ RUN \
   cp -d /usr/lib/libgcc_s.so* /usr/lib/libstdc++.so* /usr/lib/libucl.so* ./lib/ && \
   cp /usr/bin/upx ./bin/
 
+# Download build-base
+FROM ${ALPINE} AS build-base
+RUN \
+  mkdir /apk/ && cd /apk/ && \
+  apk add build-base | grep -oE 'Installing \S+' | cut -b 12- > build-base && \
+  chmod +x build-base && cat build-base | xargs -n1 apk fetch && \
+  sed -i 's/^/apk add \/apk\/&/g;s/$/&-*.apk/g;1i\#!/bin/sh' build-base
+
 # Compile shadowsocks-rust
-FROM rust:1.62-alpine3.16 AS ss-rust
+FROM ${RUST} AS ss-rust
+COPY --from=build-base /apk/ /apk/
 ENV SS_RUST="v1.15.0-alpha.8"
 RUN \
-  apk add build-base && \
+  /apk/build-base && \
   wget https://github.com/shadowsocks/shadowsocks-rust/archive/refs/tags/${SS_RUST}.tar.gz
+RUN tar xf ${SS_RUST}.tar.gz && cd ./shadowsocks-rust-*/ && cargo update
 RUN \
-  tar xf ${SS_RUST}.tar.gz && cd ./shadowsocks-rust-*/ && \
+  cd ./shadowsocks-rust-*/ && \
   cargo build --release --bin sslocal --bin ssserver  \
     --features "stream-cipher aead-cipher-extra aead-cipher-2022 aead-cipher-2022-extra" && \
   cd ./target/release/ && mv ./sslocal /tmp/ss-rust-local && mv ./ssserver /tmp/ss-rust-server
+RUN strip /tmp/ss-rust-*
 COPY --from=upx /upx/ /usr/
-RUN strip /tmp/ss-rust-* && upx -9 /tmp/ss-rust-*
+RUN upx -9 /tmp/ss-rust-*
 
 # Compile shadowsocks-libev
-FROM alpine:3.16 AS ss-libev
+FROM ${ALPINE} AS ss-libev
+COPY --from=build-base /apk/ /apk/
 ENV SS_LIBEV="3.3.5"
 RUN \
-  apk add build-base c-ares-dev libev-dev libsodium-dev linux-headers mbedtls-dev pcre-dev && \
+  /apk/build-base && apk add c-ares-dev libev-dev libsodium-dev linux-headers mbedtls-dev pcre-dev && \
   wget https://github.com/shadowsocks/shadowsocks-libev/releases/download/v${SS_LIBEV}/shadowsocks-libev-${SS_LIBEV}.tar.gz
 RUN \
   tar xf shadowsocks-libev-*.tar.gz && cd ./shadowsocks-libev-*/ && \
@@ -40,7 +59,7 @@ RUN \
 RUN strip /tmp/ss-libev-*
 
 # Package shadowsocks-python (lastest version, legacy version, R version aka ssr)
-FROM python:3.10-alpine3.16 AS ss-python
+FROM ${PYTHON} AS ss-python
 ENV SS_PYTHON_LEGACY="2.6.2"
 RUN \
   apk add git && mkdir /packages/ && \
@@ -80,9 +99,10 @@ RUN \
   mv ../../lib/ /packages/ss-python-legacy/
 
 # Compile shadowsocks-bootstrap
-FROM alpine:3.16 AS ss-bootstrap
+FROM ${ALPINE} AS ss-bootstrap
+COPY --from=build-base /apk/ /apk/
 RUN \
-  apk add build-base cmake git glib-dev && \
+  /apk/build-base && apk add cmake git glib-dev && \
   git clone https://github.com/dnomd343/shadowsocks-bootstrap.git
 RUN \
   cd ./shadowsocks-bootstrap/ && mkdir ./build/ && cd ./build/ && \
@@ -91,7 +111,7 @@ RUN \
 RUN strip /tmp/ss-bootstrap-*
 
 # Combine shadowsocks dependencies
-FROM python:3.10-alpine3.16 AS shadowsocks
+FROM ${PYTHON} AS shadowsocks
 COPY --from=ss-rust /tmp/ss-rust-* /release/
 COPY --from=ss-libev /tmp/ss-libev-* /release/
 COPY --from=ss-bootstrap /tmp/ss-bootstrap-* /release/
@@ -104,12 +124,41 @@ RUN \
   ln -s ${PYTHON_PACKAGE}/ss-python-legacy/local.py /release/ss-python-legacy-local && \
   ln -s ${PYTHON_PACKAGE}/ss-python-legacy/server.py /release/ss-python-legacy-server
 
+# Compile gevent
+FROM ${PYTHON} AS gevent
+COPY --from=build-base /apk/ /apk/
+RUN /apk/build-base && apk add libffi-dev
+RUN cd /tmp/ && pip wheel gevent
+
+# Compile numpy
+FROM ${PYTHON} AS numpy
+COPY --from=build-base /apk/ /apk/
+RUN /apk/build-base
+RUN cd /tmp/ && pip wheel numpy
+
+# Build python wheels
+FROM ${PYTHON} AS wheels
+COPY --from=build-base /apk/ /apk/
+RUN /apk/build-base && apk add linux-headers
+RUN cd /tmp/ && pip wheel colorlog flask IPy psutil pysocks requests salsa20
+COPY --from=gevent /tmp/*.whl /tmp/
+COPY --from=numpy /tmp/*.whl /tmp/
+
+# Pack python modules
+FROM ${ALPINE} AS python-pkg
+COPY --from=wheels /tmp/*.whl /site-packages/
+RUN cd /site-packages/ && ls | xargs -n1 unzip && rm ./*.whl
+COPY --from=ss-python /packages/ /site-packages/
+RUN rm -rf $(find / -name '__pycache__')
+RUN BZIP2=-9 tar czf /packages.tar.gz ./site-packages/
+
 # Compile openssl (old version, for shadowsocks method -> idea-cfb / seed-cfb)
-FROM alpine:3.16 AS openssl
+FROM ${ALPINE} AS openssl
+COPY --from=build-base /apk/ /apk/
 ENV OPENSSL_VER="1.0.2"
 ENV OPENSSL_SUB_VER="u"
 RUN \
-  apk add build-base perl && \
+  /apk/build-base && apk add perl && \
   wget https://www.openssl.org/source/old/${OPENSSL_VER}/openssl-${OPENSSL_VER}${OPENSSL_SUB_VER}.tar.gz
 RUN \
   tar xf openssl-*.tar.gz && cd ./openssl-*/ && \
@@ -117,21 +166,11 @@ RUN \
   mv ./libcrypto.so.1.0.0 /tmp/
 RUN strip /tmp/libcrypto.so.1.0.0
 
-# Build python module (numpy salsa20 psutil)
-FROM python:3.10-alpine3.16 AS python-pkg
-RUN apk add build-base linux-headers
-RUN \
-  pip3 install numpy salsa20 psutil && \
-  cd /usr/local/lib/python*/site-packages/ && \
-  mkdir /site-packages/ && mv ./*numpy* ./*salsa20* ./psutil* /site-packages/ && \
-  rm -rf $(find /site-packages/ -name '__pycache__')
-COPY --from=ss-python /packages/ /site-packages/
-RUN BZIP2=-9 tar czf /packages.tar.gz ./site-packages/
-
 # Compile sip003 plugins (part1 -> gcc & cargo)
-FROM rust:1.62-alpine3.16 AS plugin-1
+FROM ${RUST} AS plugin-1
+COPY --from=build-base /apk/ /apk/
 RUN \
-  apk add autoconf automake build-base git libev-dev libtool linux-headers && \
+  /apk/build-base && apk add autoconf automake git libev-dev libtool linux-headers && \
   git clone https://github.com/shadowsocks/simple-obfs.git && \
   git clone https://github.com/shadowsocks/qtun.git && \
   mkdir /plugins/
@@ -141,14 +180,16 @@ RUN \
   ./autogen.sh && ./configure --disable-documentation && make && \
   cd ./src/ && mv ./obfs-local ./obfs-server /plugins/
 # Compile qtun
+RUN cd ./qtun && cargo update
 RUN \
   cd ./qtun/ && cargo build --release && \
   cd ./target/release/ && mv ./qtun-client ./qtun-server /plugins/
+RUN strip /plugins/*
 COPY --from=upx /upx/ /usr/
-RUN strip /plugins/* && upx -9 /plugins/qtun-*
+RUN upx -9 /plugins/qtun-*
 
 # Compile sip003 plugins (part2 -> go1.16)
-FROM golang:1.16-alpine3.15 AS plugin-2
+FROM ${GO16} AS plugin-2
 ENV GOST_PLUGIN="v1.6.3"
 RUN \
   apk add git && mkdir /plugins/ && \
@@ -209,7 +250,7 @@ COPY --from=upx /upx/ /usr/
 RUN upx -9 /plugins/*
 
 # Compile sip003 plugins (part3 -> go1.17)
-FROM golang:1.17-alpine3.16 AS plugin-3
+FROM ${GO17} AS plugin-3
 ENV SIMPLE_TLS="v0.7.0"
 ENV CLOAK="v2.6.0"
 RUN \
@@ -238,13 +279,13 @@ COPY --from=upx /upx/ /usr/
 RUN upx -9 /plugins/*
 
 # Combine sip003 plugins
-FROM alpine:3.16 AS plugin
+FROM ${ALPINE} AS plugin
 COPY --from=plugin-1 /plugins/ /release/
 COPY --from=plugin-2 /plugins/ /release/
 COPY --from=plugin-3 /plugins/ /release/
 
 # Compile v2fly-core
-FROM golang:1.18-alpine3.16 AS v2ray
+FROM ${GO18} AS v2ray
 ENV V2RAY_VERSION="v4.45.2"
 RUN \
   wget https://github.com/v2fly/v2ray-core/archive/refs/tags/${V2RAY_VERSION}.tar.gz && \
@@ -256,7 +297,7 @@ COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/v2*
 
 # Compile xray-core
-FROM golang:1.18-alpine3.16 AS xray
+FROM ${GO18} AS xray
 ENV XRAY_VERSION="v1.5.9"
 RUN \
   wget https://github.com/XTLS/Xray-core/archive/refs/tags/${XRAY_VERSION}.tar.gz && \
@@ -267,7 +308,7 @@ COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/xray
 
 # Compile trojan-go
-FROM golang:1.17-alpine3.16 AS trojan-go
+FROM ${GO17} AS trojan-go
 ENV TROJAN_GO_VERSION="v0.10.6"
 RUN \
   apk add git && \
@@ -281,10 +322,11 @@ COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/trojan-go
 
 # Compile trojan
-FROM alpine:3.16 AS trojan
+FROM ${ALPINE} AS trojan
+COPY --from=build-base /apk/ /apk/
 ENV TROJAN_VERSION="v1.16.0"
 RUN \
-  apk add boost-dev build-base cmake openssl-dev && \
+  /apk/build-base && apk add boost-dev cmake openssl-dev && \
   wget https://github.com/trojan-gfw/trojan/archive/refs/tags/${TROJAN_VERSION}.tar.gz
 RUN \
   tar xf ${TROJAN_VERSION}.tar.gz && cd ./trojan-*/ && \
@@ -294,7 +336,7 @@ RUN strip /tmp/trojan
 COPY --from=trojan-go /tmp/trojan-go /tmp/
 
 # Compile gost-v3
-FROM golang:1.18-alpine3.16 AS gost-v3
+FROM ${GO18} AS gost-v3
 RUN \
   apk add git && \
   git clone https://github.com/go-gost/gost.git && cd ./gost/ && \
@@ -304,7 +346,7 @@ COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/gost-v3
 
 # Compile gost
-FROM golang:1.17-alpine3.16 AS gost
+FROM ${GO17} AS gost
 ENV GOST_VERSION="v2.11.2"
 RUN \
   wget https://github.com/ginuerzh/gost/archive/refs/tags/${GOST_VERSION}.tar.gz && \
@@ -316,7 +358,7 @@ RUN upx -9 /tmp/gost
 COPY --from=gost-v3 /tmp/gost-v3 /tmp/
 
 # Compile brook
-FROM golang:1.16-alpine3.15 AS brook
+FROM ${GO16} AS brook
 ENV BROOK_VERSION="v20220707"
 RUN \
   wget https://github.com/txthinking/brook/archive/refs/tags/${BROOK_VERSION}.tar.gz && \
@@ -327,7 +369,7 @@ COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/brook
 
 # Compile clash
-FROM golang:1.18-alpine3.16 AS clash
+FROM ${GO18} AS clash
 ENV CLASH_VERSION="v1.11.4"
 RUN \
   wget https://github.com/Dreamacro/clash/archive/refs/tags/${CLASH_VERSION}.tar.gz && \
@@ -340,7 +382,7 @@ COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/clash
 
 # Compile caddy
-FROM golang:1.18-alpine3.16 AS caddy
+FROM ${GO18} AS caddy
 RUN \
   go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest && \
   xcaddy build --with github.com/caddyserver/forwardproxy@caddy2=github.com/klzgrad/forwardproxy@naive && \
@@ -349,7 +391,7 @@ COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/caddy
 
 # Download naiveproxy
-FROM alpine:3.16 AS naiveproxy
+FROM ${ALPINE} AS naiveproxy
 ENV NAIVE_VERSION="v103.0.5060.53-3"
 RUN \
   apk add curl libgcc jq && \
@@ -364,7 +406,7 @@ RUN apk add gcc && strip /tmp/naive
 COPY --from=caddy /tmp/caddy /tmp/
 
 # Compile open-snell
-FROM golang:1.17-alpine3.16 AS snell
+FROM ${GO17} AS snell
 ENV SNELL_VERSION="v3.0.1"
 RUN \
   wget https://github.com/icpz/open-snell/archive/refs/tags/${SNELL_VERSION}.tar.gz && \
@@ -378,7 +420,7 @@ COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/snell-*
 
 # Compile hysteria
-FROM golang:1.17-alpine3.16 AS hysteria
+FROM ${GO17} AS hysteria
 ENV HYSTERIA_VERSION="v1.1.0"
 RUN \
   apk add git && \
@@ -405,7 +447,7 @@ COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/relaybaton
 
 # Compile pingtunnel
-FROM golang:1.18-alpine3.16 AS pingtunnel
+FROM ${GO18} AS pingtunnel
 RUN \
   apk add git && \
   git clone https://github.com/esrrhs/pingtunnel.git && cd ./pingtunnel/ && \
@@ -416,7 +458,7 @@ COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/pingtunnel
 
 # Compile wireproxy
-FROM golang:1.17-alpine3.16 AS wireproxy
+FROM ${GO17} AS wireproxy
 ENV WIREPROXY_VERSION="v1.0.3"
 RUN \
   wget https://github.com/octeep/wireproxy/archive/refs/tags/${WIREPROXY_VERSION}.tar.gz && \
@@ -427,7 +469,7 @@ COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/wireproxy
 
 # Compile dnsproxy
-FROM golang:1.18-alpine3.16 AS dnsproxy
+FROM ${GO18} AS dnsproxy
 ENV DNSPROXY_VERSION="v0.43.1"
 RUN \
   wget https://github.com/AdguardTeam/dnsproxy/archive/refs/tags/${DNSPROXY_VERSION}.tar.gz && \
@@ -438,7 +480,7 @@ COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/dnsproxy
 
 # Compile mad
-FROM golang:1.16-alpine3.15 AS mad
+FROM ${GO16} AS mad
 ENV MAD_VERSION="v20210401"
 RUN \
   wget https://github.com/txthinking/mad/archive/refs/tags/${MAD_VERSION}.tar.gz && \
@@ -449,7 +491,7 @@ COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/mad
 
 # Combine all release
-FROM python:3.10-alpine3.16 AS asset
+FROM ${PYTHON} AS asset
 COPY --from=python-pkg /packages.tar.gz /
 RUN \
   PACKAGE_DIR="/asset/usr/local/lib/$(ls /usr/local/lib/ | grep ^python)" && \
@@ -474,13 +516,11 @@ COPY --from=dnsproxy /tmp/dnsproxy /asset/usr/bin/
 COPY --from=mad /tmp/mad /asset/usr/bin/
 
 # Release docker image
-FROM python:3.10-alpine3.16
+FROM ${PYTHON}
 RUN \
   apk add --no-cache boost-program_options c-ares \
     ca-certificates glib libev libsodium libstdc++ mbedtls pcre && \
-  pip3 --no-cache-dir install colorlog flask gevent IPy pysocks requests && \
-  ln -s /usr/local/share/ProxyC/main.py /usr/bin/proxyc && \
-  rm -rf $(find / -name '__pycache__')
+  ln -s /usr/local/share/ProxyC/main.py /usr/bin/proxyc
 COPY --from=asset /asset /
 COPY . /usr/local/share/ProxyC/
 EXPOSE 7839
