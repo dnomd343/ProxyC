@@ -93,8 +93,8 @@ RUN sed -i 's/MutableMapping/abc.MutableMapping/' ./shadowsocks/lru_cache.py && 
     mv ../../lib/ /packages/ssr-python/
 # shadowsocks-python (latest version)
 WORKDIR ../shadowsocks/
-RUN git checkout master
-RUN sed -i 's/if addr is/if addr ==/g' ./shadowsocks/common.py && \
+RUN git checkout master && \
+    sed -i 's/if addr is/if addr ==/g' ./shadowsocks/common.py && \
     sed -i 's/and ip is not/and ip !=/g' ./shadowsocks/common.py && \
     sed -i 's/if len(block) is/if len(block) ==/g' ./shadowsocks/common.py && \
     sed -i 's/MutableMapping/abc.MutableMapping/' ./shadowsocks/lru_cache.py && \
