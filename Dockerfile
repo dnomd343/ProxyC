@@ -22,7 +22,7 @@ FROM ${ALPINE_IMG} AS build-base
 WORKDIR /apk/
 RUN apk add build-base | grep -oE 'Installing \S+' | cut -b 12- > ./build-base
 RUN chmod +x ./build-base && cat ./build-base | xargs -n1 apk fetch && \
-    sed -i 's/^/apk add \/apk\/&/g;s/$/&-*.apk/g;1i\#!/bin/sh' ./build-base
+    sed -i 's/^/ \/apk\/&/g;s/$/&-*.apk/g;1i\apk add' ./build-base && sed -i ':a;N;s/\n//g;ba' ./build-base
 
 # Compile gevent
 FROM ${PYTHON_IMG} AS gevent
