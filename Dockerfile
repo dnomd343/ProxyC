@@ -166,12 +166,12 @@ RUN git clone https://github.com/shadowsocks/qtun.git && \
 WORKDIR ./simple-obfs/
 RUN git submodule update --init --recursive && \
     ./autogen.sh && ./configure --disable-documentation && make && \
-    mv ./src//obfs-local ./src//obfs-server /plugins/
+    mv ./src/obfs-local ./src/obfs-server /plugins/
 # Compile qtun
 WORKDIR ../qtun/
 RUN cargo update
 RUN cargo build --target-dir ./ --release && \
-    mv ./release//qtun-client ./release//qtun-server /plugins/ && \
+    mv ./release/qtun-client ./release/qtun-server /plugins/ && \
     strip /plugins/*
 COPY --from=upx /upx/ /usr/
 RUN upx -9 /plugins/qtun-*
