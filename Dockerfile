@@ -268,30 +268,24 @@ COPY --from=plugin-1 /plugins/ /release/
 COPY --from=plugin-2 /plugins/ /release/
 COPY --from=plugin-3 /plugins/ /release/
 
-# Compile v2fly-core
+# Compile xray-core and v2fly-core
 FROM ${GO18_IMG} AS v2ray
-ENV V2RAY_VERSION="4.45.2"
-RUN wget https://github.com/v2fly/v2ray-core/archive/refs/tags/v${V2RAY_VERSION}.tar.gz && \
-    tar xf v${V2RAY_VERSION}.tar.gz
-WORKDIR ./v2ray-core-${V2RAY_VERSION}/
-RUN go mod download -x
-RUN env CGO_ENABLED=0 go build -v -o v2ray -trimpath -ldflags "-s -w" ./main && \
-    env CGO_ENABLED=0 go build -v -o v2ctl -trimpath -ldflags "-s -w" -tags confonly ./infra/control/main && \
-    mv ./v2ctl ./v2ray /tmp/
-COPY --from=upx /upx/ /usr/
-RUN upx -9 /tmp/v2*
-
-# Compile xray-core
-FROM ${GO18_IMG} AS xray
 ENV XRAY_VERSION="1.5.9"
+ENV V2FLY_VERSION="4.45.2"
 RUN wget https://github.com/XTLS/Xray-core/archive/refs/tags/v${XRAY_VERSION}.tar.gz && \
     tar xf v${XRAY_VERSION}.tar.gz
+RUN wget https://github.com/v2fly/v2ray-core/archive/refs/tags/v${V2FLY_VERSION}.tar.gz && \
+    tar xf v${V2FLY_VERSION}.tar.gz
 WORKDIR ./Xray-core-${XRAY_VERSION}/
 RUN go mod download -x
 RUN env CGO_ENABLED=0 go build -v -o xray -trimpath -ldflags "-s -w" ./main && \
     mv ./xray /tmp/
+WORKDIR ./v2ray-core-${V2FLY_VERSION}/
+RUN go mod download -x
+RUN env CGO_ENABLED=0 go build -v -o v2ray -trimpath -ldflags "-s -w" ./main && \
+    mv ./v2ray /tmp/
 COPY --from=upx /upx/ /usr/
-RUN upx -9 /tmp/xray
+RUN upx -9 /tmp/*ray
 
 # Compile trojan-go
 FROM ${GO17_IMG} AS trojan-go
@@ -370,14 +364,6 @@ RUN env CGO_ENABLED=0 go build -v -trimpath -ldflags "-s -w \
 COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/clash
 
-# Compile caddy
-FROM ${GO18_IMG} AS caddy
-RUN go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
-RUN xcaddy build --with github.com/caddyserver/forwardproxy@caddy2=github.com/klzgrad/forwardproxy@naive && \
-    mv ./caddy /tmp/
-COPY --from=upx /upx/ /usr/
-RUN upx -9 /tmp/caddy
-
 # Download naiveproxy
 FROM ${ALPINE_IMG} AS naiveproxy
 ENV NAIVE_VERSION="v103.0.5060.53-3"
@@ -391,7 +377,6 @@ RUN echo -e "while read FILE_NAME;do\nwget https://github.com/klzgrad/naiveproxy
     sh naiveproxy.sh
 COPY --from=build-base /apk/ /apk/
 RUN /apk/build-base && strip /tmp/naive
-COPY --from=caddy /tmp/caddy /tmp/
 
 # Compile open-snell
 FROM ${GO17_IMG} AS snell
@@ -491,15 +476,13 @@ RUN mkdir -p /asset/usr/local/lib/python${PYTHON}/site-packages/ && \
 COPY --from=openssl /tmp/libcrypto.so* /asset/lib/
 COPY --from=shadowsocks /release/ /asset/usr/bin/
 COPY --from=plugin /release/ /asset/usr/bin/
-COPY --from=v2ray /tmp/v2* /asset/usr/bin/
-COPY --from=xray /tmp/xray /asset/usr/bin/
+COPY --from=v2ray /tmp/*ray /asset/usr/bin/
 COPY --from=trojan /tmp/trojan* /asset/usr/bin/
 COPY --from=gost /tmp/gost* /asset/usr/bin/
 COPY --from=brook /tmp/brook /asset/usr/bin/
 COPY --from=clash /tmp/clash /asset/usr/bin/
 COPY --from=snell /tmp/snell-* /asset/usr/bin/
 COPY --from=hysteria /tmp/hysteria /asset/usr/bin/
-COPY --from=naiveproxy /tmp/caddy /asset/usr/bin/
 COPY --from=naiveproxy /tmp/naive /asset/usr/bin/
 COPY --from=relaybaton /tmp/relaybaton /asset/usr/bin/
 COPY --from=pingtunnel /tmp/pingtunnel /asset/usr/bin/
