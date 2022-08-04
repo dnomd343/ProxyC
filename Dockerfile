@@ -280,7 +280,7 @@ WORKDIR ./Xray-core-${XRAY_VERSION}/
 RUN go mod download -x
 RUN env CGO_ENABLED=0 go build -v -o xray -trimpath -ldflags "-s -w" ./main && \
     mv ./xray /tmp/
-WORKDIR ./v2ray-core-${V2FLY_VERSION}/
+WORKDIR ../v2ray-core-${V2FLY_VERSION}/
 RUN go mod download -x
 RUN env CGO_ENABLED=0 go build -v -o v2ray -trimpath -ldflags "-s -w" ./main && \
     mv ./v2ray /tmp/
