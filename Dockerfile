@@ -314,29 +314,23 @@ RUN cmake .. -DENABLE_MYSQL=OFF -DSYSTEMD_SERVICE=OFF && make && \
     strip /tmp/trojan
 COPY --from=trojan-go /tmp/trojan-go /tmp/
 
-# Compile gost-v3
-FROM ${GO18_IMG} AS gost-v3
-RUN apk add git
-RUN git clone https://github.com/go-gost/gost.git
-WORKDIR ./gost/
-RUN go mod download -x
-RUN env CGO_ENABLED=0 go build -v -trimpath -ldflags "-s -w" ./cmd/gost && \
-    mv ./gost /tmp/gost-v3
-COPY --from=upx /upx/ /usr/
-RUN upx -9 /tmp/gost-v3
-
-# Compile gost
-FROM ${GO17_IMG} AS gost
+# Compile gost and gost-v3
+FROM ${GO18_IMG} AS gost
 ENV GOST_VERSION="2.11.2"
-RUN wget https://github.com/ginuerzh/gost/archive/refs/tags/v${GOST_VERSION}.tar.gz && \
+RUN apk add git
+RUN git clone https://github.com/go-gost/gost.git ./gost-v3/ && \
+    wget https://github.com/ginuerzh/gost/archive/refs/tags/v${GOST_VERSION}.tar.gz && \
     tar xf v${GOST_VERSION}.tar.gz
 WORKDIR ./gost-${GOST_VERSION}/
 RUN go mod download -x
 RUN env CGO_ENABLED=0 go build -v -trimpath -ldflags "-s -w" ./cmd/gost && \
     mv ./gost /tmp/
+WORKDIR ../gost-v3/
+RUN go mod download -x
+RUN env CGO_ENABLED=0 go build -v -trimpath -ldflags "-s -w" ./cmd/gost && \
+    mv ./gost /tmp/gost-v3
 COPY --from=upx /upx/ /usr/
-RUN upx -9 /tmp/gost
-COPY --from=gost-v3 /tmp/gost-v3 /tmp/
+RUN ls /tmp/gost* | xargs -P0 -n1 upx -9
 
 # Compile brook
 FROM ${GO16_IMG} AS brook
