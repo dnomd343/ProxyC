@@ -86,3 +86,23 @@ def networkStatus() -> list:  # get all network connections
         })
     logging.debug('Network status -> found %i connections' % len(result))
     return result
+
+
+def toInt(raw) -> int:
+    pass
+
+
+def toStr(raw) -> str:
+    pass
+
+
+def toBool(raw) -> bool:
+    pass
+
+
+def isHost(raw) -> bool:
+    pass
+
+
+def isPort(raw) -> bool:
+    pass
