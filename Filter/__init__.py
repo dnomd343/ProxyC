@@ -7,7 +7,7 @@ xxObject = {  # a dict that describe multi-field
         'optional': ...,  # field force require or not
         'default': ...,  # default value when field is not exist (optional == True)
         'allowNone': ...,  # whether the value can be None (override the format and filter process)
-        'type': ...,  # type of field content (in filter process) (python type / dict)
+        'type': ...,  # type of field content (in filter process) (any / type / list / dict)
         'multiSub': ...,  # whether there are multi subObject (type is dict)
         'indexKey': ...,  # index key of subObject (type is dict and multiSub == True)
         'format': ...,  # format function (before filter process) (invalid content -> throw error)
@@ -46,8 +46,10 @@ pre process
 format process -> set as field value (maybe throw error -> catch and throw errMsg)
 
 filter process
-  => type is `python type` -> compare with field type -> filter function check
-  => type is dict
+  => type is `any` -> filter function check (skip type compare)
+  => type is `type` -> compare with field type -> filter function check
+  => type is `list` -> compare every type in list with field -> filter function check
+  => type is `dict`
     => multiSub == False -> recursive check
     => multiSub == True
       => field content is not dict or not include indexKey -> throw error
