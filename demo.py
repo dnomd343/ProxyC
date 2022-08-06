@@ -6,10 +6,14 @@ from Basis.Filter import filterObject
 from Filter.Shadowsocks import ssObject
 from Filter.ShadowsocksR import ssrObject
 from Filter.VMess import vmessObject
+from Filter.VLESS import vlessObject
+from Filter.Trojan import trojanObject
 
 # pprint(ssObject, sort_dicts = False)
 # pprint(ssrObject, sort_dicts = False)
 # pprint(vmessObject, sort_dicts = False)
+# pprint(vlessObject, sort_dicts = False)
+# pprint(trojanObject, sort_dicts = False)
 # pprint(filterObject, sort_dicts = False)
 
 ssProxy = {
@@ -48,7 +52,60 @@ vmessProxy = {
     }
 }
 
+vlessProxy = {
+    'server': '1.1.1.1',
+    'port': r'12345',
+    'method': 'NONE',
+    'id': '  3f163adf-5bdd-40d0-b0ec-e47f9bebcac7',
+    'stream': {
+        'type': 'grpc',
+        'service': 'dnomd343',
+        'secure': None,
+        # 'secure': {
+        #     'type': 'tls',
+        #     'sni': '23333',
+        #     'alpn': 'h2',
+        #     'verify': 0
+        # }
+        # 'secure': {
+        #     'type': 'xtls',
+        #     'sni': '23333',
+        #     'alpn': 'h2',
+        #     'verify': True,
+        #     'flow': 'xtls-rprx-direct',
+        #     'udp443': 0.1
+        # }
+    }
+}
+
+trojanProxy = {
+    'server': '1.1.1.1',
+    'port': 12345,
+    'passwd': b'dnomd343',
+    'stream': {
+        'type': 'grpc',
+        'service': 'dnomd343',
+        # 'secure': None,
+        'secure': {
+            'type': 'tls',
+            'sni': '23333',
+            'alpn': 'h2',
+            'verify': 0
+        }
+        # 'secure': {
+        #     'type': 'xtls',
+        #     'sni': '23333',
+        #     'alpn': 'h2',
+        #     'verify': True,
+        #     'flow': 'xtls-rprx-direct',
+        #     'udp443': 0.1
+        # }
+    }
+}
+
 # ret = Filter(ssProxy, ssObject)
 # ret = Filter(ssrProxy, ssrObject)
-ret = Filter(vmessProxy, vmessObject)
+# ret = Filter(vmessProxy, vmessObject)
+# ret = Filter(vlessProxy, vlessObject)
+ret = Filter(trojanProxy, trojanObject)
 pprint(ret, sort_dicts = False)

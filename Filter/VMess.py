@@ -31,7 +31,7 @@ vmessObject = rulesFilter({
     'id': {
         'type': str,
         'format': toStrTidy,
-        'errMsg': 'Unknown VMess ID'
+        'errMsg': 'Invalid VMess ID'
     },
     'aid': {
         'optional': True,

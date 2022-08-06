@@ -103,7 +103,7 @@ def Filter(raw: dict, rules: dict) -> dict:
                 subRules = rule['type']
             else:  # multi subObject
                 if rule['indexKey'] not in data[key]:  # confirm index key exist
-                    raise RuntimeError('Index key not found in `%s`' % key)
+                    raise RuntimeError('Index key `%s` not found in `%s`' % (rule['indexKey'], key))
                 subType = data[key][rule['indexKey']].lower()
                 if subType not in rule['type']:  # confirm subObject rule exist
                     raise RuntimeError('Unknown index `%s` in key `%s`' % (subType, key))

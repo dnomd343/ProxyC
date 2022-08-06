@@ -67,7 +67,7 @@ tcpObject = rulesFilter({
         'default': None,
         'allowNone': True,
         'type': tlsObject,
-        'errMsg': 'Invalid tlsObject'
+        'errMsg': 'Invalid secure options'
     }
 })
 
@@ -99,7 +99,7 @@ kcpObject = rulesFilter({
         'default': None,
         'allowNone': True,
         'type': tlsObject,
-        'errMsg': 'Invalid tlsObject'
+        'errMsg': 'Invalid secure options'
     }
 })
 
@@ -138,7 +138,7 @@ wsObject = rulesFilter({
         'default': None,
         'allowNone': True,
         'type': tlsObject,
-        'errMsg': 'Invalid tlsObject'
+        'errMsg': 'Invalid secure options'
     }
 })
 
@@ -167,7 +167,7 @@ h2Object = rulesFilter({
         'optional': True,
         'default': {},
         'type': tlsObject,
-        'errMsg': 'Invalid tlsObject'
+        'errMsg': 'Invalid secure options'
     }
 })
 
@@ -205,7 +205,7 @@ quicObject = rulesFilter({
         'optional': True,
         'default': {},
         'type': tlsObject,
-        'errMsg': 'Invalid tlsObject'
+        'errMsg': 'Invalid secure options'
     }
 })
 
@@ -234,6 +234,6 @@ grpcObject = rulesFilter({
         'default': None,
         'allowNone': True,
         'type': tlsObject,
-        'errMsg': 'Invalid tlsObject'
+        'errMsg': 'Invalid secure options'
     }
 })
