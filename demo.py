@@ -9,6 +9,7 @@ from Filter.VMess import vmessObject
 from Filter.VLESS import vlessObject
 from Filter.Trojan import trojanObject
 from Filter.TrojanGo import trojanGoObject
+from Filter.Brook import brookObject
 
 # pprint(ssObject, sort_dicts = False)
 # pprint(ssrObject, sort_dicts = False)
@@ -16,6 +17,7 @@ from Filter.TrojanGo import trojanGoObject
 # pprint(vlessObject, sort_dicts = False)
 # pprint(trojanObject, sort_dicts = False)
 # pprint(trojanGoObject, sort_dicts = False)
+# pprint(brookObject, sort_dicts = False)
 # pprint(filterObject, sort_dicts = False)
 
 ssProxy = {
@@ -126,10 +128,26 @@ trojanGoProxy = {
     }
 }
 
+brookProxy = {
+    'server': '1.1.1.1',
+    'port': 12345,
+    'passwd': 'dnomd343',
+    'stream': {
+        'type': 'ws',
+        'host': '343.re',
+        'path': '/test',
+        'raw': True,
+        'secure': {
+            'verify': '  0'
+        }
+    },
+}
+
 # ret = Filter(ssProxy, ssObject)
 # ret = Filter(ssrProxy, ssrObject)
 # ret = Filter(vmessProxy, vmessObject)
 # ret = Filter(vlessProxy, vlessObject)
 # ret = Filter(trojanProxy, trojanObject)
-ret = Filter(trojanGoProxy, trojanGoObject)
+# ret = Filter(trojanGoProxy, trojanGoObject)
+ret = Filter(brookProxy, brookObject)
 pprint(ret, sort_dicts = False)
