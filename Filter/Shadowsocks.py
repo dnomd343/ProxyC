@@ -10,7 +10,7 @@ from Basis.Functions import isHost, isPort
 ssObject = rulesFilter({
     'server': {
         'type': str,
-        'format': toStr,
+        'format': lambda s: toStr(s).strip().lower(),
         'filter': isHost,
         'errMsg': 'Invalid server address'
     },
