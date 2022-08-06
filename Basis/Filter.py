@@ -54,7 +54,7 @@ filterObject = {
     'errMsg': {
         'type': str,
         'optional': True,  # `errMsg` is not force require
-        'default': 'filter error',
+        'default': 'Filter error',
         'allowNone': False,  # `errMsg` couldn't be None
     }
 }
@@ -75,7 +75,7 @@ def Filter(raw: dict, rules: dict) -> dict:
         # pretreatment process (raw --[copy / default value]--> data)
         if key not in raw:  # key not exist
             if not rule['optional']:  # force require key not exist
-                raise RuntimeError('Miss `%s` field' % key)
+                raise RuntimeError('Missing `%s` field' % key)
             data[key] = rule['default']  # set default value
         else:  # key exist
             data[key] = raw[key]
@@ -97,11 +97,21 @@ def Filter(raw: dict, rules: dict) -> dict:
             elif type(data[key]) not in rule['type']:  # type not in allow list
                 raise RuntimeError('Invalid `%s` field' % key)
         elif type(rule['type']) == dict:  # check subObject
+            if type(data[key]) != dict:
+                raise RuntimeError('Invalid sub object in `%s`' % key)  # subObject content should be dict
             if not rule['multiSub']:  # single subObject
-                data[key] = Filter(data[key], rule['type'])
+                subRules = rule['type']
             else:  # multi subObject
-                # TODO: multi sub filter
-                pass
+                if rule['indexKey'] not in data[key]:  # confirm index key exist
+                    raise RuntimeError('Index key not found in `%s`' % key)
+                subType = data[key][rule['indexKey']]
+                if subType not in rule['type']:  # confirm subObject rule exist
+                    raise RuntimeError('Unknown index `%s` in key `%s`' % (subType, key))
+                subRules = rule['type'][subType]
+            try:
+                data[key] = Filter(data[key], subRules)
+            except RuntimeError as exp:
+                raise RuntimeError('%s (in `%s`)' % (exp, key))  # add located info
             continue
         elif rule['type'] != any:  # type == any -> skip type filter
             raise RuntimeError('Unknown `type` in rules')
@@ -117,4 +127,4 @@ def rulesFilter(rules: dict) -> dict:
     return result
 
 
-filterObject = rulesFilter(filterObject)  # format itself
+filterObject = rulesFilter(filterObject)  # self-format

@@ -1,27 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from Filter.Plugin import pluginFormat
+from Basis.Filter import rulesFilter
+from Filter.Plugin import pluginObject
+from Basis.Constant import ssAllMethods
 from Basis.Functions import toInt, toStr
 from Basis.Functions import isHost, isPort
-from Basis.Filter import Filter, rulesFilter
-from Basis.Constant import ssMethods, pluginClients
-
-pluginObject = rulesFilter({
-    'type': {
-        'type': str,
-        'format': lambda s: pluginFormat(toStr(s).strip().lower()),
-        'filter': lambda s: s in pluginClients,
-        'errMsg': 'Unknown SIP003 plugin'
-    },
-    'param': {
-        'optional': False,
-        'default': '',
-        'type': str,
-        'format': toStr,
-        'errMsg': 'Invalid SIP003 param'
-    }
-})
 
 ssObject = rulesFilter({
     'server': {
@@ -39,7 +23,7 @@ ssObject = rulesFilter({
     'method': {
         'type': str,
         'format': lambda s: toStr(s).strip().lower().replace('_', '-'),
-        'filter': lambda s: s in ssMethods,
+        'filter': lambda s: s in ssAllMethods,
         'errMsg': 'Unknown Shadowsocks method'
     },
     'passwd': {
@@ -48,13 +32,10 @@ ssObject = rulesFilter({
         'errMsg': 'Invalid password content'
     },
     'plugin': {
-        'optional': False,
+        'optional': True,
         'default': None,
         'allowNone': True,
         'type': pluginObject,
         'errMsg': 'Invalid pluginObject'
     }
 })
-
-from pprint import pprint
-pprint(ssObject, sort_dicts = False)
