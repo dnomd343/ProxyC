@@ -10,6 +10,7 @@ from Filter.VLESS import vlessObject
 from Filter.Trojan import trojanObject
 from Filter.TrojanGo import trojanGoObject
 from Filter.Brook import brookObject
+from Filter.Hysteria import hysteriaObject
 
 # pprint(ssObject, sort_dicts = False)
 # pprint(ssrObject, sort_dicts = False)
@@ -18,6 +19,7 @@ from Filter.Brook import brookObject
 # pprint(trojanObject, sort_dicts = False)
 # pprint(trojanGoObject, sort_dicts = False)
 # pprint(brookObject, sort_dicts = False)
+# pprint(hysteriaObject, sort_dicts = False)
 # pprint(filterObject, sort_dicts = False)
 
 ssProxy = {
@@ -143,11 +145,25 @@ brookProxy = {
     },
 }
 
+hysteriaProxy = {
+    'server': '1.1.1.1',
+    'port': 12345,
+    'protocol': 'faketcp',
+    'obfs': '1234',
+    'passwd': 'dnomd343',
+    'up': 100,
+    'down': 500,
+    'sni': '343.re',
+    'alpn': 'h3',
+    'verify': 'FALSE',
+}
+
 # ret = Filter(ssProxy, ssObject)
 # ret = Filter(ssrProxy, ssrObject)
 # ret = Filter(vmessProxy, vmessObject)
 # ret = Filter(vlessProxy, vlessObject)
 # ret = Filter(trojanProxy, trojanObject)
 # ret = Filter(trojanGoProxy, trojanGoObject)
-ret = Filter(brookProxy, brookObject)
+# ret = Filter(brookProxy, brookObject)
+ret = Filter(hysteriaProxy, hysteriaObject)
 pprint(ret, sort_dicts = False)
