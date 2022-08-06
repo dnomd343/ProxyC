@@ -4,9 +4,10 @@
 from Filter.Plugin import pluginFormat
 from Basis.Functions import toInt, toStr
 from Basis.Functions import isHost, isPort
+from Basis.Filter import Filter, rulesFilter
 from Basis.Constant import ssMethods, pluginClients
 
-pluginObject = {
+pluginObject = rulesFilter({
     'type': {
         'type': str,
         'format': lambda s: pluginFormat(toStr(s).strip().lower()),
@@ -20,9 +21,9 @@ pluginObject = {
         'format': toStr,
         'errMsg': 'Invalid SIP003 param'
     }
-}
+})
 
-ssObject = {
+ssObject = rulesFilter({
     'server': {
         'type': str,
         'format': toStr,
@@ -53,4 +54,7 @@ ssObject = {
         'type': pluginObject,
         'errMsg': 'Invalid pluginObject'
     }
-}
+})
+
+from pprint import pprint
+pprint(ssObject, sort_dicts = False)
