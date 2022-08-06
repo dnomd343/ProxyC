@@ -4,13 +4,13 @@
 from Basis.Filter import rulesFilter
 from Filter.Plugin import pluginObject
 from Basis.Constant import ssAllMethods
-from Basis.Functions import toInt, toStr
 from Basis.Functions import isHost, isPort
+from Basis.Functions import toInt, toStr, toStrTidy
 
 ssObject = rulesFilter({
     'server': {
         'type': str,
-        'format': lambda s: toStr(s).strip().lower(),
+        'format': toStrTidy,
         'filter': isHost,
         'errMsg': 'Invalid server address'
     },
@@ -22,7 +22,7 @@ ssObject = rulesFilter({
     },
     'method': {
         'type': str,
-        'format': lambda s: toStr(s).strip().lower().replace('_', '-'),
+        'format': lambda s: toStrTidy(s).replace('_', '-'),
         'filter': lambda s: s in ssAllMethods,
         'errMsg': 'Unknown Shadowsocks method'
     },

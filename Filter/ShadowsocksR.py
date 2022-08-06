@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from Basis.Filter import rulesFilter
-from Basis.Functions import toInt, toStr
 from Basis.Functions import isHost, isPort
+from Basis.Functions import toInt, toStr, toStrTidy
 from Basis.Constant import ssrMethods, ssrProtocols, ssrObfuscations
 
 
@@ -20,7 +20,7 @@ def ssrObfsFormat(obfs: str) -> str:
 ssrObject = rulesFilter({
     'server': {
         'type': str,
-        'format': lambda s: toStr(s).strip().lower(),
+        'format': toStrTidy,
         'filter': isHost,
         'errMsg': 'Invalid server address'
     },
@@ -32,7 +32,7 @@ ssrObject = rulesFilter({
     },
     'method': {
         'type': str,
-        'format': lambda s: toStr(s).strip().lower().replace('_', '-'),
+        'format': lambda s: toStrTidy(s).replace('_', '-'),
         'filter': lambda s: s in ssrMethods,
         'errMsg': 'Unknown ShadowsocksR method'
     },

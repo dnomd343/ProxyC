@@ -80,14 +80,14 @@ def Filter(raw: dict, rules: dict) -> dict:
         else:  # key exist
             data[key] = raw[key]
         # format process (data --[format]--> data)
-        try:
-            data[key] = rule['format'](data[key])  # run format
-        except:
-            raise RuntimeError(rule['errMsg'])  # format error
         if data[key] is None:  # key content is None
             if not rule['allowNone']:  # key is not allow None
                 raise RuntimeError('Field `%s` shouldn\'t be None' % key)
             continue  # skip following process
+        try:
+            data[key] = rule['format'](data[key])  # run format
+        except:
+            raise RuntimeError(rule['errMsg'])  # format error
         # filter process (data --[type check (& filter check)]--> pass / non-pass)
         if type(rule['type']) == type:  # str / int / bool / ...
             rule['type'] = [rule['type']]  # str -> [str] / int -> [int] / ...
@@ -104,7 +104,7 @@ def Filter(raw: dict, rules: dict) -> dict:
             else:  # multi subObject
                 if rule['indexKey'] not in data[key]:  # confirm index key exist
                     raise RuntimeError('Index key not found in `%s`' % key)
-                subType = data[key][rule['indexKey']]
+                subType = data[key][rule['indexKey']].lower()
                 if subType not in rule['type']:  # confirm subObject rule exist
                     raise RuntimeError('Unknown index `%s` in key `%s`' % (subType, key))
                 subRules = rule['type'][subType]

@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import copy
-from Basis.Functions import toStr
 from Basis.Filter import rulesFilter
 from Basis.Constant import pluginClients
+from Basis.Functions import toStr, toStrTidy
 
 pluginAlias = {
     'obfs-local': {'obfs', 'simple-obfs'},
@@ -24,7 +24,7 @@ pluginAlias = {
 pluginObject = rulesFilter({
     'type': {
         'type': str,
-        'format': lambda s: pluginFormat(toStr(s)),
+        'format': lambda s: pluginFormat(toStrTidy(s)),
         'filter': lambda s: s in pluginClients,
         'errMsg': 'Unknown SIP003 plugin'
     },
@@ -48,7 +48,7 @@ def loadAlias() -> None:
 
 
 def pluginFormat(pluginName: str) -> str:
-    pluginName = pluginName.strip().lower().replace('_', '-')
+    pluginName = pluginName.replace('_', '-')
     for plugin, alias in pluginAlias.items():
         if pluginName in alias:
             return plugin

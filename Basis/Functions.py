@@ -38,7 +38,7 @@ def isHost(host: str) -> bool:
 def isPort(port: int) -> bool:
     if type(port) != int:
         return False
-    return 1 <= port <= 65535  # 1 ~ 65535
+    return port in range(1, 65536)  # 1 ~ 65535
 
 
 def md5Sum(data: str, encode: str = 'utf-8') -> str:
@@ -80,15 +80,19 @@ def toInt(raw) -> int:
         raise RuntimeError('Unable convert to int')
 
 
-def toStr(raw, acceptNone: bool = True) -> str:
-    if raw is None and acceptNone:  # None -> ''
-        return ''
+def toStr(raw) -> str:
+    if raw is None:
+        raise RuntimeError('None could not convert to str')
     if isinstance(raw, bytes):  # bytes -> str
         return str(raw, encoding = 'utf-8')
     try:
         return str(raw)
     except:
         raise RuntimeError('Unable convert to str')
+
+
+def toStrTidy(raw) -> str:
+    return toStr(raw).strip().lower()  # with trim and lower
 
 
 def toBool(raw) -> bool:
