@@ -36,6 +36,6 @@ ssObject = rulesFilter({
         'default': None,
         'allowNone': True,
         'type': pluginObject,
-        'errMsg': 'Invalid pluginObject'
+        'errMsg': 'Invalid plugin options'
     }
 })

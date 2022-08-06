@@ -8,12 +8,14 @@ from Filter.ShadowsocksR import ssrObject
 from Filter.VMess import vmessObject
 from Filter.VLESS import vlessObject
 from Filter.Trojan import trojanObject
+from Filter.TrojanGo import trojanGoObject
 
 # pprint(ssObject, sort_dicts = False)
 # pprint(ssrObject, sort_dicts = False)
 # pprint(vmessObject, sort_dicts = False)
 # pprint(vlessObject, sort_dicts = False)
 # pprint(trojanObject, sort_dicts = False)
+# pprint(trojanGoObject, sort_dicts = False)
 # pprint(filterObject, sort_dicts = False)
 
 ssProxy = {
@@ -103,9 +105,31 @@ trojanProxy = {
     }
 }
 
+trojanGoProxy = {
+    'server': '1.1.1.1',
+    'port': 12345,
+    'passwd': 'dnomd343',
+    'sni': '343.re',
+    'alpn': ' h2',
+    'verify': 'FALSE',
+    'ws': {
+        'host': 'dnomd343.top',
+        'path': '/test',
+    },
+    'ss': {
+        'method': 'chacha20-ietf-poly1305',
+        'passwd': 'dnomd343',
+    },
+    'plugin': {
+        'type': 'go-quiet',
+        'param': 123
+    }
+}
+
 # ret = Filter(ssProxy, ssObject)
 # ret = Filter(ssrProxy, ssrObject)
 # ret = Filter(vmessProxy, vmessObject)
 # ret = Filter(vlessProxy, vlessObject)
-ret = Filter(trojanProxy, trojanObject)
+# ret = Filter(trojanProxy, trojanObject)
+ret = Filter(trojanGoProxy, trojanGoObject)
 pprint(ret, sort_dicts = False)
