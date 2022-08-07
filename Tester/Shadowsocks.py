@@ -11,7 +11,7 @@ from Basis.Test import Settings
 from Basis.Logger import logging
 from Basis.Process import Process
 from Basis.Functions import md5Sum, genFlag, getAvailablePort
-from Basis.Constant import ssMethods, ssAllMethods, mbedtlsMethods
+from Basis.Constant import PathEnv, ssMethods, ssAllMethods, mbedtlsMethods
 
 
 def loadConfig(proxyInfo: dict) -> dict:  # load basic config option
@@ -27,21 +27,28 @@ def loadConfig(proxyInfo: dict) -> dict:  # load basic config option
     return config
 
 
-def ssRust(proxyInfo: dict, isUdp: bool) -> tuple[dict, list]:
+def addPathEnv(env: dict) -> dict:
+    return {
+        **env,
+        'PATH': PathEnv  # add PATH env
+    }
+
+
+def ssRust(proxyInfo: dict, isUdp: bool) -> tuple[dict, list, dict]:
     config = loadConfig(proxyInfo)
     if isUdp:  # proxy UDP traffic
         config['mode'] = 'tcp_and_udp'
-    return config, ['ss-rust-server', '-v']
+    return config, ['ss-rust-server', '-v'], {'RUST_BACKTRACE': 'full'}
 
 
-def ssLibev(proxyInfo: dict, isUdp: bool) -> tuple[dict, list]:
+def ssLibev(proxyInfo: dict, isUdp: bool) -> tuple[dict, list, dict]:
     config = loadConfig(proxyInfo)
     if isUdp:  # proxy UDP traffic
         config['mode'] = 'tcp_and_udp'
-    return config, ['ss-libev-server', '-v']
+    return config, ['ss-libev-server', '-v'], {}
 
 
-def ssPython(proxyInfo: dict, isUdp: bool) -> tuple[dict, list]:
+def ssPython(proxyInfo: dict, isUdp: bool) -> tuple[dict, list, dict]:
     config = loadConfig(proxyInfo)
     if config['method'] in mbedtlsMethods:  # mbedtls methods should use prefix `mbedtls:`
         config['method'] = 'mbedtls:' + config['method']
@@ -50,15 +57,15 @@ def ssPython(proxyInfo: dict, isUdp: bool) -> tuple[dict, list]:
     if not isUdp:
         config['no_udp'] = True  # UDP traffic is not proxied
     config['shadowsocks'] = 'ss-python-server'
-    return config, ['ss-bootstrap-server', '--debug', '-vv']
+    return config, ['ss-bootstrap-server', '--debug', '-vv'], {}
 
 
-def ssPythonLegacy(proxyInfo: dict, isUdp: bool) -> tuple[dict, list]:
+def ssPythonLegacy(proxyInfo: dict, isUdp: bool) -> tuple[dict, list, dict]:
     config = loadConfig(proxyInfo)
     if not isUdp:
         config['no_udp'] = True  # UDP traffic is not proxied
     config['shadowsocks'] = 'ss-python-legacy-server'
-    return config, ['ss-bootstrap-server', '--debug', '-vv']
+    return config, ['ss-bootstrap-server', '--debug', '-vv'], {}
 
 
 def loadPassword(method: str) -> str:
@@ -71,7 +78,7 @@ def loadPassword(method: str) -> str:
 
 
 def loadClient(ssType: str, configFile: str, proxyInfo: dict, socksInfo: dict) -> Process:
-    ssConfig, ssClient = {  # generate client start command and its config file
+    ssConfig, ssClient, ssEnv = {  # generate client start command and its config file
         'ss-rust': Shadowsocks.ssRust,
         'ss-libev': Shadowsocks.ssLibev,
         'ss-python': Shadowsocks.ssPython,
@@ -81,11 +88,11 @@ def loadClient(ssType: str, configFile: str, proxyInfo: dict, socksInfo: dict) -
     return Process(Settings['workDir'], cmd = ssClient + ['-c', clientFile], file = {  # load client process
         'path': clientFile,
         'content': json.dumps(ssConfig)
-    }, isStart = False)
+    }, env = addPathEnv(ssEnv), isStart = False)
 
 
 def loadServer(ssType: str, configFile: str, proxyInfo: dict) -> Process:
-    ssConfig, ssServer = {  # generate server start command and its config file
+    ssConfig, ssServer, ssEnv = {  # generate server start command and its config file
         'ss-rust': ssRust,
         'ss-libev': ssLibev,
         'ss-python': ssPython,
@@ -95,7 +102,7 @@ def loadServer(ssType: str, configFile: str, proxyInfo: dict) -> Process:
     return Process(Settings['workDir'], cmd = ssServer + ['-c', serverFile], file = {  # load server process
         'path': serverFile,
         'content': json.dumps(ssConfig)
-    }, isStart = False)
+    }, env = addPathEnv(ssEnv), isStart = False)
 
 
 def loadTest(serverType: str, clientType: str, method: str, plugin: dict or None = None) -> dict:

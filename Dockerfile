@@ -53,7 +53,7 @@ COPY --from=build-base /apk/ /apk/
 RUN wget https://github.com/shadowsocks/shadowsocks-rust/archive/refs/tags/v${SS_RUST}.tar.gz && \
     tar xf v${SS_RUST}.tar.gz && /apk/build-base
 WORKDIR ./shadowsocks-rust-${SS_RUST}/
-RUN cargo update
+RUN cargo fetch
 RUN cargo build --target-dir ./ --release --bin sslocal --bin ssserver \
       --features "stream-cipher aead-cipher-extra aead-cipher-2022 aead-cipher-2022-extra" && \
     mv ./release/sslocal /tmp/ss-rust-local && mv ./release/ssserver /tmp/ss-rust-server && \
@@ -169,7 +169,7 @@ RUN git submodule update --init --recursive && \
     mv ./src/obfs-local ./src/obfs-server /plugins/
 # Compile qtun
 WORKDIR ../qtun/
-RUN cargo update
+RUN cargo fetch
 RUN cargo build --target-dir ./ --release && \
     mv ./release/qtun-client ./release/qtun-server /plugins/ && \
     strip /plugins/*

@@ -29,21 +29,21 @@ def pluginUdp(plugin: str, pluginParam: str) -> bool:  # whether the plugin uses
     return True  # UDP is assumed by default
 
 
-def ssRust(proxyInfo: dict, socksInfo: dict, isUdp: bool) -> tuple[dict, list]:
+def ssRust(proxyInfo: dict, socksInfo: dict, isUdp: bool) -> tuple[dict, list, dict]:
     config = loadConfig(proxyInfo, socksInfo)
     if isUdp:  # proxy UDP traffic
         config['mode'] = 'tcp_and_udp'
-    return config, ['ss-rust-local', '-v']
+    return config, ['ss-rust-local', '-v'], {'RUST_BACKTRACE': 'full'}
 
 
-def ssLibev(proxyInfo: dict, socksInfo: dict, isUdp: bool) -> tuple[dict, list]:
+def ssLibev(proxyInfo: dict, socksInfo: dict, isUdp: bool) -> tuple[dict, list, dict]:
     config = loadConfig(proxyInfo, socksInfo)
     if isUdp:  # proxy UDP traffic
         config['mode'] = 'tcp_and_udp'
-    return config, ['ss-libev-local', '-v']
+    return config, ['ss-libev-local', '-v'], {}
 
 
-def ssPython(proxyInfo: dict, socksInfo: dict, isUdp: bool) -> tuple[dict, list]:
+def ssPython(proxyInfo: dict, socksInfo: dict, isUdp: bool) -> tuple[dict, list, dict]:
     config = loadConfig(proxyInfo, socksInfo)
     if config['method'] in mbedtlsMethods:  # mbedtls methods should use prefix `mbedtls:`
         config['method'] = 'mbedtls:' + config['method']
@@ -52,15 +52,15 @@ def ssPython(proxyInfo: dict, socksInfo: dict, isUdp: bool) -> tuple[dict, list]
     if not isUdp:
         config['no_udp'] = True  # UDP traffic is not proxied
     config['shadowsocks'] = 'ss-python-local'
-    return config, ['ss-bootstrap-local', '--debug', '-vv']
+    return config, ['ss-bootstrap-local', '--debug', '-vv'], {}
 
 
-def ssPythonLegacy(proxyInfo: dict, socksInfo: dict, isUdp: bool) -> tuple[dict, list]:
+def ssPythonLegacy(proxyInfo: dict, socksInfo: dict, isUdp: bool) -> tuple[dict, list, dict]:
     config = loadConfig(proxyInfo, socksInfo)
     if not isUdp:
         config['no_udp'] = True  # UDP traffic is not proxied
     config['shadowsocks'] = 'ss-python-legacy-local'
-    return config, ['ss-bootstrap-local', '--debug', '-vv']
+    return config, ['ss-bootstrap-local', '--debug', '-vv'], {}
 
 
 def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, dict]:
@@ -72,10 +72,10 @@ def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, 
     for client in ssMethods:  # traverse all shadowsocks client
         if proxyInfo['method'] not in ssMethods[client]:
             continue
-        ssConfig, ssClient = {
+        ssConfig, ssClient, ssEnv = {
             'ss-rust': ssRust,
             'ss-libev': ssLibev,
             'ss-python': ssPython,
             'ss-python-legacy': ssPythonLegacy
         }[client](proxyInfo, socksInfo, isUdp)  # generate config file
-        return ssClient + ['-c', configFile], json.dumps(ssConfig), {}  # command, fileContent, envVar
+        return ssClient + ['-c', configFile], json.dumps(ssConfig), ssEnv  # command, fileContent, envVar
