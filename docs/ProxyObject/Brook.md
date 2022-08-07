@@ -82,7 +82,7 @@
 ### raw
 
 + 类型：*bool*
-+ 说明：是否直接传输原始数据（即`--withoutBrookProtocol`）
++ 说明：传输原始数据（即 `--withoutBrookProtocol` ）
 + 缺省：`False`
 + 限制：无
 

@@ -6,17 +6,6 @@ ARG GO17_IMG="golang:1.17-alpine3.16"
 ARG GO18_IMG="golang:1.18-alpine3.16"
 ARG PYTHON_IMG="python:3.10-alpine3.16"
 
-# Compile upx (under gcc10)
-FROM ${ALPINE_IMG} AS upx
-ENV UPX_VERSION="3.96"
-RUN sed -i 's/v3.\d\d/v3.15/' /etc/apk/repositories && \
-    apk add bash build-base perl ucl-dev zlib-dev
-RUN wget https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-src.tar.xz && \
-    tar xf upx-${UPX_VERSION}-src.tar.xz
-WORKDIR ./upx-${UPX_VERSION}-src/
-RUN make all && mkdir -p /upx/bin/ && mv ./src/upx.out /upx/bin/upx && \
-    mkdir -p /upx/lib/ && cd /usr/lib/ && cp -d ./libgcc_s.so* ./libstdc++.so* ./libucl.so* /upx/lib/
-
 # Download build-base
 FROM ${ALPINE_IMG} AS build-base
 WORKDIR /apk/
@@ -24,18 +13,18 @@ RUN apk add build-base | grep -oE 'Installing \S+' | cut -b 12- > ./build-base
 RUN chmod +x ./build-base && cat ./build-base | xargs -n1 apk fetch && \
     sed -i 's/^/ \/apk\/&/g;s/$/&-*.apk/g;1i\apk add' ./build-base && sed -i ':a;N;s/\n//g;ba' ./build-base
 
+# Compile numpy
+FROM ${PYTHON_IMG} AS numpy
+WORKDIR /wheels/
+COPY --from=build-base /apk/ /apk/
+RUN /apk/build-base && pip wheel numpy
+
 # Compile gevent
 FROM ${PYTHON_IMG} AS gevent
 WORKDIR /wheels/
 RUN apk add libffi-dev
 COPY --from=build-base /apk/ /apk/
 RUN /apk/build-base && pip wheel gevent
-
-# Compile numpy
-FROM ${PYTHON_IMG} AS numpy
-WORKDIR /wheels/
-COPY --from=build-base /apk/ /apk/
-RUN /apk/build-base && pip wheel numpy
 
 # Build python wheels
 FROM ${PYTHON_IMG} AS wheels
@@ -45,6 +34,17 @@ COPY --from=build-base /apk/ /apk/
 RUN /apk/build-base && pip wheel colorlog flask IPy psutil pysocks requests salsa20
 COPY --from=gevent /wheels/*.whl /wheels/
 COPY --from=numpy /wheels/*.whl /wheels/
+
+# Compile upx (under gcc10)
+FROM ${ALPINE_IMG} AS upx
+ENV UPX_VERSION="3.96"
+RUN sed -i 's/v3.\d\d/v3.15/' /etc/apk/repositories && \
+    apk add bash build-base perl ucl-dev zlib-dev
+RUN wget https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-src.tar.xz && \
+    tar xf upx-${UPX_VERSION}-src.tar.xz
+WORKDIR ./upx-${UPX_VERSION}-src/
+RUN make -C ./src/ && mkdir -p /upx/bin/ && mv ./src/upx.out /upx/bin/upx && \
+    mkdir -p /upx/lib/ && cd /usr/lib/ && cp -d ./libgcc_s.so* ./libstdc++.so* ./libucl.so* /upx/lib/
 
 # Compile shadowsocks-rust
 FROM ${RUST_IMG} AS ss-rust
@@ -59,7 +59,7 @@ RUN cargo build --target-dir ./ --release --bin sslocal --bin ssserver \
     mv ./release/sslocal /tmp/ss-rust-local && mv ./release/ssserver /tmp/ss-rust-server && \
     strip /tmp/ss-rust-*
 COPY --from=upx /upx/ /usr/
-RUN upx -9 /tmp/ss-rust-*
+RUN ls /tmp/ss-rust-* | xargs -P0 -n1 upx -9
 
 # Compile shadowsocks-libev
 FROM ${ALPINE_IMG} AS ss-libev
@@ -93,8 +93,8 @@ RUN sed -i 's/MutableMapping/abc.MutableMapping/' ./shadowsocks/lru_cache.py && 
     mv ../../lib/ /packages/ssr-python/
 # shadowsocks-python (latest version)
 WORKDIR ../shadowsocks/
-RUN git checkout master
-RUN sed -i 's/if addr is/if addr ==/g' ./shadowsocks/common.py && \
+RUN git checkout master && \
+    sed -i 's/if addr is/if addr ==/g' ./shadowsocks/common.py && \
     sed -i 's/and ip is not/and ip !=/g' ./shadowsocks/common.py && \
     sed -i 's/if len(block) is/if len(block) ==/g' ./shadowsocks/common.py && \
     sed -i 's/MutableMapping/abc.MutableMapping/' ./shadowsocks/lru_cache.py && \
@@ -166,15 +166,15 @@ RUN git clone https://github.com/shadowsocks/qtun.git && \
 WORKDIR ./simple-obfs/
 RUN git submodule update --init --recursive && \
     ./autogen.sh && ./configure --disable-documentation && make && \
-    mv ./src//obfs-local ./src//obfs-server /plugins/
+    mv ./src/obfs-local ./src/obfs-server /plugins/
 # Compile qtun
 WORKDIR ../qtun/
 RUN cargo update
 RUN cargo build --target-dir ./ --release && \
-    mv ./release//qtun-client ./release//qtun-server /plugins/ && \
+    mv ./release/qtun-client ./release/qtun-server /plugins/ && \
     strip /plugins/*
 COPY --from=upx /upx/ /usr/
-RUN upx -9 /plugins/qtun-*
+RUN ls /plugins/qtun-* | xargs -P0 -n1 upx -9
 
 # Compile sip003 plugins (part2 -> go1.16)
 FROM ${GO16_IMG} AS plugin-2
@@ -232,7 +232,7 @@ RUN go mod download -x
 RUN env CGO_ENABLED=0 go build -v -o gun-plugin -trimpath -ldflags "-s -w" ./cmd/sip003/ && \
     mv ./gun-plugin /plugins/
 COPY --from=upx /upx/ /usr/
-RUN upx -9 /plugins/*
+RUN ls /plugins/* | xargs -P0 -n1 upx -9
 
 # Compile sip003 plugins (part3 -> go1.17)
 FROM ${GO17_IMG} AS plugin-3
@@ -260,38 +260,32 @@ RUN env CGO_ENABLED=0 go build -v -trimpath -ldflags "-X main.version=$(git desc
     env CGO_ENABLED=0 go build -v -trimpath -ldflags "-X main.version=$(git describe --tags) -s -w" ./cmd/ck-server && \
     mv ./ck-client ./ck-server /plugins/
 COPY --from=upx /upx/ /usr/
-RUN upx -9 /plugins/*
+RUN ls /plugins/* | xargs -P0 -n1 upx -9
 
 # Combine sip003 plugins
 FROM ${ALPINE_IMG} AS plugin
-COPY --from=plugin-1 /plugins/ /release/
-COPY --from=plugin-2 /plugins/ /release/
-COPY --from=plugin-3 /plugins/ /release/
+COPY --from=plugin-1 /plugins/ /plugins/
+COPY --from=plugin-2 /plugins/ /plugins/
+COPY --from=plugin-3 /plugins/ /plugins/
 
-# Compile v2fly-core
+# Compile xray-core and v2fly-core
 FROM ${GO18_IMG} AS v2ray
-ENV V2RAY_VERSION="4.45.2"
-RUN wget https://github.com/v2fly/v2ray-core/archive/refs/tags/v${V2RAY_VERSION}.tar.gz && \
-    tar xf v${V2RAY_VERSION}.tar.gz
-WORKDIR ./v2ray-core-${V2RAY_VERSION}/
-RUN go mod download -x
-RUN env CGO_ENABLED=0 go build -v -o v2ray -trimpath -ldflags "-s -w" ./main && \
-    env CGO_ENABLED=0 go build -v -o v2ctl -trimpath -ldflags "-s -w" -tags confonly ./infra/control/main && \
-    mv ./v2ctl ./v2ray /tmp/
-COPY --from=upx /upx/ /usr/
-RUN upx -9 /tmp/v2*
-
-# Compile xray-core
-FROM ${GO18_IMG} AS xray
 ENV XRAY_VERSION="1.5.9"
+ENV V2FLY_VERSION="4.45.2"
 RUN wget https://github.com/XTLS/Xray-core/archive/refs/tags/v${XRAY_VERSION}.tar.gz && \
     tar xf v${XRAY_VERSION}.tar.gz
+RUN wget https://github.com/v2fly/v2ray-core/archive/refs/tags/v${V2FLY_VERSION}.tar.gz && \
+    tar xf v${V2FLY_VERSION}.tar.gz
 WORKDIR ./Xray-core-${XRAY_VERSION}/
 RUN go mod download -x
 RUN env CGO_ENABLED=0 go build -v -o xray -trimpath -ldflags "-s -w" ./main && \
     mv ./xray /tmp/
+WORKDIR ../v2ray-core-${V2FLY_VERSION}/
+RUN go mod download -x
+RUN env CGO_ENABLED=0 go build -v -o v2ray -trimpath -ldflags "-s -w" ./main && \
+    mv ./v2ray /tmp/
 COPY --from=upx /upx/ /usr/
-RUN upx -9 /tmp/xray
+RUN ls /tmp/*ray | xargs -P0 -n1 upx -9
 
 # Compile trojan-go
 FROM ${GO17_IMG} AS trojan-go
@@ -320,29 +314,23 @@ RUN cmake .. -DENABLE_MYSQL=OFF -DSYSTEMD_SERVICE=OFF && make && \
     strip /tmp/trojan
 COPY --from=trojan-go /tmp/trojan-go /tmp/
 
-# Compile gost-v3
-FROM ${GO18_IMG} AS gost-v3
-RUN apk add git
-RUN git clone https://github.com/go-gost/gost.git
-WORKDIR ./gost/
-RUN go mod download -x
-RUN env CGO_ENABLED=0 go build -v -trimpath -ldflags "-s -w" ./cmd/gost && \
-    mv ./gost /tmp/gost-v3
-COPY --from=upx /upx/ /usr/
-RUN upx -9 /tmp/gost-v3
-
-# Compile gost
-FROM ${GO17_IMG} AS gost
+# Compile gost and gost-v3
+FROM ${GO18_IMG} AS gost
 ENV GOST_VERSION="2.11.2"
-RUN wget https://github.com/ginuerzh/gost/archive/refs/tags/v${GOST_VERSION}.tar.gz && \
+RUN apk add git
+RUN git clone https://github.com/go-gost/gost.git ./gost-v3/ && \
+    wget https://github.com/ginuerzh/gost/archive/refs/tags/v${GOST_VERSION}.tar.gz && \
     tar xf v${GOST_VERSION}.tar.gz
 WORKDIR ./gost-${GOST_VERSION}/
 RUN go mod download -x
 RUN env CGO_ENABLED=0 go build -v -trimpath -ldflags "-s -w" ./cmd/gost && \
     mv ./gost /tmp/
+WORKDIR ../gost-v3/
+RUN go mod download -x
+RUN env CGO_ENABLED=0 go build -v -trimpath -ldflags "-s -w" ./cmd/gost && \
+    mv ./gost /tmp/gost-v3
 COPY --from=upx /upx/ /usr/
-RUN upx -9 /tmp/gost
-COPY --from=gost-v3 /tmp/gost-v3 /tmp/
+RUN ls /tmp/gost* | xargs -P0 -n1 upx -9
 
 # Compile brook
 FROM ${GO16_IMG} AS brook
@@ -370,14 +358,6 @@ RUN env CGO_ENABLED=0 go build -v -trimpath -ldflags "-s -w \
 COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/clash
 
-# Compile caddy
-FROM ${GO18_IMG} AS caddy
-RUN go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
-RUN xcaddy build --with github.com/caddyserver/forwardproxy@caddy2=github.com/klzgrad/forwardproxy@naive && \
-    mv ./caddy /tmp/
-COPY --from=upx /upx/ /usr/
-RUN upx -9 /tmp/caddy
-
 # Download naiveproxy
 FROM ${ALPINE_IMG} AS naiveproxy
 ENV NAIVE_VERSION="v103.0.5060.53-3"
@@ -391,7 +371,6 @@ RUN echo -e "while read FILE_NAME;do\nwget https://github.com/klzgrad/naiveproxy
     sh naiveproxy.sh
 COPY --from=build-base /apk/ /apk/
 RUN /apk/build-base && strip /tmp/naive
-COPY --from=caddy /tmp/caddy /tmp/
 
 # Compile open-snell
 FROM ${GO17_IMG} AS snell
@@ -406,7 +385,7 @@ RUN env CGO_ENABLED=0 go build -v -trimpath -ldflags \
       "-s -w -X 'github.com/icpz/open-snell/constants.Version=${SNELL_VERSION}'" ./cmd/snell-server && \
     mv ./snell-client ./snell-server /tmp/
 COPY --from=upx /upx/ /usr/
-RUN upx -9 /tmp/snell-*
+RUN ls /tmp/snell-* | xargs -P0 -n1 upx -9
 
 # Compile hysteria
 FROM ${GO17_IMG} AS hysteria
@@ -490,16 +469,14 @@ RUN mkdir -p /asset/usr/local/lib/python${PYTHON}/site-packages/ && \
     tar xf /packages.tar.gz -C /asset/usr/local/lib/python${PYTHON}/site-packages/
 COPY --from=openssl /tmp/libcrypto.so* /asset/lib/
 COPY --from=shadowsocks /release/ /asset/usr/bin/
-COPY --from=plugin /release/ /asset/usr/bin/
-COPY --from=v2ray /tmp/v2* /asset/usr/bin/
-COPY --from=xray /tmp/xray /asset/usr/bin/
+COPY --from=plugin /plugins/ /asset/usr/bin/
+COPY --from=v2ray /tmp/*ray /asset/usr/bin/
 COPY --from=trojan /tmp/trojan* /asset/usr/bin/
 COPY --from=gost /tmp/gost* /asset/usr/bin/
 COPY --from=brook /tmp/brook /asset/usr/bin/
 COPY --from=clash /tmp/clash /asset/usr/bin/
 COPY --from=snell /tmp/snell-* /asset/usr/bin/
 COPY --from=hysteria /tmp/hysteria /asset/usr/bin/
-COPY --from=naiveproxy /tmp/caddy /asset/usr/bin/
 COPY --from=naiveproxy /tmp/naive /asset/usr/bin/
 COPY --from=relaybaton /tmp/relaybaton /asset/usr/bin/
 COPY --from=pingtunnel /tmp/pingtunnel /asset/usr/bin/

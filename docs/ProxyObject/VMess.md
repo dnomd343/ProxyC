@@ -72,7 +72,7 @@
 
 ### secure
 
-+ 类型：*None* / [*secureObject*](#secureobject)
++ 类型：*None* / [*tlsObject*](#tlsobject)
 + 说明：TLS加密选项
 + 缺省：`None`
 + 限制：无
@@ -104,7 +104,7 @@
 
 ### secure
 
-+ 类型：*None* / [*secureObject*](#secureobject)
++ 类型：*None* / [*tlsObject*](#tlsobject)
 + 说明：TLS加密选项
 + 缺省：`None`
 + 限制：无
@@ -144,7 +144,7 @@
 
 ### secure
 
-+ 类型：*None* / [*secureObject*](#secureobject)
++ 类型：*None* / [*tlsObject*](#tlsobject)
 + 说明：TLS加密选项
 + 缺省：`None`
 + 限制：无
@@ -176,9 +176,9 @@
 
 ### secure
 
-+ 类型：[*secureObject*](#secureobject)
++ 类型：[*tlsObject*](#tlsobject)
 + 说明：TLS加密选项
-+ 缺省：`None`
++ 缺省：`tlsObject`
 + 限制：无
 
 ## quicObject
@@ -216,9 +216,9 @@
 
 ### secure
 
-+ 类型：[*secureObject*](#secureobject)
++ 类型：[*tlsObject*](#tlsobject)
 + 说明：TLS加密选项
-+ 缺省：`secureObject`
++ 缺省：`tlsObject`
 + 限制：无
 
 ## grpcObject
@@ -248,7 +248,7 @@
 
 ### secure
 
-+ 类型：*None* / [*secureObject*](#secureobject)
++ 类型：*None* / [*tlsObject*](#tlsobject)
 + 说明：TLS加密选项
 + 缺省：`None`
 + 限制：无
@@ -276,7 +276,7 @@
 + 缺省：`/`
 + 限制：无
 
-## secureObject
+## tlsObject
 
 ```
 {
@@ -290,7 +290,7 @@
 
 + 类型：*str*
 + 说明：TLS握手SNI字段
-+ 缺省：`obfsObject.host[0]` / `wsObject.host` / `h2Object.host[0]` / `空`
++ 缺省：`空`
 + 限制：无
 
 ### alpn
