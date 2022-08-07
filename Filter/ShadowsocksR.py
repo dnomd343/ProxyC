@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from Basis.Filter import rulesFilter
+import copy
 from Basis.Functions import isHost, isPort
+from Basis.Filter import Filter, rulesFilter
 from Basis.Functions import toInt, toStr, toStrTidy
 from Basis.Constant import ssrMethods, ssrProtocols, ssrObfuscations
 
@@ -72,3 +73,13 @@ ssrObject = rulesFilter({
         'errMsg': 'Invalid ShadowsocksR obfuscation param'
     }
 })
+
+
+def ssrFilter(proxyInfo: dict) -> dict:
+    proxyInfo = copy.deepcopy(proxyInfo)
+    proxyInfo = Filter(proxyInfo, ssrObject)  # run filter
+    if proxyInfo['protocol'] == 'origin':  # origin without param
+        proxyInfo['protocolParam'] = ''
+    if proxyInfo['obfs'] == 'plain':  # plain without param
+        proxyInfo['obfsParam'] = ''
+    return proxyInfo

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import copy
 from Filter import V2ray
-from Basis.Filter import rulesFilter
 from Basis.Constant import vmessMethods
 from Basis.Functions import isHost, isPort
+from Basis.Filter import Filter, rulesFilter
 from Basis.Functions import toInt, toStrTidy
 
 vmessObject = rulesFilter({
@@ -59,4 +60,9 @@ vmessObject = rulesFilter({
     }
 })
 
-# TODO: add SNI / ws host / h2 host
+
+def vmessFilter(proxyInfo: dict) -> dict:
+    proxyInfo = copy.deepcopy(proxyInfo)
+    proxyInfo = Filter(proxyInfo, vmessObject)  # run filter
+    V2ray.addSni(proxyInfo)  # add SNI option
+    return proxyInfo

@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import copy
 from Filter import Xray
-from Basis.Filter import rulesFilter
 from Basis.Functions import isHost, isPort
+from Basis.Filter import Filter, rulesFilter
 from Basis.Functions import toInt, toStr, toStrTidy
 
 trojanObject = rulesFilter({
@@ -41,3 +42,10 @@ trojanObject = rulesFilter({
         'errMsg': 'Invalid Trojan stream'
     }
 })
+
+
+def trojanFilter(proxyInfo: dict) -> dict:
+    proxyInfo = copy.deepcopy(proxyInfo)
+    proxyInfo = Filter(proxyInfo, trojanObject)  # run filter
+    Xray.addSni(proxyInfo)  # add SNI option
+    return proxyInfo

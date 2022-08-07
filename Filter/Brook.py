@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from Basis.Filter import rulesFilter
+import copy
 from Basis.Functions import isHost, isPort
+from Basis.Filter import Filter, rulesFilter
 from Basis.Functions import toInt, toStr, toStrTidy, toBool
 
 secureObject = rulesFilter({
@@ -99,3 +100,12 @@ brookObject = rulesFilter({
         'errMsg': 'Invalid Brook stream'
     }
 })
+
+
+def brookFilter(proxyInfo: dict) -> dict:
+    proxyInfo = copy.deepcopy(proxyInfo)
+    proxyInfo = Filter(proxyInfo, brookObject)  # run filter
+    stream = proxyInfo['stream']
+    if stream['type'] == 'ws' and stream['host'] == '':
+        stream['host'] = proxyInfo['server']  # fill host option in WebSocket stream
+    return proxyInfo

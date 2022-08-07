@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from Basis.Filter import rulesFilter
+import copy
 from Basis.Functions import isHost, isPort
+from Basis.Filter import Filter, rulesFilter
 from Basis.Constant import hysteriaProtocols
-from Basis.Functions import toInt, toStr, toStrTidy, toBool
+from Basis.Functions import isIpAddr, toInt, toStr, toStrTidy, toBool
 
 hysteriaObject = rulesFilter({
     'server': {
@@ -84,3 +85,11 @@ hysteriaObject = rulesFilter({
         'errMsg': 'Invalid verify option'
     }
 })
+
+
+def hysteriaFilter(proxyInfo: dict) -> dict:
+    proxyInfo = copy.deepcopy(proxyInfo)
+    proxyInfo = Filter(proxyInfo, hysteriaObject)  # run filter
+    if proxyInfo['sni'] == '' and not isIpAddr(proxyInfo['server']):
+        proxyInfo['sni'] = proxyInfo['server']
+    return proxyInfo

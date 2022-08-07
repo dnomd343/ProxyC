@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from Basis.Filter import rulesFilter
+import copy
 from Filter.Plugin import pluginObject
 from Basis.Constant import ssAllMethods
 from Basis.Functions import isHost, isPort
+from Basis.Filter import Filter, rulesFilter
 from Basis.Functions import toInt, toStr, toStrTidy
 
 ssObject = rulesFilter({
@@ -39,3 +40,8 @@ ssObject = rulesFilter({
         'errMsg': 'Invalid plugin options'
     }
 })
+
+
+def ssFilter(proxyInfo: dict) -> dict:
+    proxyInfo = copy.deepcopy(proxyInfo)
+    return Filter(proxyInfo, ssObject)  # run filter

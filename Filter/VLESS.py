@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import copy
 from Filter import Xray
-from Basis.Filter import rulesFilter
 from Basis.Functions import isHost, isPort
+from Basis.Filter import Filter, rulesFilter
 from Basis.Functions import toInt, toStrTidy
 
 vlessObject = rulesFilter({
@@ -49,3 +50,10 @@ vlessObject = rulesFilter({
         'errMsg': 'Invalid VLESS stream'
     }
 })
+
+
+def vlessFilter(proxyInfo: dict) -> dict:
+    proxyInfo = copy.deepcopy(proxyInfo)
+    proxyInfo = Filter(proxyInfo, vlessObject)  # run filter
+    Xray.addSni(proxyInfo)  # add SNI option
+    return proxyInfo

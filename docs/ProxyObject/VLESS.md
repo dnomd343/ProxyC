@@ -283,7 +283,7 @@
 
 + 类型：*str*
 + 说明：TLS握手SNI字段
-+ 缺省：`obfsObject.host[0]` / `wsObject.host` / `h2Object.host[0]` / `空`
++ 缺省：`空`
 + 限制：无
 
 ### alpn
@@ -317,7 +317,7 @@
 
 + 类型：*str*
 + 说明：TLS握手SNI字段
-+ 缺省：`obfsObject.host[0]` / `wsObject.host` / `h2Object.host[0]` / `空`
++ 缺省：`空`
 + 限制：无
 
 ### alpn

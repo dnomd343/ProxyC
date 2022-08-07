@@ -3,7 +3,7 @@
 
 from Basis.Filter import rulesFilter
 from Basis.Constant import quicMethods, udpObfuscations
-from Basis.Functions import toInt, toStr, toStrTidy, toBool
+from Basis.Functions import isIpAddr, toInt, toStr, toStrTidy, toBool
 
 tlsObject = rulesFilter({
     'sni': {
@@ -237,3 +237,20 @@ grpcObject = rulesFilter({
         'errMsg': 'Invalid secure options'
     }
 })
+
+
+def addSni(proxyInfo: dict) -> None:
+    stream = proxyInfo['stream']
+    if stream['secure'] is None or stream['secure']['sni'] != '':   # don't need to set SNI
+        return
+    if not isIpAddr(proxyInfo['server']):
+        stream['secure']['sni'] = proxyInfo['server']  # set SNI as server address (domain case)
+    sniContent = ''
+    if stream['type'] == 'tcp' and stream['obfs'] is not None:  # obfs host in TCP stream
+        sniContent = stream['obfs']['host'].split(',')[0]
+    elif stream['type'] == 'ws':  # WebSocket host
+        sniContent = stream['host']
+    elif stream['type'] == 'h2':  # HTTP/2 host
+        sniContent = stream['host'].split(',')[0]
+    if sniContent != '':
+        stream['secure']['sni'] = sniContent  # overwrite SNI content

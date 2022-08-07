@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from Basis.Filter import rulesFilter
+import copy
 from Filter.Plugin import pluginObject
 from Basis.Constant import trojanGoMethods
 from Basis.Functions import isHost, isPort
-from Basis.Functions import toInt, toStr, toStrTidy, toBool
+from Basis.Filter import Filter, rulesFilter
+from Basis.Functions import isIpAddr, toInt, toStr, toStrTidy, toBool
 
 ssObject = rulesFilter({
     'method': {
@@ -105,3 +106,11 @@ trojanGoObject = rulesFilter({
         'errMsg': 'Invalid plugin options'
     }
 })
+
+
+def trojanGoFilter(proxyInfo: dict) -> dict:
+    proxyInfo = copy.deepcopy(proxyInfo)
+    proxyInfo = Filter(proxyInfo, trojanGoObject)  # run filter
+    if proxyInfo['sni'] == '' and not isIpAddr(proxyInfo['server']):
+        proxyInfo['sni'] = proxyInfo['server']
+    return proxyInfo

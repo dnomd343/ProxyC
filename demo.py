@@ -1,26 +1,7 @@
 #!/usr/bin/env python
 
 from pprint import pprint
-from Basis.Filter import Filter
-from Basis.Filter import filterObject
-from Filter.Shadowsocks import ssObject
-from Filter.ShadowsocksR import ssrObject
-from Filter.VMess import vmessObject
-from Filter.VLESS import vlessObject
-from Filter.Trojan import trojanObject
-from Filter.TrojanGo import trojanGoObject
-from Filter.Brook import brookObject
-from Filter.Hysteria import hysteriaObject
-
-# pprint(ssObject, sort_dicts = False)
-# pprint(ssrObject, sort_dicts = False)
-# pprint(vmessObject, sort_dicts = False)
-# pprint(vlessObject, sort_dicts = False)
-# pprint(trojanObject, sort_dicts = False)
-# pprint(trojanGoObject, sort_dicts = False)
-# pprint(brookObject, sort_dicts = False)
-# pprint(hysteriaObject, sort_dicts = False)
-# pprint(filterObject, sort_dicts = False)
+from Filter import Filter
 
 ssProxy = {
     'server': '1.1.1.1',
@@ -38,7 +19,9 @@ ssrProxy = {
     'method': 'table',
     'passwd': 'dnomd343',
     'protocol': 'auth_chain-a',
-    'obfs': 'http_post'
+    'protocolParam': '123',
+    'obfs': 'plain',
+    'obfsParam': 'ok',
 }
 
 vmessProxy = {
@@ -51,7 +34,7 @@ vmessProxy = {
         'service': 'no-gfw',
         'mode': '  multi  ',
         'secure': {
-            'sni': '  DNOMD343.top',
+            'sni': '',
             'alpn': 'h2,   http/1.1',
             'verify': 'False  '
         }
@@ -66,7 +49,7 @@ vlessProxy = {
     'stream': {
         'type': 'grpc',
         'service': 'dnomd343',
-        'secure': None,
+        # 'secure': None,
         # 'secure': {
         #     'type': 'tls',
         #     'sni': '23333',
@@ -85,16 +68,18 @@ vlessProxy = {
 }
 
 trojanProxy = {
-    'server': '1.1.1.1',
+    'server': 'www.dnomd343.top',
     'port': 12345,
     'passwd': b'dnomd343',
     'stream': {
-        'type': 'grpc',
+        # 'type': 'grpc',
+        'type': 'h2',
+        # 'host': '343.re',
         'service': 'dnomd343',
         # 'secure': None,
         'secure': {
             'type': 'tls',
-            'sni': '23333',
+            'sni': '',
             'alpn': 'h2',
             'verify': 0
         }
@@ -110,10 +95,10 @@ trojanProxy = {
 }
 
 trojanGoProxy = {
-    'server': '1.1.1.1',
+    'server': '343.re',
     'port': 12345,
     'passwd': 'dnomd343',
-    'sni': '343.re',
+    'sni': '',
     'alpn': ' h2',
     'verify': 'FALSE',
     'ws': {
@@ -146,24 +131,24 @@ brookProxy = {
 }
 
 hysteriaProxy = {
-    'server': '1.1.1.1',
+    'server': 'www.343.re',
     'port': 12345,
     'protocol': 'faketcp',
     'obfs': '1234',
     'passwd': 'dnomd343',
     'up': 100,
     'down': 500,
-    'sni': '343.re',
+    'sni': '',
     'alpn': 'h3',
     'verify': 'FALSE',
 }
 
-# ret = Filter(ssProxy, ssObject)
-# ret = Filter(ssrProxy, ssrObject)
-# ret = Filter(vmessProxy, vmessObject)
-# ret = Filter(vlessProxy, vlessObject)
-# ret = Filter(trojanProxy, trojanObject)
-# ret = Filter(trojanGoProxy, trojanGoObject)
-# ret = Filter(brookProxy, brookObject)
-ret = Filter(hysteriaProxy, hysteriaObject)
+# ret = Filter('ss', ssProxy)
+# ret = Filter('ssr', ssrProxy)
+# ret = Filter('vmess', vmessProxy)
+# ret = Filter('vless', vlessProxy)
+# ret = Filter('trojan', trojanProxy)
+# ret = Filter('trojan-go', trojanGoProxy)
+# ret = Filter('brook', brookProxy)
+ret = Filter('hysteria', hysteriaProxy)
 pprint(ret, sort_dicts = False)

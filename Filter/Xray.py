@@ -162,3 +162,5 @@ grpcObject = rulesFilter({
     **copy.deepcopy(V2ray.grpcObject),
     'secure': secureRule_2  # None / tlsObject
 })
+
+addSni = V2ray.addSni
