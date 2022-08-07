@@ -4,18 +4,23 @@
 import sys
 import logging
 from colorlog import ColoredFormatter
+from Basis.Constant import LogLevel, LogFile
 
-logFile = 'runtime.log'
-# logLevel = logging.INFO
-# logLevel = logging.DEBUG
-logLevel = logging.WARNING
-dateFormat = '%Y-%m-%d %H:%M:%S'
-logFormat = '[%(asctime)s] [%(levelname)s] %(message)s (%(module)s.%(funcName)s)'
+logLevel = {  # log level
+    'debug': logging.DEBUG,
+    'info': logging.INFO,
+    'warning': logging.WARNING,
+    'error': logging.ERROR,
+    'critical': logging.CRITICAL
+}[LogLevel.lower()]
+dateFormat = '%Y-%m-%d %H:%M:%S'  # log date format
+logFormat = '[%(asctime)s] [%(levelname)s] %(message)s (%(module)s.%(funcName)s)'  # log format
+
 logging.basicConfig(
     level = logLevel,
     format = logFormat,
     datefmt = dateFormat,
-    filename = logFile,
+    filename = LogFile,
 )
 logHandler = logging.StreamHandler(stream = sys.stdout)
 logHandler.setFormatter(ColoredFormatter(
@@ -30,11 +35,3 @@ logHandler.setFormatter(ColoredFormatter(
     }
 ))
 logging.getLogger().addHandler(logHandler)
-
-
-if __name__ == '__main__':
-    logging.debug('debug')
-    logging.info('info')
-    logging.warning('warn')
-    logging.error('error')
-    logging.critical('critical')

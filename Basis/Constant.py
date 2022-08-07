@@ -2,7 +2,14 @@
 # -*- coding: utf-8 -*-
 
 Version = 'dev'
+ApiToken = ''
+# ApiToken = 'dnomd343'
+# LogLevel = 'DEBUG'
+LogLevel = 'WARNING'
+LogFile = 'runtime.log'
 WorkDir = '/tmp/ProxyC'
+ObfsSite = 'www.bing.com'
+DnsServer = ['223.5.5.5', '119.29.29.29']
 PathEnv = '/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin'
 
 # Shadowsocks Info

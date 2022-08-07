@@ -6,12 +6,12 @@ import time
 import requests
 from threading import Thread
 from Basis.Logger import logging
-from Basis.Constant import WorkDir
+from Basis.Constant import WorkDir, ObfsSite
 from Basis.Functions import md5Sum, genFlag, hostFormat, checkPortStatus
 
 Settings = {
     'workDir': WorkDir,
-    'site': 'www.bing.com',
+    'site': ObfsSite,
     'serverBind': '',
     'clientBind': '',
     'host': '',

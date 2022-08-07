@@ -78,7 +78,7 @@ class Task(object):
             task['status'] = self.__TASK_RUNNING  # set task status as running
             logging.info('Manager pop task [%s] -> %s' % (taskId, task['data']))
             return taskId, copy.deepcopy(task['data'])
-        logging.debug('Manager has no more loaded tasks')
+        logging.debug('Manager has no more task')
         raise RuntimeError('No more tasks')
 
     def finishTask(self, taskId: str, taskData: dict) -> None:  # update task data when completed
