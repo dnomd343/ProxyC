@@ -13,7 +13,7 @@ from Basis import Constant
 def mainArgParse(rawArgs: list) -> argparse.Namespace:
     mainParser = argparse.ArgumentParser(description = 'Start running API server')
     mainParser.add_argument('--log', type = str, default = Constant.LogLevel, help = 'output log level')
-    mainParser.add_argument('--dns', type = str, nargs = '+', help = 'specify dns server')
+    mainParser.add_argument('--dns', type = str, default = Constant.DnsServer, nargs = '+', help = 'specify dns server')
     mainParser.add_argument('--port', type = int, default = Constant.ApiPort, help = 'port for running')
     mainParser.add_argument('--path', type = str, default = Constant.ApiPath, help = 'root path for api server')
     mainParser.add_argument('--token', type = str, default = Constant.ApiToken, help = 'token for api server')

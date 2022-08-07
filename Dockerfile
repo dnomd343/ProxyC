@@ -31,7 +31,7 @@ FROM ${PYTHON_IMG} AS wheels
 WORKDIR /wheels/
 RUN apk add linux-headers
 COPY --from=build-base /apk/ /apk/
-RUN /apk/build-base && pip wheel colorlog flask IPy psutil pysocks requests salsa20
+RUN /apk/build-base && pip wheel colorlog flask IPy psutil pysocks pyyaml requests salsa20
 COPY --from=gevent /wheels/*.whl /wheels/
 COPY --from=numpy /wheels/*.whl /wheels/
 

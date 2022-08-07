@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
+import yaml
+
 # Global Options
 Version = 'dev'
 
@@ -16,6 +19,26 @@ WorkDir = '/tmp/ProxyC'
 TestHost = 'proxyc.net'
 TestSite = 'www.bing.com'
 PathEnv = '/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin'
+
+# Load Env Options
+yamlFile = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../env.yaml')
+yamlContent = open(yamlFile, 'r', encoding = 'utf-8').read()
+envOptions = yaml.load(yamlContent, Loader = yaml.FullLoader)
+if 'version' in envOptions:
+    Version = envOptions['version']
+if 'loglevel' in envOptions:
+    LogLevel = envOptions['loglevel']
+if 'dir' in envOptions:
+    WorkDir = envOptions['dir']
+if 'dns' in envOptions:
+    DnsServer = envOptions['dns']
+if 'api' in envOptions:
+    if 'port' in envOptions['api']:
+        ApiPort = envOptions['api']['port']
+    if 'path' in envOptions['api']:
+        ApiPath = envOptions['api']['path']
+    if 'token' in envOptions['api']:
+        ApiToken = envOptions['api']['token']
 
 # Shadowsocks Info
 mbedtlsMethods = [
