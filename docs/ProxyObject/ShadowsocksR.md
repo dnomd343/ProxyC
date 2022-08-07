@@ -68,9 +68,9 @@
 ### protocol
 
 + 类型：*str*
-+ 说明：ShadowsocksR连接协议
++ 说明：ShadowsocksR传输协议
 + 缺省：`origin`
-+ 限制：（以下17种连接协议）
++ 限制：（以下17种传输协议）
 
 `origin`, `auth_simple`
 
