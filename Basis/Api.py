@@ -115,6 +115,6 @@ def getVersion() -> Response:
 
 
 def startServer() -> None:
-    logging.warning('API server at http://:%i/' % ApiPort)
+    logging.warning('API server at http://:%i%s' % (ApiPort, ApiPath))
     logging.warning('API ' + ('without token' if ApiToken == '' else 'token -> %s' % ApiToken))
     pywsgi.WSGIServer(('0.0.0.0', ApiPort), webApi).serve_forever()  # powered by gevent

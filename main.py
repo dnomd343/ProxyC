@@ -12,11 +12,12 @@ from Basis import Constant
 
 def mainArgParse(rawArgs: list) -> argparse.Namespace:
     mainParser = argparse.ArgumentParser(description = 'Start running API server')
-    mainParser.add_argument('--log', type = str, default = 'debug', help = 'output log level')
-    mainParser.add_argument('--port', type = int, default = 7839, help = 'port for running')
-    mainParser.add_argument('--token', type = str, default = '', help = 'token for api server')
+    mainParser.add_argument('--log', type = str, default = Constant.LogLevel, help = 'output log level')
+    mainParser.add_argument('--dns', type = str, nargs = '+', help = 'specify dns server')
+    mainParser.add_argument('--port', type = int, default = Constant.ApiPort, help = 'port for running')
+    mainParser.add_argument('--path', type = str, default = Constant.ApiPath, help = 'root path for api server')
+    mainParser.add_argument('--token', type = str, default = Constant.ApiToken, help = 'token for api server')
     mainParser.add_argument('-v', '--version', help = 'show version', action = 'store_true')
-    # TODO: api path / dns server
     return mainParser.parse_args(rawArgs)
 
 
@@ -51,7 +52,9 @@ else:
         print('ProxyC version -> %s' % Constant.Version)
         sys.exit(0)
     Constant.LogLevel = mainArgs.log  # overwrite global options
+    Constant.DnsServer = mainArgs.dns
     Constant.ApiPort = mainArgs.port
+    Constant.ApiPath = mainArgs.path
     Constant.ApiToken = mainArgs.token
 
 

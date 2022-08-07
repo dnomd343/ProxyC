@@ -8,12 +8,10 @@ ApiPath = '/'
 ApiPort = 7839
 ApiToken = ''
 
-# LogLevel = 'DEBUG'
-# LogLevel = 'WARNING'
 LogLevel = 'INFO'
 LogFile = 'runtime.log'
 
-DnsServer = []
+DnsServer = None
 WorkDir = '/tmp/ProxyC'
 TestHost = 'proxyc.net'
 TestSite = 'www.bing.com'
