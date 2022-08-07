@@ -1,15 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# Global Options
 Version = 'dev'
+
+ApiPath = '/'
+ApiPort = 7839
 ApiToken = ''
-# ApiToken = 'dnomd343'
+
 # LogLevel = 'DEBUG'
-LogLevel = 'WARNING'
+# LogLevel = 'WARNING'
+LogLevel = 'INFO'
 LogFile = 'runtime.log'
+
+DnsServer = []
 WorkDir = '/tmp/ProxyC'
 ObfsSite = 'www.bing.com'
-DnsServer = ['223.5.5.5', '119.29.29.29']
 PathEnv = '/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin'
 
 # Shadowsocks Info
