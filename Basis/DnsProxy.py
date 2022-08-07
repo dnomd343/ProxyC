@@ -15,12 +15,16 @@ def daemon(process: subprocess.Popen, command: list, gap: int = 2) -> None:  # d
     while True:  # start daemon
         time.sleep(gap)  # check time gap
         if process.poll() is not None:  # unexpected exit
-            logging.warning('dnsproxy unexpected exit')
-            logging.debug('output of dnsproxy\n%s' % process.stdout.read().decode('utf-8'))
+            logging.error('DnsProxy unexpected exit\n%s\n%s%s' % (
+                '-' * 96, process.stdout.read().decode('utf-8'), '-' * 96)
+            )
             process = run(command)
 
 
 def start(servers: list or None, port: int = 53, cache: int = 4194304) -> None:  # default cache size -> 4MiB
+    if servers is not None and type(servers) != list:  # invalid server content
+        logging.error('Invalid DNS server -> %s' % servers)
+        return
     if servers is None or len(servers) == 0:  # use origin dns server
         logging.info('Skip dnsproxy process')
         return
