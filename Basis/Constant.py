@@ -15,7 +15,8 @@ LogFile = 'runtime.log'
 
 DnsServer = []
 WorkDir = '/tmp/ProxyC'
-ObfsSite = 'www.bing.com'
+TestHost = 'proxyc.net'
+TestSite = 'www.bing.com'
 PathEnv = '/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin'
 
 # Shadowsocks Info

@@ -6,12 +6,12 @@ import time
 import requests
 from threading import Thread
 from Basis.Logger import logging
-from Basis.Constant import WorkDir, ObfsSite
+from Basis.Constant import WorkDir, TestHost, TestSite
 from Basis.Functions import md5Sum, genFlag, hostFormat, checkPortStatus
 
 Settings = {
     'workDir': WorkDir,
-    'site': ObfsSite,
+    'site': TestSite,
     'serverBind': '',
     'clientBind': '',
     'host': '',
@@ -56,7 +56,7 @@ def genCert(host: str, certInfo: dict, remark: str = 'ProxyC') -> None:  # gener
     os.system('cat %s >> /etc/ssl/certs/ca-certificates.crt' % certInfo['caCert'])  # add into system's trust list
 
 
-def loadCert(host: str = 'proxyc.net', certId: str = '') -> None:  # load certificate
+def loadCert(host: str = TestHost, certId: str = '') -> None:  # load certificate
     newCert = (certId == '')
     certId = genFlag(length = 8) if certId == '' else certId
     certInfo = {
