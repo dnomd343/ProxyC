@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import Tester
+from Tester import testEntry
 from Basis.Logger import logging
+from Basis.Test import Test, loadBind, loadCert
 
 threadNum = 16
 testItem = None
@@ -45,8 +46,8 @@ if getArg('--filter') is not None:
     testFilter = set(getArg('--filter').split(','))
 
 isV6 = '--ipv6' in sys.argv
-Tester.loadBind(serverV6 = isV6, clientV6 = isV6)  # ipv4 / ipv6 (127.0.0.1 / ::1)
-Tester.loadCert('proxyc.net', 'ProxyC')  # default cert config
+loadBind(serverV6 = isV6, clientV6 = isV6)  # ipv4 / ipv6 (127.0.0.1 / ::1)
+loadCert('proxyc.net')  # default cert config
 logging.critical('TEST ITEM: ' + ('all' if testItem is None else testItem))
 logging.critical('FILTER: %s' % testFilter)
 logging.critical('URL: ' + testUrl)
@@ -56,11 +57,11 @@ logging.critical('-------------------------------- TEST START ------------------
 if testItem is not None:
     if testItem == 'ss' and '--all' in sys.argv:
         testItem = 'ss-all'
-    Tester.test(Tester.entry[testItem], threadNum, testUrl, testFilter)
+    Test(testEntry[testItem], threadNum, testUrl, testFilter)
 else:
-    for item in Tester.entry:
+    for item in testEntry:
         if item == ('ss' if '--all' in sys.argv else 'ss-all'):  # skip ss / ss-all
             continue
         logging.critical('TEST ITEM -> ' + item)
-        Tester.test(Tester.entry[item], threadNum, testUrl, testFilter)
+        Test(testEntry[item], threadNum, testUrl, testFilter)
 logging.critical('-------------------------------- TEST COMPLETE --------------------------------')

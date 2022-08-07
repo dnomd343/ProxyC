@@ -5,10 +5,10 @@ import os
 import json
 from Tester import Xray
 from Builder import Trojan
+from Basis.Test import Settings
 from Basis.Logger import logging
 from Basis.Process import Process
 from Basis.Constant import xtlsFlows
-from Tester.Settings import Settings
 from Basis.Functions import md5Sum, genFlag, getAvailablePort
 
 
@@ -110,7 +110,7 @@ def loadTest(stream: dict) -> dict:
             'port': proxyInfo['port'],
         }
     }
-    logging.debug('New trojan test -> %s' % testInfo)
+    logging.debug('New Trojan test -> %s' % testInfo)
     return testInfo
 
 
@@ -119,3 +119,4 @@ def load():
     yield loadBasicTest(streams[1])  # Trojan basic test -> TCP stream with TLS
     for stream in streams:  # test all stream cases
         yield loadTest(stream)
+    logging.info('Trojan test yield complete')

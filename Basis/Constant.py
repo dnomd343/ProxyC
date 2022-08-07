@@ -6,6 +6,15 @@ WorkDir = '/tmp/ProxyC'
 PathEnv = '/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin'
 
 # Shadowsocks Info
+mbedtlsMethods = [
+    'aes-128-cfb128',
+    'aes-192-cfb128',
+    'aes-256-cfb128',
+    'camellia-128-cfb128',
+    'camellia-192-cfb128',
+    'camellia-256-cfb128',
+]
+
 ssMethods = { # methods support of different Shadowsocks project
     'ss-rust': [  # table method removed refer to https://github.com/shadowsocks/shadowsocks-rust/issues/887
         'none', 'plain', 'rc4', 'rc4-md5',

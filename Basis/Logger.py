@@ -6,8 +6,9 @@ import logging
 from colorlog import ColoredFormatter
 
 logFile = 'runtime.log'
-logLevel = logging.DEBUG
-# logLevel = logging.WARNING
+# logLevel = logging.INFO
+# logLevel = logging.DEBUG
+logLevel = logging.WARNING
 dateFormat = '%Y-%m-%d %H:%M:%S'
 logFormat = '[%(asctime)s] [%(levelname)s] %(message)s (%(module)s.%(funcName)s)'
 logging.basicConfig(

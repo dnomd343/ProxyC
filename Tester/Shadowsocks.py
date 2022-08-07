@@ -7,11 +7,11 @@ import base64
 import itertools
 from Tester import Plugin
 from Builder import Shadowsocks
+from Basis.Test import Settings
 from Basis.Logger import logging
 from Basis.Process import Process
-from Tester.Settings import Settings
-from Basis.Constant import ssMethods, ssAllMethods
 from Basis.Functions import md5Sum, genFlag, getAvailablePort
+from Basis.Constant import ssMethods, ssAllMethods, mbedtlsMethods
 
 
 def loadConfig(proxyInfo: dict) -> dict:  # load basic config option
@@ -43,14 +43,6 @@ def ssLibev(proxyInfo: dict, isUdp: bool) -> tuple[dict, list]:
 
 def ssPython(proxyInfo: dict, isUdp: bool) -> tuple[dict, list]:
     config = loadConfig(proxyInfo)
-    mbedtlsMethods = [
-        'aes-128-cfb128',
-        'aes-192-cfb128',
-        'aes-256-cfb128',
-        'camellia-128-cfb128',
-        'camellia-192-cfb128',
-        'camellia-256-cfb128',
-    ]
     if config['method'] in mbedtlsMethods:  # mbedtls methods should use prefix `mbedtls:`
         config['method'] = 'mbedtls:' + config['method']
     if config['method'] in ['idea-cfb', 'seed-cfb']:  # only older versions of openssl are supported
@@ -135,33 +127,37 @@ def loadTest(serverType: str, clientType: str, method: str, plugin: dict or None
     }
     if plugin is not None:
         testInfo['server'] = plugin['inject'](testInfo['server'], plugin)
-    logging.debug('New shadowsocks test -> %s' % testInfo)
+    logging.debug('New Shadowsocks test -> %s' % testInfo)
     return testInfo
 
 
-def load(isExtra: bool = False):
-    pluginTest = []
-    pluginIter = Plugin.load('ss')
-    while True:
-        try:
-            pluginTest.append(next(pluginIter))  # export data of plugin generator
-        except StopIteration:
-            break
-    if not isExtra:  # just test basic connection
-        for method in ssAllMethods:  # test every method for once
-            for ssType in ssMethods:  # found the client which support this method
-                if method not in ssMethods[ssType]: continue
-                yield loadTest(ssType, ssType, method)  # ssType <-- method --> ssType
-                break  # don't need other client
-        for ssType in ssMethods:  # test plugin for every shadowsocks project
-            yield loadTest(ssType, ssType, ssMethods[ssType][0], pluginTest[0])
-        ssType = list(ssMethods.keys())[0]  # choose the first one
-        for plugin in pluginTest[1:]:  # test every plugin (except the first one that has been checked)
-            yield loadTest(ssType, ssType, ssMethods[ssType][0], plugin)
-        return
+def loadCommon(pluginTest: list):  # shadowsocks basic test
+    for method in ssAllMethods:  # test every method for once
+        for ssType in ssMethods:  # found the client which support this method
+            if method not in ssMethods[ssType]: continue
+            yield loadTest(ssType, ssType, method)  # ssType <-- method --> ssType
+            break  # don't need other client
+    for ssType in ssMethods:  # test plugin for every shadowsocks project
+        yield loadTest(ssType, ssType, ssMethods[ssType][0], pluginTest[0])
+    ssType = list(ssMethods.keys())[0]  # choose the first one
+    for plugin in pluginTest[1:]:  # test every plugin (except the first one that has been checked)
+        yield loadTest(ssType, ssType, ssMethods[ssType][0], plugin)
+
+
+def loadExtra(pluginTest: list):
     for ssServer in ssMethods:  # traverse all shadowsocks type as server
         for method, ssClient in itertools.product(ssMethods[ssServer], ssMethods):  # supported methods and clients
             if method not in ssMethods[ssClient]: continue
             yield loadTest(ssServer, ssClient, method)  # ssServer <-- method --> ssClient
     for ssType, plugin in itertools.product(ssMethods, pluginTest):  # test every plugin with different ss project
         yield loadTest(ssType, ssType, ssMethods[ssType][0], plugin)
+
+
+def load(isExtra: bool = False):
+    ssIter = (loadExtra if isExtra else loadCommon)(Plugin.load('ss'))
+    while True:
+        try:
+            yield next(ssIter)
+        except StopIteration:
+            break
+    logging.info('Shadowsocks test yield complete')

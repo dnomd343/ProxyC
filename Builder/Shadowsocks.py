@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import json
-from Basis.Constant import ssMethods, ssAllMethods
+from Basis.Constant import ssMethods, ssAllMethods, mbedtlsMethods
 
 
 def loadConfig(proxyInfo: dict, socksInfo: dict) -> dict:  # load basic config option
@@ -45,14 +45,6 @@ def ssLibev(proxyInfo: dict, socksInfo: dict, isUdp: bool) -> tuple[dict, list]:
 
 def ssPython(proxyInfo: dict, socksInfo: dict, isUdp: bool) -> tuple[dict, list]:
     config = loadConfig(proxyInfo, socksInfo)
-    mbedtlsMethods = [
-        'aes-128-cfb128',
-        'aes-192-cfb128',
-        'aes-256-cfb128',
-        'camellia-128-cfb128',
-        'camellia-192-cfb128',
-        'camellia-256-cfb128',
-    ]
     if config['method'] in mbedtlsMethods:  # mbedtls methods should use prefix `mbedtls:`
         config['method'] = 'mbedtls:' + config['method']
     if config['method'] in ['idea-cfb', 'seed-cfb']:  # only older versions of openssl are supported
