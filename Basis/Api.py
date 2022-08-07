@@ -15,17 +15,20 @@ webApi = Flask(__name__)  # init flask server
 
 
 def formatProxy(raw: str or dict) -> dict:
-    from ProxyFilter import filte
+    from Filter import Filter
     from ProxyDecoder import decode
     if type(raw) == str:
         raw = decode(raw)
         if raw is None:
             raise RuntimeError('decode error')
-        print(raw)
-    status, raw = filte(raw, isExtra = True)
-    if not status:
+    try:
+        return {
+            'type': raw['type'],
+            'name': raw['info']['remark'] if 'remark' in raw['info'] else '',
+            'info': Filter(raw['type'], raw['info'])
+        }
+    except:
         raise RuntimeError('filter error')
-    return raw
 
 
 def jsonResponse(data: dict) -> Response:  # return json mime
