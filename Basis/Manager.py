@@ -4,7 +4,7 @@
 import copy
 from Basis.Logger import logging
 from Basis.Functions import genFlag
-
+from Basis.Exception import managerException
 
 class Task(object):
     """ Manage global check task.
@@ -47,7 +47,7 @@ class Task(object):
     def getUnion(self, unionId: str) -> dict:  # get union status (remove tasks when all completed)
         if unionId not in self.__unions:
             logging.error('Manager union [%s] not found' % unionId)
-            raise RuntimeError('Union id not found')
+            raise managerException('Union id not found')
         tasks = self.__unions[unionId]['items']
         finishNum = 0
         for taskId in tasks:
@@ -79,12 +79,12 @@ class Task(object):
             logging.info('Manager pop task [%s] -> %s' % (taskId, task['data']))
             return taskId, copy.deepcopy(task['data'])
         logging.debug('Manager has no more task')
-        raise RuntimeError('No more tasks')
+        raise managerException('No more tasks')
 
     def finishTask(self, taskId: str, taskData: dict) -> None:  # update task data when completed
         if taskId not in self.__tasks:
             logging.error('Manager task [%s] not found' % taskId)
-            raise RuntimeError('Task id not found')
+            raise managerException('Task id not found')
         self.__tasks[taskId]['data'] = copy.deepcopy(taskData)
         self.__tasks[taskId]['status'] = self.__TASK_FINISH  # set task status as completed
 
