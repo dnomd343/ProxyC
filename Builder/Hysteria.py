@@ -2,19 +2,19 @@
 # -*- coding: utf-8 -*-
 
 import json
-from Basis.Functions import hostFormat
+from Basis.Functions import v6AddBracket
 
 
 def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, dict]:
     hysteriaConfig = {
-        'server': '%s:%i' % (hostFormat(proxyInfo['server'], v6Bracket = True), proxyInfo['port']),
+        'server': '%s:%i' % (v6AddBracket(proxyInfo['server']), proxyInfo['port']),
         'protocol': proxyInfo['protocol'],
         'up_mbps': proxyInfo['up'],
         'down_mbps': proxyInfo['down'],
         'retry_interval': 2,
         'retry': 3,
         'socks5': {
-            'listen': '%s:%i' % (hostFormat(socksInfo['addr'], v6Bracket = True), socksInfo['port'])
+            'listen': '%s:%i' % (v6AddBracket(socksInfo['addr']), socksInfo['port'])
         },
         **({} if proxyInfo['obfs'] is None else {
             'obfs': proxyInfo['obfs']

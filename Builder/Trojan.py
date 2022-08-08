@@ -13,7 +13,7 @@ def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, 
                 'address': proxyInfo['server'],
                 'port': proxyInfo['port'],
                 'password': proxyInfo['passwd'],
-                **Xray.xtlsFlow(proxyInfo['stream'])
+                **Xray.xtlsFlow(proxyInfo['stream'])  # add xtls flow option
             }]
         },
         'streamSettings': Xray.loadStream(proxyInfo['stream'])

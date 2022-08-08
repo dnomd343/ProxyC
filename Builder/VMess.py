@@ -4,11 +4,12 @@
 import json
 from Builder import V2ray
 from Basis.Constant import vmessMethods
+from Basis.Exception import buildException
 
 
 def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, dict]:
     if proxyInfo['method'] not in vmessMethods:
-        raise RuntimeError('Unknown vmess method')
+        raise buildException('Unknown VMess method')
     outboundConfig = {
         'protocol': 'vmess',
         'settings': {

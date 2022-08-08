@@ -40,6 +40,12 @@ if 'api' in envOptions:
     if 'token' in envOptions['api']:
         ApiToken = envOptions['api']['token']
 
+# WorkDir Create
+try:
+    os.makedirs(WorkDir)  # just like `mkdir -p ...`
+except:
+    pass  # folder exist or target is another thing
+
 # Shadowsocks Info
 mbedtlsMethods = [
     'aes-128-cfb128',

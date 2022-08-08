@@ -3,9 +3,12 @@
 
 import json
 from Builder import Xray
+from Basis.Exception import buildException
 
 
 def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, dict]:
+    if proxyInfo['method'] != 'none':
+        raise buildException('Unknown VLESS method')
     outboundConfig = {
         'protocol': 'vless',
         'settings': {
@@ -15,7 +18,7 @@ def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, 
                 'users': [{
                     'id': proxyInfo['id'],
                     'encryption': proxyInfo['method'],
-                    **Xray.xtlsFlow(proxyInfo['stream'])
+                    **Xray.xtlsFlow(proxyInfo['stream'])  # add xtls flow option
                 }]
             }]
         },
