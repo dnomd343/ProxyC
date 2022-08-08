@@ -18,6 +18,7 @@ def mainArgParse(rawArgs: list) -> argparse.Namespace:
     mainParser.add_argument('--port', type = int, default = Constant.ApiPort, help = 'port for running')
     mainParser.add_argument('--path', type = str, default = Constant.ApiPath, help = 'root path for api server')
     mainParser.add_argument('--token', type = str, default = Constant.ApiToken, help = 'token for api server')
+    mainParser.add_argument('--thread', type = int, default = Constant.CheckThread, help = 'number of check thread')
     mainParser.add_argument('-v', '--version', help = 'show version', action = 'store_true')
     return mainParser.parse_args(rawArgs)
 
@@ -96,7 +97,8 @@ def runCheck(taskId: str, taskInfo: dict) -> None:
         Manager.finishTask(taskId, checkResult)  # commit check result
 
 
-def loop(threadNum: int = 16) -> None:
+def loop(threadNum: int) -> None:
+    logging.warning('Loop check start -> %i threads' % threadNum)
     threadPool = ThreadPoolExecutor(max_workers = threadNum)  # init thread pool
     while True:
         try:
@@ -133,5 +135,5 @@ if testMode:  # test mode
 logging.warning('ProxyC starts running (%s)' % Constant.Version)
 _thread.start_new_thread(pythonCompile, ('/usr',))  # python compile (generate .pyc file)
 _thread.start_new_thread(DnsProxy.start, (Constant.DnsServer, 53))  # start dns server
-_thread.start_new_thread(loop, ())  # start check loop
+_thread.start_new_thread(loop, (Constant.CheckThread, ))  # start check loop
 Api.startServer()  # start api server

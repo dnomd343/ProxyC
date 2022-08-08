@@ -11,6 +11,8 @@ ApiPath = '/'
 ApiPort = 7839
 ApiToken = ''
 
+CheckThread = 64
+
 LogLevel = 'INFO'
 LogFile = 'runtime.log'
 
