@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import copy
+from Basis.Exception import filterException
 
 filterObject = {
     'optional': {
@@ -67,7 +68,7 @@ for field in filterObject:
 
 def Filter(raw: dict, rules: dict) -> dict:
     if type(raw) != dict:
-        raise RuntimeError('Invalid input for filter')
+        raise filterException('Invalid input for filter')
     data = {}
     raw = copy.deepcopy(raw)
     rules = copy.deepcopy(rules)
@@ -75,19 +76,19 @@ def Filter(raw: dict, rules: dict) -> dict:
         # pretreatment process (raw --[copy / default value]--> data)
         if key not in raw:  # key not exist
             if not rule['optional']:  # force require key not exist
-                raise RuntimeError('Missing `%s` field' % key)
+                raise filterException('Missing `%s` field' % key)
             data[key] = rule['default']  # set default value
         else:  # key exist
             data[key] = raw[key]
         # format process (data --[format]--> data)
         if data[key] is None:  # key content is None
             if not rule['allowNone']:  # key is not allow None
-                raise RuntimeError('Field `%s` shouldn\'t be None' % key)
+                raise filterException('Field `%s` shouldn\'t be None' % key)
             continue  # skip following process
         try:
             data[key] = rule['format'](data[key])  # run format
         except:
-            raise RuntimeError(rule['errMsg'])  # format error
+            raise filterException(rule['errMsg'])  # format error
         # filter process (data --[type check (& filter check)]--> pass / non-pass)
         if type(rule['type']) == type:  # str / int / bool / ...
             rule['type'] = [rule['type']]  # str -> [str] / int -> [int] / ...
@@ -95,35 +96,38 @@ def Filter(raw: dict, rules: dict) -> dict:
             if data[key] == any and any in rule['type']:  # special case -> skip type filter
                 pass
             elif type(data[key]) not in rule['type']:  # type not in allow list
-                raise RuntimeError('Invalid `%s` field' % key)
+                raise filterException('Invalid `%s` field' % key)
         elif type(rule['type']) == dict:  # check subObject
             if type(data[key]) != dict:
-                raise RuntimeError('Invalid sub object in `%s`' % key)  # subObject content should be dict
+                raise filterException('Invalid sub object in `%s`' % key)  # subObject content should be dict
             if not rule['multiSub']:  # single subObject
                 subRules = rule['type']
             else:  # multi subObject
                 if rule['indexKey'] not in data[key]:  # confirm index key exist
-                    raise RuntimeError('Index key `%s` not found in `%s`' % (rule['indexKey'], key))
+                    raise filterException('Index key `%s` not found in `%s`' % (rule['indexKey'], key))
                 subType = data[key][rule['indexKey']].lower()
                 if subType not in rule['type']:  # confirm subObject rule exist
-                    raise RuntimeError('Unknown index `%s` in key `%s`' % (subType, key))
+                    raise filterException('Unknown index `%s` in key `%s`' % (subType, key))
                 subRules = rule['type'][subType]
             try:
                 data[key] = Filter(data[key], subRules)
-            except RuntimeError as exp:
-                raise RuntimeError('%s (in `%s`)' % (exp, key))  # add located info
+            except filterException as exp:
+                raise filterException('%s (in `%s`)' % (exp, key))  # add located info
             continue
         elif rule['type'] != any:  # type == any -> skip type filter
-            raise RuntimeError('Unknown `type` in rules')
+            raise filterException('Unknown `type` in rules')
         if not rule['filter'](data[key]):  # run filter
-            raise RuntimeError(rule['errMsg'])
+            raise filterException(rule['errMsg'])
     return data
 
 
 def rulesFilter(rules: dict) -> dict:
     result = {}
     for key, rule in rules.items():  # filter by basic rules
-        result[key] = Filter(rule, filterObject)
+        try:
+            result[key] = Filter(rule, filterObject)
+        except filterException as exp:
+            raise filterException('%s (`%s` in rules)' % (exp, key))  # rules error
     return result
 
 

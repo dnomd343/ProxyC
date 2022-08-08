@@ -3,12 +3,13 @@
 
 import os
 import copy
+from Filter import Filter
 from Basis.Logger import logging
 from Basis.Process import Process
 from Basis.Functions import v6AddBracket
-from Basis.Exception import buildException
 from Basis.Constant import WorkDir, PathEnv
 from Basis.Functions import genFlag, getAvailablePort
+from Basis.Exception import buildException, filterException
 
 from Builder import Brook
 from Builder import VMess
@@ -73,6 +74,7 @@ class Builder(object):
             logging.error('[%s] Builder receive unknown proxy type %s' % (self.id, proxyType))
             raise buildException('Unknown proxy type')
         self.proxyType = proxyType  # proxy type -> ss / ssr / vmess ...
+        self.proxyInfo = Filter(proxyType, proxyInfo)  # filter input proxy info
         self.proxyInfo = copy.copy(proxyInfo)  # connection info
         self.socksAddr = bindAddr
         self.socksPort = getAvailablePort()  # random port for socks5 exposed
