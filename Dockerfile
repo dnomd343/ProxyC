@@ -168,7 +168,6 @@ RUN git submodule update --init --recursive && \
     ./autogen.sh && ./configure --disable-documentation && make && \
     mv ./src/obfs-local ./src/obfs-server /plugins/
 # Compile qtun
-COPY --from=ss-rust /usr/local/cargo/registry/ /usr/local/cargo/registry/
 WORKDIR ../qtun/
 RUN cargo fetch
 RUN cargo build --target-dir ./ --release && \
