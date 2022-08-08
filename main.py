@@ -58,6 +58,7 @@ else:
     Constant.ApiPort = mainArgs.port
     Constant.ApiPath = mainArgs.path
     Constant.ApiToken = mainArgs.token
+    Constant.CheckThread = mainArgs.thread
 
 
 from Tester import testEntry
