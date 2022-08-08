@@ -8,6 +8,7 @@ import _thread
 import argparse
 import compileall
 from Basis import Constant
+from Basis.Exception import checkException
 
 
 def mainArgParse(rawArgs: list) -> argparse.Namespace:
@@ -74,9 +75,25 @@ def pythonCompile(dirRange: str = '/') -> None:  # python optimize compile
 
 
 def runCheck(taskId: str, taskInfo: dict) -> None:
-    checkResult = Check(taskId, taskInfo)  # check by task info
-    logging.warning('[%s] Task finish' % taskId)
-    Manager.finishTask(taskId, checkResult)  # commit check result
+    success = True
+    checkResult = {}
+    try:
+        checkResult = Check(taskId, taskInfo)  # check by task info
+        logging.warning('[%s] Task finish' % taskId)
+    except checkException as exp:
+        success = False
+        logging.error('[%s] Task error -> %s' % (taskId, exp))
+    except:
+        success = False
+        logging.error('[%s] Task error -> Unknown error' % taskId)
+    finally:
+        if not success:  # got some error in check process
+            taskInfo.pop('check')
+            checkResult = {
+                **taskInfo,
+                'success': False,
+            }
+        Manager.finishTask(taskId, checkResult)  # commit check result
 
 
 def loop(threadNum: int = 16) -> None:

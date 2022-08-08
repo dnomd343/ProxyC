@@ -8,6 +8,7 @@ from Checker import formatCheck
 from Basis.Logger import logging
 from Basis.Manager import Manager
 from flask import Flask, Response, request
+from Basis.Exception import managerException
 from Basis.Constant import ApiPort, ApiPath, ApiToken, Version
 
 webApi = Flask(__name__)  # init flask server
@@ -68,12 +69,17 @@ def createTask() -> Response:
     if not tokenCheck():  # token check
         return genError('Invalid token')
 
-    # TODO: format check and proxy list
-    checkList = formatCheck(request.json.get('check'))
+    try:
+        # TODO: format check and proxy list
+        checkList = formatCheck(request.json.get('check'))
+    except:
+        return genError('Some error in check options')
     proxyList = []
     for proxy in request.json.get('proxy'):
-        proxyList.append(formatProxy(proxy))
-    logging.critical(proxyList)
+        try:
+            proxyList.append(formatProxy(proxy))
+        except Exception as exp:
+            return genError('Proxy error in %s -> %s' % (proxy, exp))
 
     logging.debug('API create task -> check = %s | proxy = %s' % (checkList, proxyList))
     tasks = []
@@ -103,6 +109,22 @@ def getTaskInfo(taskId: str) -> Response:
         'success': True,
         **Manager.getUnion(taskId)
     })
+
+
+@webApi.route(os.path.join(ApiPath, 'task/<taskId>'), methods = ['DELETE'])
+def deleteTask(taskId: str) -> Response:
+    if not tokenCheck():  # token check
+        return genError('Invalid token')
+    logging.debug('API get task -> %s' % taskId)
+    if not Manager.isUnion(taskId):
+        return genError('Task not found')
+    try:
+        Manager.delUnion(taskId)
+        return jsonResponse({
+            'success': True
+        })
+    except managerException as exp:
+        return genError(str(exp))
 
 
 @webApi.route(os.path.join(ApiPath, 'version'), methods = ['GET'])

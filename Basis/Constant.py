@@ -20,10 +20,15 @@ TestHost = 'proxyc.net'
 TestSite = 'www.bing.com'
 PathEnv = '/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin'
 
+
 # Load Env Options
-yamlFile = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../env.yaml')
-yamlContent = open(yamlFile, 'r', encoding = 'utf-8').read()
-envOptions = yaml.load(yamlContent, Loader = yaml.FullLoader)
+envOptions = {}
+try:
+    yamlFile = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../env.yaml')
+    yamlContent = open(yamlFile, 'r', encoding = 'utf-8').read()
+    envOptions = yaml.load(yamlContent, Loader = yaml.FullLoader)
+except:  # something error in env.yaml
+    pass
 if 'version' in envOptions:
     Version = envOptions['version']
 if 'loglevel' in envOptions:
@@ -40,11 +45,13 @@ if 'api' in envOptions:
     if 'token' in envOptions['api']:
         ApiToken = envOptions['api']['token']
 
+
 # WorkDir Create
 try:
     os.makedirs(WorkDir)  # just like `mkdir -p ...`
 except:
     pass  # folder exist or target is another thing
+
 
 # Shadowsocks Info
 mbedtlsMethods = [
@@ -120,6 +127,7 @@ ssAllMethods = set()
 [ssAllMethods.update(ssMethods[x]) for x in ssMethods]
 ssAllMethods = sorted(list(ssAllMethods))  # methods of Shadowsocks
 
+
 # Plugin Info
 Plugins = {
     'simple-obfs': ['obfs-local', 'obfs-server'],
@@ -139,6 +147,7 @@ Plugins = {
 Plugins = {x: [Plugins[x][0], Plugins[x][1 if len(Plugins[x]) == 2 else 0]] for x in Plugins}
 Plugins = {x: {'client': Plugins[x][0], 'server': Plugins[x][1]} for x in Plugins}  # format plugins info
 pluginClients = [Plugins[x]['client'] for x in Plugins]  # plugin client list -> obfs-local / simple-tls / ...
+
 
 # ShadowsocksR Info
 ssrMethods = [  # methods of ShadowsocksR
@@ -168,19 +177,20 @@ ssrObfuscations = [ # obfuscations of ShadowsocksR (obfs)
     'tls_simple', 'tls1.2_ticket_auth', 'tls1.2_ticket_fastauth',
 ]
 
-# VMess Info
+
+# V2ray / Xray Info
 vmessMethods = ['aes-128-gcm', 'chacha20-poly1305', 'auto', 'none', 'zero']
 
-# XTLS Info
-xtlsFlows = ['xtls-origin', 'xtls-direct', 'xtls-splice']
-xtlsFlows = {x: x.replace('-', '-rprx-') for x in xtlsFlows}
-
-# v2ray / Xray Info
 quicMethods = ['none', 'aes-128-gcm', 'chacha20-poly1305']
 udpObfuscations = ['none', 'srtp', 'utp', 'wechat-video', 'dtls', 'wireguard']
 
+xtlsFlows = ['xtls-origin', 'xtls-direct', 'xtls-splice']
+xtlsFlows = {x: x.replace('-', '-rprx-') for x in xtlsFlows}
+
+
 # Trojan-Go Info
 trojanGoMethods = ['aes-128-gcm', 'aes-256-gcm', 'chacha20-ietf-poly1305']
+
 
 # Hysteria Info
 hysteriaProtocols = ['udp', 'wechat-video', 'faketcp']
