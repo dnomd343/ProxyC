@@ -6,6 +6,8 @@ import time
 from Checker import Checker
 from Basis.Logger import logging
 from Builder import Builder, clientEntry
+from Basis.Exception import checkException
+from Basis.Functions import checkPortStatus
 
 
 def buildClient(taskId: str, taskInfo: dict) -> Builder:
@@ -18,24 +20,27 @@ def buildClient(taskId: str, taskInfo: dict) -> Builder:
         )
     except Exception as reason:
         logging.error('[%s] Client build error -> %s' % (taskId, reason))
-        raise RuntimeError('Client build error')
+        raise checkException('Client build error')
 
 
-def waitClient(taskId: str, client: Builder):
-    # TODO: wait port occupied (client.socksPort)
-    time.sleep(1)  # TODO: simple delay for now
+def waitClient(taskId: str, client: Builder, times: int = 150, delay: int = 100):  # wait until client port occupied
+    for i in range(times):
+        if not checkPortStatus(client.socksPort):  # port occupied
+            break
+        time.sleep(delay / 1000)  # wait in default: 100ms * 150 => 15s
+    time.sleep(1)  # wait a short time before check process
     if not client.status():  # client unexpected exit
         logging.warning('[%s] Client unexpected exit' % taskId)
         client.destroy()  # remove file and kill sub process
         logging.debug('[%s] Client output\n%s', (taskId, client.output))
-        raise RuntimeError('Client unexpected exit')
+        raise checkException('Client unexpected exit')
 
 
 def Check(taskId: str, taskInfo: dict) -> dict:
     logging.info('[%s] Start checking process -> %s' % (taskId, taskInfo))
     if taskInfo['type'] not in clientEntry:  # unknown proxy type
         logging.error('[%s] Unknown proxy type %s' % (taskId, taskInfo['type']))
-        raise RuntimeError('Unknown proxy type')
+        raise checkException('Unknown proxy type')
     client = buildClient(taskId, taskInfo)  # build proxy client
     logging.info('[%s] Client loaded successfully' % taskId)
     waitClient(taskId, client)  # wait for the client to start
@@ -49,5 +54,6 @@ def Check(taskId: str, taskInfo: dict) -> dict:
     taskInfo.pop('check')  # remove check items
     return {
         **taskInfo,
+        'success': True,
         'result': checkResult,  # add check result
     }

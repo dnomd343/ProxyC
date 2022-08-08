@@ -5,9 +5,9 @@ import os
 import json
 import itertools
 from Builder import Hysteria
+from Basis.Test import Settings
 from Basis.Logger import logging
 from Basis.Process import Process
-from Tester.Settings import Settings
 from Basis.Constant import hysteriaProtocols
 from Basis.Functions import hostFormat, genFlag, getAvailablePort
 
@@ -78,10 +78,11 @@ def loadTest(protocol: str, isObfs: bool, isAuth: bool) -> dict:
             'port': proxyInfo['port'],
         }
     }
-    logging.debug('New hysteria test -> %s' % testInfo)
+    logging.debug('New Hysteria test -> %s' % testInfo)
     return testInfo
 
 
 def load():
     for protocol, isObfs, isAuth in itertools.product(hysteriaProtocols, [False, True], [False, True]):
         yield loadTest(protocol, isObfs, isAuth)
+    logging.info('Hysteria test yield complete')

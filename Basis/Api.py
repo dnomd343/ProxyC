@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
 import json
 from gevent import pywsgi
 from Checker import formatCheck
 from Basis.Logger import logging
 from Basis.Manager import Manager
-from Basis.Constant import Version
 from flask import Flask, Response, request
+from Basis.Exception import managerException
+from Basis.Constant import ApiPort, ApiPath, ApiToken, Version
 
-token = ''
-webPath = '/'  # root of api server
 webApi = Flask(__name__)  # init flask server
 
 
@@ -43,16 +43,16 @@ def genError(message: str) -> Response:
 
 
 def tokenCheck() -> bool:
-    if token == '': return True  # without token check
+    if ApiToken == '': return True  # without token check
     if request.method == 'GET':
-        return request.args.get('token') == token
+        return request.args.get('token') == ApiToken
     elif request.method == 'POST':
-        return request.json.get('token') == token
+        return request.json.get('token') == ApiToken
     else:
         return False  # polyfill
 
 
-@webApi.route('/task', methods = ['GET'])
+@webApi.route(os.path.join(ApiPath, 'task'), methods = ['GET'])
 def getTaskList() -> Response:
     if not tokenCheck():  # token check
         return genError('Invalid token')
@@ -64,17 +64,22 @@ def getTaskList() -> Response:
     })
 
 
-@webApi.route('/task', methods = ['POST'])
+@webApi.route(os.path.join(ApiPath, 'task'), methods = ['POST'])
 def createTask() -> Response:
     if not tokenCheck():  # token check
         return genError('Invalid token')
 
-    # TODO: format check and proxy list
-    checkList = formatCheck(request.json.get('check'))
+    try:
+        # TODO: format check and proxy list
+        checkList = formatCheck(request.json.get('check'))
+    except:
+        return genError('Some error in check options')
     proxyList = []
     for proxy in request.json.get('proxy'):
-        proxyList.append(formatProxy(proxy))
-    logging.critical(proxyList)
+        try:
+            proxyList.append(formatProxy(proxy))
+        except Exception as exp:
+            return genError('Proxy error in %s -> %s' % (proxy, exp))
 
     logging.debug('API create task -> check = %s | proxy = %s' % (checkList, proxyList))
     tasks = []
@@ -93,7 +98,7 @@ def createTask() -> Response:
     })
 
 
-@webApi.route('/task/<taskId>', methods = ['GET'])
+@webApi.route(os.path.join(ApiPath, 'task/<taskId>'), methods = ['GET'])
 def getTaskInfo(taskId: str) -> Response:
     if not tokenCheck():  # token check
         return genError('Invalid token')
@@ -106,7 +111,23 @@ def getTaskInfo(taskId: str) -> Response:
     })
 
 
-@webApi.route('/version', methods = ['GET'])
+@webApi.route(os.path.join(ApiPath, 'task/<taskId>'), methods = ['DELETE'])
+def deleteTask(taskId: str) -> Response:
+    if not tokenCheck():  # token check
+        return genError('Invalid token')
+    logging.debug('API get task -> %s' % taskId)
+    if not Manager.isUnion(taskId):
+        return genError('Task not found')
+    try:
+        Manager.delUnion(taskId)
+        return jsonResponse({
+            'success': True
+        })
+    except managerException as exp:
+        return genError(str(exp))
+
+
+@webApi.route(os.path.join(ApiPath, 'version'), methods = ['GET'])
 def getVersion() -> Response:
     logging.debug('API get version -> %s' + Version)
     return jsonResponse({
@@ -115,9 +136,7 @@ def getVersion() -> Response:
     })
 
 
-def startServer(apiToken: str = '', apiPort: int = 7839) -> None:
-    global token
-    token = apiToken  # api token (default empty)
-    logging.warning('API server at http://:%i/' % apiPort)
-    logging.warning('API ' + ('without token' if apiToken == '' else 'token -> %s' % apiToken))
-    pywsgi.WSGIServer(('0.0.0.0', apiPort), webApi).serve_forever()  # powered by gevent
+def startServer() -> None:
+    logging.warning('API server at http://:%i%s' % (ApiPort, ApiPath))
+    logging.warning('API ' + ('without token' if ApiToken == '' else 'token -> %s' % ApiToken))
+    pywsgi.WSGIServer(('0.0.0.0', ApiPort), webApi).serve_forever()  # powered by gevent

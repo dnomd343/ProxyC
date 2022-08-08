@@ -5,10 +5,10 @@ import os
 import json
 from Tester import Xray
 from Builder import VLESS
+from Basis.Test import Settings
 from Basis.Logger import logging
 from Basis.Process import Process
 from Basis.Constant import xtlsFlows
-from Tester.Settings import Settings
 from Basis.Functions import md5Sum, genUUID, getAvailablePort
 
 
@@ -71,7 +71,7 @@ def loadTest(stream: dict) -> dict:
             'port': proxyInfo['port'],
         }
     }
-    logging.debug('New vless test -> %s' % testInfo)
+    logging.debug('New VLESS test -> %s' % testInfo)
     return testInfo
 
 
@@ -79,3 +79,4 @@ def load():
     streams = Xray.loadStream()  # load xray-core stream list
     for stream in streams:  # test all stream cases
         yield loadTest(stream)
+    logging.info('VLESS test yield complete')

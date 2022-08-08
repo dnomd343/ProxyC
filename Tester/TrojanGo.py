@@ -5,9 +5,9 @@ import os
 import json
 from Tester import Plugin
 from Builder import TrojanGo
+from Basis.Test import Settings
 from Basis.Logger import logging
 from Basis.Process import Process
-from Tester.Settings import Settings
 from Basis.Constant import trojanGoMethods
 from Basis.Functions import md5Sum, genFlag, getAvailablePort
 
@@ -85,18 +85,11 @@ def loadTest(wsObject: dict or None, ssObject: dict or None, plugin: dict or Non
     }
     if plugin is not None:
         testInfo['server'] = plugin['inject'](testInfo['server'], plugin)
-    logging.debug('New trojan-go test -> %s' % testInfo)
+    logging.debug('New Trojan-Go test -> %s' % testInfo)
     return testInfo
 
 
 def load():
-    pluginTest = []
-    pluginIter = Plugin.load('trojan-go')
-    while True:
-        try:
-            pluginTest.append(next(pluginIter))  # export data of plugin generator
-        except StopIteration:
-            break
     wsObject = {
         'host': Settings['host'],
         'path': '/' + genFlag(length = 6),
@@ -108,5 +101,6 @@ def load():
             'passwd': genFlag(length = 8)
         }
         yield loadTest(wsObject, None if ssObject['method'] == '' else ssObject, None)
-    for plugin in pluginTest:  # different plugin for trojan-go
+    for plugin in Plugin.load('trojan-go'):  # different plugin for trojan-go
         yield loadTest(None, None, plugin)
+    logging.info('Trojan-Go test yield complete')

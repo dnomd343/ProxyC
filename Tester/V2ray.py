@@ -3,8 +3,8 @@
 
 import copy
 import itertools
+from Basis.Test import Settings
 from Basis.Functions import genFlag
-from Tester.Settings import Settings
 from Basis.Constant import quicMethods, udpObfuscations
 
 httpConfig = {

@@ -2,16 +2,17 @@
 # -*- coding: utf-8 -*-
 
 import json
+from Basis.Exception import buildException
 from Basis.Constant import ssrMethods, ssrProtocols, ssrObfuscations
 
 
 def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, dict]:
     if proxyInfo['method'] not in ssrMethods:
-        raise RuntimeError('Unknown shadowsocksr method')
+        raise buildException('Unknown shadowsocksr method')
     if proxyInfo['protocol'] not in ssrProtocols:
-        raise RuntimeError('Unknown shadowsocksr protocol')
+        raise buildException('Unknown shadowsocksr protocol')
     if proxyInfo['obfs'] not in ssrObfuscations:
-        raise RuntimeError('Unknown shadowsocksr obfuscation')
+        raise buildException('Unknown shadowsocksr obfuscation')
     ssrConfig = {
         'server': proxyInfo['server'],
         'server_port': proxyInfo['port'],  # type -> int

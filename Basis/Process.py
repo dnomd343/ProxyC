@@ -8,6 +8,7 @@ import ctypes
 import signal
 from Basis.Logger import logging
 from Basis.Functions import genFlag
+from Basis.Exception import processException
 from subprocess import Popen, STDOUT, DEVNULL
 
 libcPaths = [
@@ -73,7 +74,7 @@ class Process(object):
                 logging.error('[%s] %s already exist but not folder' % (self.id, self.workDir))
             else:
                 logging.error('[%s] Unable to create new folder -> %s' % (self.id, self.workDir))
-            raise RuntimeError('Working directory error')  # fatal error
+            raise processException('Working directory error')  # fatal error
 
     def __killProcess(self, killSignal: int) -> None:
         try:
@@ -134,10 +135,10 @@ class Process(object):
         ))
         if self.cmd is None:  # ERROR CASE
             logging.error('[%s] Process miss start command' % self.id)
-            raise RuntimeError('Miss start command')
+            raise processException('Miss start command')
         if self.__process is not None and self.__process.poll() is None:  # ERROR CASE
-            logging.error('[%s] Process is still running' % self.id)
-            raise RuntimeError('Process is still running')
+            logging.error('[%s] Process try to start but it is running' % self.id)
+            raise processException('Process is still running')
         if self.env is not None and 'PATH' not in self.env and '/' not in self.cmd[0]:  # WARNING CASE
             logging.warning('[%s] Executable file in relative path but miss PATH in environ' % self.id)
         if self.file is not None:  # create and write file contents
@@ -153,11 +154,15 @@ class Process(object):
         else:  # discard all the output of sub process
             stdout = DEVNULL
             stderr = DEVNULL
-        self.__process = Popen(
-            self.cmd, env = self.env,
-            stdout = stdout, stderr = stderr,
-            preexec_fn = None if libcPath is None else Process.__preExec
-        )
+        try:
+            self.__process = Popen(
+                self.cmd, env = self.env,
+                stdout = stdout, stderr = stderr,
+                preexec_fn = None if libcPath is None else Process.__preExec
+            )
+        except Exception as exp:
+            logging.error('[%s] Process unable to start -> %s' % (self.id, exp))
+            raise processException('Unable to start process')
         logging.info('[%s] Process running -> PID = %i' % (self.id, self.__process.pid))
 
     def signal(self, signalNum: int) -> None:  # send specified signal to sub process

@@ -2,8 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import copy
+from Basis.Exception import buildException
 
-httpConfig = {
+httpConfig = {  # http obfs configure in default
     'type': 'http',
     'request': {
         'version': '1.1',
@@ -24,7 +25,7 @@ httpConfig = {
     }
 }
 
-kcpConfig = {
+kcpConfig = {  # kcp options in default
     'mtu': 1350,
     'tti': 50,
     'uplinkCapacity': 12,
@@ -139,7 +140,7 @@ def loadStream(streamInfo: dict) -> dict:
         'grpc': grpcStream,
     }
     if streamInfo['type'] not in streamEntry:
-        raise RuntimeError('Unknown stream type')
+        raise buildException('Unknown v2ray stream type')
     streamObject = streamEntry[streamInfo['type']](streamInfo)
     return {
         **streamObject,

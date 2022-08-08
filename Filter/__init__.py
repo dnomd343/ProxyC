@@ -9,6 +9,7 @@ from Filter.Shadowsocks import ssFilter
 from Filter.ShadowsocksR import ssrFilter
 from Filter.TrojanGo import trojanGoFilter
 from Filter.Hysteria import hysteriaFilter
+from Basis.Exception import filterException
 
 filterEntry = {
     'ss': ssFilter,
@@ -23,5 +24,10 @@ filterEntry = {
 
 def Filter(proxyType: str, proxyInfo: dict) -> dict:
     if proxyType not in filterEntry:
-        raise RuntimeError('Unknown proxy type')
-    return filterEntry[proxyType](proxyInfo)
+        raise filterException('Unknown proxy type')
+    try:
+        return filterEntry[proxyType](proxyInfo)
+    except filterException as exp:
+        raise filterException(exp)
+    except:
+        raise filterException('Unknown filter error')

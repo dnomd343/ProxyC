@@ -4,10 +4,10 @@
 import os
 import re
 import json
+from Basis.Test import Settings
 from Basis.Logger import logging
 from Basis.Process import Process
 from Basis.Constant import Plugins
-from Tester.Settings import Settings
 from Basis.Functions import genFlag, hostFormat, getAvailablePort
 
 pluginParams = {}
@@ -310,7 +310,7 @@ def paramFill(param: str) -> str:
     return param
 
 
-def load(proxyType: str):
+def load(proxyType: str) -> list:
     if proxyType not in ['ss', 'trojan-go']:
         raise RuntimeError('Unknown proxy type for sip003 plugin')
     pluginParams.update({
@@ -321,13 +321,14 @@ def load(proxyType: str):
         'PASSWD': genFlag(length = 8),  # random password for test
         'PATH': '/' + genFlag(length = 6),  # random uri path for test
     })
+    result = []
     cloakLoad()  # init cloak config
     kcptunLoad()  # init kcptun config
     for pluginType in pluginConfig:
         for pluginTest, pluginTestInfo in pluginConfig[pluginType].items():  # traverse all plugin test item
             pluginParams['RANDOM'] = genFlag(length = 8)  # refresh RANDOM field
             pluginParams['RABBIT_PORT'] = str(getAvailablePort())  # allocate port before rabbit plugin start
-            yield {
+            result.append({
                 'type': pluginType,
                 'caption': pluginTest,
                 'server': {  # plugin info for server
@@ -339,4 +340,5 @@ def load(proxyType: str):
                     'param': paramFill(pluginTestInfo[1]),
                 },
                 'inject': ssInject if proxyType == 'ss' else trojanInject  # for some special plugins
-            }
+            })
+    return result

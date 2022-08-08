@@ -1,11 +1,70 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import os
+import yaml
+
+# Global Options
 Version = 'dev'
+
+ApiPath = '/'
+ApiPort = 7839
+ApiToken = ''
+
+CheckThread = 64
+
+LogLevel = 'INFO'
+LogFile = 'runtime.log'
+
+DnsServer = None
 WorkDir = '/tmp/ProxyC'
+TestHost = 'proxyc.net'
+TestSite = 'www.bing.com'
 PathEnv = '/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin'
 
+
+# Load Env Options
+envOptions = {}
+try:
+    yamlFile = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../env.yaml')
+    yamlContent = open(yamlFile, 'r', encoding = 'utf-8').read()
+    envOptions = yaml.load(yamlContent, Loader = yaml.FullLoader)
+except:  # something error in env.yaml
+    pass
+if 'version' in envOptions:
+    Version = envOptions['version']
+if 'loglevel' in envOptions:
+    LogLevel = envOptions['loglevel']
+if 'dir' in envOptions:
+    WorkDir = envOptions['dir']
+if 'dns' in envOptions:
+    DnsServer = envOptions['dns']
+if 'api' in envOptions:
+    if 'port' in envOptions['api']:
+        ApiPort = envOptions['api']['port']
+    if 'path' in envOptions['api']:
+        ApiPath = envOptions['api']['path']
+    if 'token' in envOptions['api']:
+        ApiToken = envOptions['api']['token']
+
+
+# WorkDir Create
+try:
+    os.makedirs(WorkDir)  # just like `mkdir -p ...`
+except:
+    pass  # folder exist or target is another thing
+
+
 # Shadowsocks Info
+mbedtlsMethods = [
+    'aes-128-cfb128',
+    'aes-192-cfb128',
+    'aes-256-cfb128',
+    'camellia-128-cfb128',
+    'camellia-192-cfb128',
+    'camellia-256-cfb128',
+]
+
 ssMethods = { # methods support of different Shadowsocks project
     'ss-rust': [  # table method removed refer to https://github.com/shadowsocks/shadowsocks-rust/issues/887
         'none', 'plain', 'rc4', 'rc4-md5',
@@ -70,6 +129,7 @@ ssAllMethods = set()
 [ssAllMethods.update(ssMethods[x]) for x in ssMethods]
 ssAllMethods = sorted(list(ssAllMethods))  # methods of Shadowsocks
 
+
 # Plugin Info
 Plugins = {
     'simple-obfs': ['obfs-local', 'obfs-server'],
@@ -89,6 +149,7 @@ Plugins = {
 Plugins = {x: [Plugins[x][0], Plugins[x][1 if len(Plugins[x]) == 2 else 0]] for x in Plugins}
 Plugins = {x: {'client': Plugins[x][0], 'server': Plugins[x][1]} for x in Plugins}  # format plugins info
 pluginClients = [Plugins[x]['client'] for x in Plugins]  # plugin client list -> obfs-local / simple-tls / ...
+
 
 # ShadowsocksR Info
 ssrMethods = [  # methods of ShadowsocksR
@@ -118,19 +179,20 @@ ssrObfuscations = [ # obfuscations of ShadowsocksR (obfs)
     'tls_simple', 'tls1.2_ticket_auth', 'tls1.2_ticket_fastauth',
 ]
 
-# VMess Info
+
+# V2ray / Xray Info
 vmessMethods = ['aes-128-gcm', 'chacha20-poly1305', 'auto', 'none', 'zero']
 
-# XTLS Info
-xtlsFlows = ['xtls-origin', 'xtls-direct', 'xtls-splice']
-xtlsFlows = {x: x.replace('-', '-rprx-') for x in xtlsFlows}
-
-# v2ray / Xray Info
 quicMethods = ['none', 'aes-128-gcm', 'chacha20-poly1305']
 udpObfuscations = ['none', 'srtp', 'utp', 'wechat-video', 'dtls', 'wireguard']
 
+xtlsFlows = ['xtls-origin', 'xtls-direct', 'xtls-splice']
+xtlsFlows = {x: x.replace('-', '-rprx-') for x in xtlsFlows}
+
+
 # Trojan-Go Info
 trojanGoMethods = ['aes-128-gcm', 'aes-256-gcm', 'chacha20-ietf-poly1305']
+
 
 # Hysteria Info
 hysteriaProtocols = ['udp', 'wechat-video', 'faketcp']

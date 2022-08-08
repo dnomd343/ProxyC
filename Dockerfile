@@ -31,7 +31,7 @@ FROM ${PYTHON_IMG} AS wheels
 WORKDIR /wheels/
 RUN apk add linux-headers
 COPY --from=build-base /apk/ /apk/
-RUN /apk/build-base && pip wheel colorlog flask IPy psutil pysocks requests salsa20
+RUN /apk/build-base && pip wheel colorlog flask IPy psutil pysocks pyyaml requests salsa20
 COPY --from=gevent /wheels/*.whl /wheels/
 COPY --from=numpy /wheels/*.whl /wheels/
 
@@ -53,7 +53,7 @@ COPY --from=build-base /apk/ /apk/
 RUN wget https://github.com/shadowsocks/shadowsocks-rust/archive/refs/tags/v${SS_RUST}.tar.gz && \
     tar xf v${SS_RUST}.tar.gz && /apk/build-base
 WORKDIR ./shadowsocks-rust-${SS_RUST}/
-RUN cargo update
+RUN cargo fetch
 RUN cargo build --target-dir ./ --release --bin sslocal --bin ssserver \
       --features "stream-cipher aead-cipher-extra aead-cipher-2022 aead-cipher-2022-extra" && \
     mv ./release/sslocal /tmp/ss-rust-local && mv ./release/ssserver /tmp/ss-rust-server && \
@@ -169,7 +169,7 @@ RUN git submodule update --init --recursive && \
     mv ./src/obfs-local ./src/obfs-server /plugins/
 # Compile qtun
 WORKDIR ../qtun/
-RUN cargo update
+RUN cargo fetch
 RUN cargo build --target-dir ./ --release && \
     mv ./release/qtun-client ./release/qtun-server /plugins/ && \
     strip /plugins/*
@@ -359,16 +359,17 @@ COPY --from=upx /upx/ /usr/
 RUN upx -9 /tmp/clash
 
 # Download naiveproxy
-FROM ${ALPINE_IMG} AS naiveproxy
-ENV NAIVE_VERSION="v103.0.5060.53-3"
+FROM ${ALPINE_IMG} AS naive
+ENV NAIVE_VERSION="v104.0.5112.79-2"
 RUN apk add curl libgcc jq
 RUN curl -sL https://api.github.com/repos/klzgrad/naiveproxy/releases/tags/${NAIVE_VERSION} \
       | jq .assets | jq .[].name | grep naiveproxy-${NAIVE_VERSION}-openwrt-$(uname -m) \
       | cut -b 2- | rev | cut -b 2- | rev | tac > list.dat
-RUN echo -e "while read FILE_NAME;do\nwget https://github.com/klzgrad/naiveproxy/releases/download/\${NAIVE_VERSION}/\${FILE_NAME}\n \
-      tar xf \${FILE_NAME} && ldd ./\$(echo \$FILE_NAME | rev | cut -b 8- | rev)/naive\n \
-      [ \$? -eq 0 ] && cp ./\$(echo \$FILE_NAME | rev | cut -b 8- | rev)/naive /tmp/ && break\ndone < list.dat" > naiveproxy.sh && \
-    sh naiveproxy.sh
+RUN echo "while read FILE_NAME; do" >> naive.sh && \
+    echo "wget https://github.com/klzgrad/naiveproxy/releases/download/\${NAIVE_VERSION}/\${FILE_NAME}" >> naive.sh && \
+    echo "tar xf \${FILE_NAME} && ldd ./\$(echo \$FILE_NAME | rev | cut -b 8- | rev)/naive" >> naive.sh && \
+    echo "[ \$? -eq 0 ] && cp ./\$(echo \$FILE_NAME | rev | cut -b 8- | rev)/naive /tmp/ && break" >> naive.sh && \
+    echo "done < list.dat" >> naive.sh && sh naive.sh
 COPY --from=build-base /apk/ /apk/
 RUN /apk/build-base && strip /tmp/naive
 
@@ -475,9 +476,9 @@ COPY --from=trojan /tmp/trojan* /asset/usr/bin/
 COPY --from=gost /tmp/gost* /asset/usr/bin/
 COPY --from=brook /tmp/brook /asset/usr/bin/
 COPY --from=clash /tmp/clash /asset/usr/bin/
+COPY --from=naive /tmp/naive /asset/usr/bin/
 COPY --from=snell /tmp/snell-* /asset/usr/bin/
 COPY --from=hysteria /tmp/hysteria /asset/usr/bin/
-COPY --from=naiveproxy /tmp/naive /asset/usr/bin/
 COPY --from=relaybaton /tmp/relaybaton /asset/usr/bin/
 COPY --from=pingtunnel /tmp/pingtunnel /asset/usr/bin/
 COPY --from=wireproxy /tmp/wireproxy /asset/usr/bin/
@@ -492,4 +493,4 @@ RUN apk add --no-cache boost-program_options c-ares \
     ln -s /usr/local/share/ProxyC/main.py /usr/bin/proxyc
 COPY --from=asset /asset /
 EXPOSE 7839
-CMD ["proxyc"]
+ENTRYPOINT ["proxyc"]

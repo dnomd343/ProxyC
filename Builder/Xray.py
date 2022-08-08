@@ -3,6 +3,7 @@
 
 from Builder import V2ray
 from Basis.Constant import xtlsFlows
+from Basis.Exception import buildException
 
 loadConfig = V2ray.loadConfig
 
@@ -11,7 +12,7 @@ def loadSecure(secureInfo: dict or None) -> dict:  # TLS / XTLS encrypt config
     if secureInfo is None:
         return {'security': 'none'}  # without TLS / XTLS options
     if secureInfo['type'] not in ['tls', 'xtls']:
-        raise RuntimeError('Unknown secure type')
+        raise buildException('Unknown xray secure type')
     secureObject = {
         'allowInsecure': not secureInfo['verify']  # whether verify server's certificate
     }
@@ -53,7 +54,7 @@ def loadStream(streamInfo: dict) -> dict:
         'grpc': V2ray.grpcStream,
     }
     if streamInfo['type'] not in streamEntry:
-        raise RuntimeError('Unknown stream type')
+        raise buildException('Unknown xray stream type')
     streamObject = streamEntry[streamInfo['type']](streamInfo)
     return {
         **streamObject,
@@ -67,7 +68,7 @@ def xtlsFlow(streamInfo: dict or None) -> dict:
     if streamInfo['secure']['type'] != 'xtls':  # not XTLS secure type
         return {}
     if streamInfo['secure']['flow'] not in xtlsFlows:
-        raise RuntimeError('Unknown xtls flow')
+        raise buildException('Unknown xtls flow')
     return {
         'flow': xtlsFlows[streamInfo['secure']['flow']] + (  # xtls-rprx-xxx
             '-udp443' if streamInfo['secure']['udp443'] else ''  # whether block udp/443 (disable http/3)

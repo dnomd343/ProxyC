@@ -3,10 +3,13 @@
 
 import os
 import copy
+from Filter import Filter
 from Basis.Logger import logging
 from Basis.Process import Process
+from Basis.Functions import v6AddBracket
 from Basis.Constant import WorkDir, PathEnv
-from Basis.Functions import hostFormat, genFlag, getAvailablePort
+from Basis.Functions import genFlag, getAvailablePort
+from Basis.Exception import buildException, filterException
 
 from Builder import Brook
 from Builder import VMess
@@ -44,19 +47,19 @@ class Builder(object):
     Attributes:
         id, proxyType, proxyInfo, socksAddr, socksPort, output
     """
-    output = None
+    output = None  # output capture of proxy client (after process exit)
 
     def __loadClient(self):
         logging.info('[%s] Builder load %s client at %s -> %s' % (
             self.id, self.proxyType,
-            'socks5://%s:%i' % (hostFormat(self.socksAddr, v6Bracket = True), self.socksPort), self.proxyInfo
+            'socks5://%s:%i' % (v6AddBracket(self.socksAddr), self.socksPort), self.proxyInfo
         ))
         configFile = os.path.join(  # config file path
             WorkDir, self.id + clientEntry[self.proxyType][1]  # workDir + taskId + file suffix
         )
         logging.debug('[%s] Builder config file -> %s' % (self.id, configFile))
         command, fileContent, envVar = clientEntry[self.proxyType][0](self.proxyInfo, {  # load client boot info
-            'addr': self.socksAddr,
+            'addr': self.socksAddr,  # specify socks5 info
             'port': self.socksPort,
         }, configFile)
         envVar['PATH'] = PathEnv  # add PATH env (some programs need it)
@@ -69,8 +72,9 @@ class Builder(object):
         self.id = genFlag(length = 12) if taskId == '' else taskId  # load task ID
         if proxyType not in clientEntry:
             logging.error('[%s] Builder receive unknown proxy type %s' % (self.id, proxyType))
-            raise RuntimeError('Unknown proxy type')
+            raise buildException('Unknown proxy type')
         self.proxyType = proxyType  # proxy type -> ss / ssr / vmess ...
+        self.proxyInfo = Filter(proxyType, proxyInfo)  # filter input proxy info
         self.proxyInfo = copy.copy(proxyInfo)  # connection info
         self.socksAddr = bindAddr
         self.socksPort = getAvailablePort()  # random port for socks5 exposed

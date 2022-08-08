@@ -55,6 +55,10 @@ def hostFormat(host: str, v6Bracket: bool = False) -> str:
         return host
 
 
+def v6AddBracket(host: str) -> str:  # add bracket for ipv6
+    return hostFormat(host, v6Bracket = True)
+
+
 def genFlag(length: int = 12) -> str:  # generate random task flag
     flag = ''
     for i in range(0, length):
