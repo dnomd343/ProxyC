@@ -4,6 +4,7 @@
 import re
 import time
 import uuid
+import base64
 import psutil
 import random
 import hashlib
@@ -118,6 +119,26 @@ def urlEncode(content: str) -> str:
 
 def urlDecode(content: str) -> str:
     return urllib.parse.unquote(content)
+
+
+def base64Encode(content: str, urlSafe: bool = False, isPadding: bool = True) -> str:
+    content = base64.b64encode(content.encode(encoding = 'utf-8')).decode(encoding = 'utf-8')
+    if urlSafe:
+        content = content.replace('+', '-')
+        content = content.replace('/', '_')
+    if not isPadding:
+        content = content.replace('=', '')
+    return content
+
+
+def base64Decode(content: str) -> str or None:
+    try:
+        content = content.replace('-', '+').replace('_', '/')
+        if len(content) % 4 in range(2, 4):  # remainder -> 2 or 3
+            content = content.ljust((len(content) // 4 + 1) * 4, '=')  # increase to 4n
+        return base64.b64decode(content).decode(encoding = 'utf-8')
+    except:
+        raise RuntimeError('Invalid base64 encode')
 
 
 def getAvailablePort(rangeStart: int = 1024, rangeEnd: int = 65535, waitTime: int = 10) -> int:  # get available port
