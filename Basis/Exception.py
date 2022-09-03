@@ -24,3 +24,8 @@ class managerException(Exception):  # for manager error
 class checkException(Exception):  # for check error
     def __init__(self, reason):
         self.reason = reason
+
+
+class decodeException(Exception):  # for url decode
+    def __init__(self, reason):
+        self.reason = reason

@@ -8,6 +8,7 @@ import psutil
 import random
 import hashlib
 from IPy import IP
+import urllib.parse
 from Basis.Logger import logging
 
 
@@ -109,6 +110,14 @@ def toBool(raw) -> bool:
         return int(raw) != 0
     except:
         raise RuntimeError('Unable convert to bool')
+
+
+def urlEncode(content: str) -> str:
+    return urllib.parse.urlencode(content)
+
+
+def urlDecode(content: str) -> str:
+    return urllib.parse.unquote(content)
 
 
 def getAvailablePort(rangeStart: int = 1024, rangeEnd: int = 65535, waitTime: int = 10) -> int:  # get available port
