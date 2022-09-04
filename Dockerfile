@@ -104,7 +104,7 @@ RUN sed -i 's/MutableMapping/abc.MutableMapping/' ./shadowsocks/lru_cache.py && 
 
 # Compile shadowsocks-bootstrap
 FROM ${ALPINE_IMG} AS ss-bootstrap
-RUN apk add cmake git glib-dev
+RUN apk add cmake git
 COPY --from=build-base /apk/ /apk/
 RUN git clone https://github.com/dnomd343/shadowsocks-bootstrap.git && /apk/build-base
 WORKDIR ./shadowsocks-bootstrap/build/
@@ -448,7 +448,7 @@ COPY . /asset/usr/local/share/ProxyC/
 
 # Release docker image
 FROM ${PYTHON_IMG}
-RUN apk add --no-cache boost-program_options c-ares ca-certificates glib libev libsodium libstdc++ mbedtls pcre && \
+RUN apk add --no-cache boost-program_options c-ares ca-certificates libev libsodium libstdc++ mbedtls pcre && \
     ln -s /usr/local/share/ProxyC/main.py /usr/bin/proxyc
 COPY --from=asset /asset /
 EXPOSE 7839
