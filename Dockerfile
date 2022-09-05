@@ -350,7 +350,8 @@ RUN upx -9 /tmp/clash
 # Download naiveproxy
 FROM ${ALPINE_IMG} AS naive
 ENV NAIVE_VERSION="v105.0.5195.52-1"
-RUN apk add curl libgcc jq
+COPY --from=build-base /apk/ /apk/
+RUN apk add curl libgcc jq && /apk/build-base
 RUN curl -sL https://api.github.com/repos/klzgrad/naiveproxy/releases/tags/${NAIVE_VERSION} \
       | jq .assets | jq .[].name | grep naiveproxy-${NAIVE_VERSION}-openwrt-$(uname -m) \
       | cut -b 2- | rev | cut -b 2- | rev | tac > list.dat
@@ -358,9 +359,7 @@ RUN echo "while read FILE_NAME; do" >> naive.sh && \
     echo "wget https://github.com/klzgrad/naiveproxy/releases/download/\${NAIVE_VERSION}/\${FILE_NAME}" >> naive.sh && \
     echo "tar xf \${FILE_NAME} && ldd ./\$(echo \$FILE_NAME | rev | cut -b 8- | rev)/naive" >> naive.sh && \
     echo "[ \$? -eq 0 ] && cp ./\$(echo \$FILE_NAME | rev | cut -b 8- | rev)/naive /tmp/ && break" >> naive.sh && \
-    echo "done < list.dat" >> naive.sh && sh naive.sh
-COPY --from=build-base /apk/ /apk/
-RUN /apk/build-base && strip /tmp/naive
+    echo "done < list.dat" >> naive.sh && sh naive.sh && strip /tmp/naive
 
 # Compile open-snell
 FROM ${GO17_IMG} AS snell
