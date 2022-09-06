@@ -1,31 +1,31 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-class buildException(Exception):  # for build error
+class buildException(Exception):  # build exception
     def __init__(self, reason):
         self.reason = reason
 
 
-class filterException(Exception):  # for filter error
+class filterException(Exception):  # filter exception
     def __init__(self, reason):
         self.reason = reason
 
 
-class processException(Exception):  # for process error
+class processException(Exception):  # process exception
     def __init__(self, reason):
         self.reason = reason
 
 
-class managerException(Exception):  # for manager error
+class managerException(Exception):  # manager exception
     def __init__(self, reason):
         self.reason = reason
 
 
-class checkException(Exception):  # for check error
+class checkException(Exception):  # check exception
     def __init__(self, reason):
         self.reason = reason
 
 
-class decodeException(Exception):  # for url decode
+class decodeException(Exception):  # url exception
     def __init__(self, reason):
         self.reason = reason
