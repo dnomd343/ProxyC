@@ -5,19 +5,18 @@
 # Plain / Common: https://shadowsocks.org/guide/configs.html#uri-and-qr-code
 
 import copy
-from Basis.Logger import logging
+from Utils.Logger import logger
 from Basis.Exception import decodeException
-from Basis.Functions import base64Decode, urlDecode
+from Utils.Common import urlDecode, base64Decode
 
 ssBasicConfig = {
     'type': 'ss',
     'info': {}
 }
 
-
 def checkPrefix(url: str) -> str:  # check url prefix and remove it
     if not url.startswith('ss://'):
-        logging.debug('Shadowsocks url should start with `ss://`')
+        logger.debug('Shadowsocks url should start with `ss://`')
         raise decodeException('Shadowsocks prefix error')
     return url[5:]
 
@@ -39,12 +38,12 @@ def ssPlain(url: str) -> dict:
     FORMAT: ss://method:password@hostname:port[#TAG]
     """
     config = copy.deepcopy(ssBasicConfig)
-    logging.debug('Shadowsocks plain decode -> %s' % url)
+    logger.debug('Shadowsocks plain decode -> %s' % url)
     url, config['name'] = splitTag(checkPrefix(url), False)
     userinfo, url = url.rsplit('@', 1)
     config['info']['server'], config['info']['port'] = url.rsplit(':', 1)
     config['info']['method'], config['info']['passwd'] = userinfo.split(':', 1)
-    logging.debug('Shadowsocks plain decode release -> %s', config)
+    logger.debug('Shadowsocks plain decode release -> %s', config)
     return config
 
 
@@ -54,12 +53,12 @@ def ssCommon(url: str) -> dict:
             base64('method:password@hostname:port')
     """
     config = copy.deepcopy(ssBasicConfig)
-    logging.debug('Shadowsocks common decode -> %s' % url)
+    logger.debug('Shadowsocks common decode -> %s' % url)
     url, config['name'] = splitTag(checkPrefix(url))
     userinfo, url = base64Decode(url).rsplit('@', 1)
     config['info']['server'], config['info']['port'] = url.rsplit(':', 1)
     config['info']['method'], config['info']['passwd'] = userinfo.split(':', 1)
-    logging.debug('Shadowsocks common decode release -> %s', config)
+    logger.debug('Shadowsocks common decode release -> %s', config)
     return config
 
 
@@ -69,7 +68,7 @@ def sip002(url: str) -> dict:
             userinfo => method:password or websafe-base64-encode-utf8(method:password)
     """
     config = copy.deepcopy(ssBasicConfig)
-    logging.debug('Shadowsocks sip002 decode -> %s' % url)
+    logger.debug('Shadowsocks sip002 decode -> %s' % url)
     url, config['name'] = splitTag(checkPrefix(url))
     userinfo, url = url.rsplit('@', 1)
     try:
@@ -86,5 +85,5 @@ def sip002(url: str) -> dict:
             'param': '' if len(plugin) == 1 else plugin[1]  # default as empty string
         }
     config['info']['server'], config['info']['port'] = url.rsplit(':', 1)
-    logging.debug('Shadowsocks sip002 decode release -> %s', config)
+    logger.debug('Shadowsocks sip002 decode release -> %s', config)
     return config
