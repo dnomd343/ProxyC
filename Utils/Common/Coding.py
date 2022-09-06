@@ -35,8 +35,8 @@ def base64Decode(content: str) -> str:  # base64 decode
 
 def checkScheme(url: str, scheme: str, name: str) -> str:  # check url scheme and remove it
     if not url.startswith('%s://' % scheme):
-        logger.debug('%s url should start with `%s://`', name, scheme)
-        raise RuntimeError('%s scheme error', name)
+        logger.warning('%s url should start with `%s://`' % (name, scheme))
+        raise RuntimeError('%s scheme error' % name)
     return url[len(scheme) + 3:]
 
 
@@ -50,3 +50,11 @@ def splitTag(url: str, fromRight: bool = True, spaceRemark: bool = True) -> tupl
     if spaceRemark:  # deal with space remark for space
         remark = remark.replace('+', ' ')
     return url, urlDecode(remark)
+
+
+def splitParam(params: str) -> dict:  # split params
+    ret = {}
+    if params != '':
+        for param in params.split('&'):
+            ret[param.split('=', 1)[0]] = urlDecode(param.split('=', 1)[1])
+    return ret

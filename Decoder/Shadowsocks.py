@@ -9,7 +9,6 @@ from Utils.Logger import logger
 from Utils.Common import checkScheme, splitTag
 from Utils.Common import urlDecode, base64Decode
 
-
 ssBasicConfig = {
     'type': 'ss',
     'info': {}
