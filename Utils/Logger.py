@@ -23,19 +23,21 @@ logLevel = {  # log level
 }[LogLevel.lower()]
 
 dateFormat = '%Y-%m-%d %H:%M:%S'
-logFormat = '[%(asctime)s.%(msecs)03d] [%(levelname)s] %(message)s (%(module)s.%(funcName)s)'
+timeFormat = '%(asctime)s.%(msecs)03d'
+logFormat = '[%(levelname)s] %(message)s (%(module)s.%(funcName)s:%(lineno)d)'
 
 # load fileHandler -> log file
 fileHandler = logging.FileHandler(LogFile, encoding = 'utf-8')
 fileHandler.setFormatter(logging.Formatter(
-    logFormat, datefmt = dateFormat
+    '[' + timeFormat + '] ' + logFormat,
+    datefmt = dateFormat
 ))
 fileHandler.setLevel(logging.DEBUG)  # debug level for log file
 
 # load stdHandler -> stderr
 stdHandler = colorlog.StreamHandler()
 stdHandler.setFormatter(colorlog.ColoredFormatter(
-    '%(log_color)s' + logFormat,
+    '%(light_black)s' + timeFormat + '%(log_color)s ' + logFormat,
     datefmt = dateFormat,
     log_colors = logColor,
     stream = sys.stderr
