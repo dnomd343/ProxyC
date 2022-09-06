@@ -7,7 +7,7 @@ import uuid
 import random
 import hashlib
 from IPy import IP
-from Basis.Logger import logging
+from Utils.Logger import logger
 
 
 def isIpAddr(ipAddr: str) -> bool:
@@ -66,7 +66,7 @@ def genFlag(length: int = 12) -> str:  # generate random task flag
             flag += chr(tmp + 87) # a ~ f
         else:
             flag += str(tmp) # 0 ~ 9
-    logging.debug('Generate new flag -> ' + flag)
+    logger.debug('Generate new flag -> ' + flag)
     return flag
 
 

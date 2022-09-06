@@ -4,7 +4,7 @@
 import time
 import psutil
 import random
-from Basis.Logger import logging
+from Utils.Logger import logger
 
 
 def getAvailablePort(rangeStart: int = 1024, rangeEnd: int = 65535, msWait: int = 10) -> int:  # found a available port
@@ -13,7 +13,7 @@ def getAvailablePort(rangeStart: int = 1024, rangeEnd: int = 65535, msWait: int 
     while True:
         port = random.randint(rangeStart, rangeEnd)  # choose randomly
         if isVacantPort(port):
-            logging.debug('Found new available port -> %i' % port)
+            logger.debug('Found new available port -> %i' % port)
             return port
         time.sleep(msWait / 1000)  # ms -> s (default 10ms)
 
@@ -21,9 +21,9 @@ def getAvailablePort(rangeStart: int = 1024, rangeEnd: int = 65535, msWait: int 
 def isVacantPort(port: int) -> bool:  # whether the port is occupied
     for connection in networkStatus():  # scan every connections
         if connection['local']['port'] == port:  # port occupied (ipv4-tcp / ipv4-udp / ipv6-tcp / ipv6-udp)
-            logging.debug('Check port %i -> occupied' % port)
+            logger.debug('Check port %i -> occupied' % port)
             return False
-    logging.debug('Check port %i -> available' % port)  # vacant port
+    logger.debug('Check port %i -> available' % port)  # vacant port
     return True
 
 
@@ -49,5 +49,5 @@ def networkStatus() -> list:  # get all network connections
             'status': connection.status,
             'pid': connection.pid,  # process id
         })
-    logging.debug('Network status -> found %i connections' % len(result))
+    logger.debug('Network status -> found %i connections' % len(result))
     return result

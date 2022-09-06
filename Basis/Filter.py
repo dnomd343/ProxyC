@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import copy
-from Basis.Exception import filterException
+from Utils.Exception import filterException
 
 filterObject = {
     'optional': {

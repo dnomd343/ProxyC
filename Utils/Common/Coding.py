@@ -3,6 +3,7 @@
 
 import base64
 import urllib.parse
+from Utils.Logger import logger
 
 def urlEncode(content: str) -> str:  # url encode (RFC3986)
     return urllib.parse.quote(content, encoding = 'utf-8')
@@ -30,3 +31,22 @@ def base64Decode(content: str) -> str:  # base64 decode
         return base64.b64decode(content).decode(encoding = 'utf-8')
     except:
         raise RuntimeError('Invalid base64 encode')
+
+
+def checkScheme(url: str, scheme: str, name: str) -> str:  # check url scheme and remove it
+    if not url.startswith('%s://' % scheme):
+        logger.debug('%s url should start with `%s://`', name, scheme)
+        raise RuntimeError('%s scheme error', name)
+    return url[len(scheme) + 3:]
+
+
+def splitTag(url: str, fromRight: bool = True, spaceRemark: bool = True) -> tuple[str, str]:  # split tag after `#`
+    if '#' not in url:  # without tag
+        return url, ''
+    if not fromRight:
+        url, remark = url.split('#', 1)  # from left search
+    else:
+        url, remark = url.rsplit('#', 1)  # from right search
+    if spaceRemark:  # deal with space remark for space
+        remark = remark.replace('+', ' ')
+    return url, urlDecode(remark)

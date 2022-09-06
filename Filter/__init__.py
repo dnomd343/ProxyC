@@ -9,7 +9,7 @@ from Filter.Shadowsocks import ssFilter
 from Filter.ShadowsocksR import ssrFilter
 from Filter.TrojanGo import trojanGoFilter
 from Filter.Hysteria import hysteriaFilter
-from Basis.Exception import filterException
+from Utils.Exception import filterException
 
 filterEntry = {
     'ss': ssFilter,
