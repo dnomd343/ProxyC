@@ -6,6 +6,7 @@
 from Utils.Logger import logger
 from Utils.Common import b64Decode, checkScheme, splitParam
 
+
 def ssr(url: str) -> dict:
     """
     FORMAT: ssr://base64(
@@ -18,7 +19,7 @@ def ssr(url: str) -> dict:
         'info': {}
     }
     info = config['info']
-    logger.debug('ShadowsocksR decode -> %s' % url)
+    logger.debug('ShadowsocksR url decode -> %s' % url)
 
     params = ''
     url = b64Decode(checkScheme(url, 'ssr', 'ShadowsocksR'))
@@ -28,10 +29,10 @@ def ssr(url: str) -> dict:
     info['passwd'] = b64Decode(info['passwd'])
 
     params = splitParam(params)
-    logger.debug('ShadowsocksR decode params -> %s' % params)
+    logger.debug('ShadowsocksR url params -> %s' % params)
     info['obfsParam'] = b64Decode(params['obfsparam']) if 'obfsparam' in params else ''
     info['protocolParam'] = b64Decode(params['protoparam']) if 'protoparam' in params else ''
     config['name'] = b64Decode(params['remarks']) if 'remarks' in params else ''
     config['group'] = b64Decode(params['group']) if 'group' in params else ''
-    logger.debug('ShadowsocksR decode release -> %s', config)
+    logger.debug('ShadowsocksR url release -> %s' % config)
     return config

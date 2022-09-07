@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import copy
-from Utils.Common import isHost, isPort
 from Utils.Filter import Filter, rulesFilter
+from Utils.Common import isHost, isPort, hostFormat
 from Utils.Common import toInt, toStr, toStrTidy, toBool
 
 secureObject = rulesFilter({
@@ -72,7 +72,7 @@ wsObject = rulesFilter({
 brookObject = rulesFilter({
     'server': {
         'type': str,
-        'format': toStrTidy,
+        'format': lambda s: hostFormat(toStrTidy(s)),
         'filter': isHost,
         'errMsg': 'Invalid server address'
     },

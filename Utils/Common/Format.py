@@ -11,6 +11,7 @@ def v6AddBracket(host: str) -> str:  # add bracket for ipv6
 
 
 def hostFormat(host: str, v6Bracket: bool = False) -> str:
+    host = host.strip().lower()
     try:
         if host[:1] == '[' and host[-1:] == ']':  # [IPv6] format
             host = host[1:-1]  # remove extra bracket

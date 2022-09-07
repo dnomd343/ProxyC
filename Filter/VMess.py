@@ -5,13 +5,13 @@ import copy
 from Filter import V2ray
 from Utils.Constant import vmessMethods
 from Utils.Common import isHost, isPort
-from Utils.Common import toInt, toStrTidy
 from Utils.Filter import Filter, rulesFilter
+from Utils.Common import toInt, toStrTidy, hostFormat
 
 vmessObject = rulesFilter({
     'server': {
         'type': str,
-        'format': toStrTidy,
+        'format': lambda s: hostFormat(toStrTidy(s)),
         'filter': isHost,
         'errMsg': 'Invalid server address'
     },

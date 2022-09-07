@@ -4,13 +4,13 @@
 import copy
 from Utils.Constant import hysteriaProtocols
 from Utils.Filter import Filter, rulesFilter
-from Utils.Common import isHost, isPort, isIpAddr
 from Utils.Common import toInt, toStr, toStrTidy, toBool
+from Utils.Common import isHost, isPort, isIpAddr, hostFormat
 
 hysteriaObject = rulesFilter({
     'server': {
         'type': str,
-        'format': toStrTidy,
+        'format': lambda s: hostFormat(toStrTidy(s)),
         'filter': isHost,
         'errMsg': 'Invalid server address'
     },

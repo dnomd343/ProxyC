@@ -4,13 +4,13 @@
 import copy
 from Filter import Xray
 from Utils.Common import isHost, isPort
-from Utils.Common import toInt, toStrTidy
 from Utils.Filter import Filter, rulesFilter
+from Utils.Common import toInt, toStrTidy, hostFormat
 
 vlessObject = rulesFilter({
     'server': {
         'type': str,
-        'format': toStrTidy,
+        'format': lambda s: hostFormat(toStrTidy(s)),
         'filter': isHost,
         'errMsg': 'Invalid server address'
     },

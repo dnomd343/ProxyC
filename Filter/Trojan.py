@@ -5,12 +5,12 @@ import copy
 from Filter import Xray
 from Utils.Common import isHost, isPort
 from Utils.Filter import Filter, rulesFilter
-from Utils.Common import toInt, toStr, toStrTidy
+from Utils.Common import toInt, toStr, toStrTidy, hostFormat
 
 trojanObject = rulesFilter({
     'server': {
         'type': str,
-        'format': toStrTidy,
+        'format': lambda s: hostFormat(toStrTidy(s)),
         'filter': isHost,
         'errMsg': 'Invalid server address'
     },

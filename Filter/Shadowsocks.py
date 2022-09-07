@@ -6,12 +6,12 @@ from Filter.Plugin import pluginObject
 from Utils.Constant import ssAllMethods
 from Utils.Common import isHost, isPort
 from Utils.Filter import Filter, rulesFilter
-from Utils.Common import toInt, toStr, toStrTidy
+from Utils.Common import toInt, toStr, toStrTidy, hostFormat
 
 ssObject = rulesFilter({
     'server': {
         'type': str,
-        'format': toStrTidy,
+        'format': lambda s: hostFormat(toStrTidy(s)),
         'filter': isHost,
         'errMsg': 'Invalid server address'
     },

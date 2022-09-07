@@ -3,9 +3,9 @@
 
 import copy
 from Filter.Plugin import pluginObject
-from Utils.Common import isHost, isPort
 from Utils.Constant import trojanGoMethods
 from Utils.Filter import Filter, rulesFilter
+from Utils.Common import isHost, isPort, hostFormat
 from Utils.Common import isIpAddr, toInt, toStr, toStrTidy, toBool
 
 ssObject = rulesFilter({
@@ -46,7 +46,7 @@ wsObject = rulesFilter({
 trojanGoObject = rulesFilter({
     'server': {
         'type': str,
-        'format': toStrTidy,
+        'format': lambda s: hostFormat(toStrTidy(s)),
         'filter': isHost,
         'errMsg': 'Invalid server address'
     },

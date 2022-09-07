@@ -4,7 +4,7 @@
 import copy
 from Utils.Common import isHost, isPort
 from Utils.Filter import Filter, rulesFilter
-from Utils.Common import toInt, toStr, toStrTidy
+from Utils.Common import toInt, toStr, toStrTidy, hostFormat
 from Utils.Constant import ssrMethods, ssrProtocols, ssrObfuscations
 
 
@@ -21,7 +21,7 @@ def ssrObfsFormat(obfs: str) -> str:
 ssrObject = rulesFilter({
     'server': {
         'type': str,
-        'format': toStrTidy,
+        'format': lambda s: hostFormat(toStrTidy(s)),
         'filter': isHost,
         'errMsg': 'Invalid server address'
     },
