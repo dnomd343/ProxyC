@@ -63,7 +63,8 @@ else:
 
 from Tester import testEntry
 from Utils.Check import Check
-from Utils import Api, DnsProxy
+# from Utils import Api, DnsProxy
+from Utils import DnsProxy
 from Utils.Logger import logger
 from Utils.Manager import Manager
 from Utils.Test import Test, loadBind, loadCert
@@ -137,4 +138,4 @@ logger.warning('ProxyC starts running (%s)' % Constant.Version)
 _thread.start_new_thread(pythonCompile, ('/usr',))  # python compile (generate .pyc file)
 _thread.start_new_thread(DnsProxy.start, (Constant.DnsServer, 53))  # start dns server
 _thread.start_new_thread(loop, (Constant.CheckThread, ))  # start check loop
-Api.startServer()  # start api server
+# Api.startServer()  # start api server

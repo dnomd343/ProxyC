@@ -42,7 +42,7 @@ stdHandler.setFormatter(colorlog.ColoredFormatter(
     log_colors = logColor,
     stream = sys.stderr
 ))
-stdHandler.setLevel(LogLevel)  # custom level for stderr
+stdHandler.setLevel(logLevel)  # custom level for stderr
 
 logger = logging.getLogger()
 logger.addHandler(stdHandler)

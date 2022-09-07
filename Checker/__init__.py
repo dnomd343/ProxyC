@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-import logging
 
 from Checker import Http
+from Utils.Logger import logger
 
 checkEntry = {
     'http': Http.check
@@ -23,7 +23,7 @@ def formatCheck(rawInfo: list) -> dict:
 def Checker(taskId: str, checkInfo: dict, socksInfo: dict) -> dict:
     diffItems = {x for x in checkInfo} - {x for x in checkEntry}
     if len(diffItems) != 0:  # include unknown check items
-        logging.error('[%s] Unknown check items -> %s' % (taskId, diffItems))
+        logger.error('[%s] Unknown check items -> %s' % (taskId, diffItems))
         raise RuntimeError('Unknown check items')
     result = {}
     for checkItem, checkOptions in checkInfo.items():
