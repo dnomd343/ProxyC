@@ -7,8 +7,8 @@ import time
 import _thread
 import argparse
 import compileall
-from Basis import Constant
-from Basis.Exception import checkException
+from Utils import Constant
+from Utils.Exception import checkException
 
 
 def mainArgParse(rawArgs: list) -> argparse.Namespace:
@@ -62,18 +62,18 @@ else:
 
 
 from Tester import testEntry
-from Basis.Check import Check
-from Basis import Api, DnsProxy
-from Basis.Logger import logging
-from Basis.Manager import Manager
-from Basis.Test import Test, loadBind, loadCert
+from Utils.Check import Check
+from Utils import Api, DnsProxy
+from Utils.Logger import logger
+from Utils.Manager import Manager
+from Utils.Test import Test, loadBind, loadCert
 from concurrent.futures import ThreadPoolExecutor
 
 
 def pythonCompile(dirRange: str = '/') -> None:  # python optimize compile
     for optimize in [-1, 1, 2]:
         compileall.compile_dir(dirRange, quiet = 1, optimize = optimize)
-        logging.warning('Python optimize compile -> %s (level = %i)' % (dirRange, optimize))
+        logger.warning('Python optimize compile -> %s (level = %i)' % (dirRange, optimize))
 
 
 def runCheck(taskId: str, taskInfo: dict) -> None:
@@ -81,13 +81,13 @@ def runCheck(taskId: str, taskInfo: dict) -> None:
     checkResult = {}
     try:
         checkResult = Check(taskId, taskInfo)  # check by task info
-        logging.warning('[%s] Task finish' % taskId)
+        logger.warning('[%s] Task finish' % taskId)
     except checkException as exp:
         success = False
-        logging.error('[%s] Task error -> %s' % (taskId, exp))
+        logger.error('[%s] Task error -> %s' % (taskId, exp))
     except:
         success = False
-        logging.error('[%s] Task error -> Unknown error' % taskId)
+        logger.error('[%s] Task error -> Unknown error' % taskId)
     finally:
         if not success:  # got some error in check process
             taskInfo.pop('check')
@@ -99,12 +99,12 @@ def runCheck(taskId: str, taskInfo: dict) -> None:
 
 
 def loop(threadNum: int) -> None:
-    logging.warning('Loop check start -> %i threads' % threadNum)
+    logger.warning('Loop check start -> %i threads' % threadNum)
     threadPool = ThreadPoolExecutor(max_workers = threadNum)  # init thread pool
     while True:
         try:
             taskId, taskInfo = Manager.popTask()  # pop a task
-            logging.warning('[%s] Load new task' % taskId)
+            logger.warning('[%s] Load new task' % taskId)
         except:  # no more task
             time.sleep(2)
             continue
@@ -114,26 +114,26 @@ def loop(threadNum: int) -> None:
 if testMode:  # test mode
     loadBind(serverV6 = testArgs.ipv6, clientV6 = testArgs.ipv6)  # ipv4 / ipv6 (127.0.0.1 / ::1)
     loadCert(certId = testArgs.cert)  # cert config
-    logging.critical('TEST ITEM: %s' % testArgs.PROTOCOL)
-    logging.critical('SELECT: ' + str(testArgs.select))
-    logging.critical('URL: %s' % testArgs.url)
-    logging.critical('THREAD NUMBER: %i' % testArgs.thread)
-    logging.critical('-' * 32 + ' TEST START ' + '-' * 32)
+    logger.critical('TEST ITEM: %s' % testArgs.PROTOCOL)
+    logger.critical('SELECT: ' + str(testArgs.select))
+    logger.critical('URL: %s' % testArgs.url)
+    logger.critical('THREAD NUMBER: %i' % testArgs.thread)
+    logger.critical('-' * 32 + ' TEST START ' + '-' * 32)
     if testArgs.PROTOCOL == 'all':  # run all test items
         for item in testEntry:
             if item == ('ss' if testArgs.all else 'ss-all'):  # skip ss / ss-all
                 continue
-            logging.critical('TEST ITEM -> ' + item)
+            logger.critical('TEST ITEM -> ' + item)
             Test(testEntry[item], testArgs.thread, testArgs.url, testArgs.select)
     else:  # run single item
         if testArgs.PROTOCOL == 'ss' and testArgs.all:  # test shadowsocks extra items
             testItem = 'ss-all'
         Test(testEntry[testArgs.PROTOCOL], testArgs.thread, testArgs.url, testArgs.select)
-    logging.critical('-' * 32 + ' TEST COMPLETE ' + '-' * 32)
+    logger.critical('-' * 32 + ' TEST COMPLETE ' + '-' * 32)
     sys.exit(0)  # test complete
 
 
-logging.warning('ProxyC starts running (%s)' % Constant.Version)
+logger.warning('ProxyC starts running (%s)' % Constant.Version)
 _thread.start_new_thread(pythonCompile, ('/usr',))  # python compile (generate .pyc file)
 _thread.start_new_thread(DnsProxy.start, (Constant.DnsServer, 53))  # start dns server
 _thread.start_new_thread(loop, (Constant.CheckThread, ))  # start check loop

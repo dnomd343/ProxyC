@@ -4,11 +4,11 @@
 import os
 import re
 import json
-from Basis.Test import Settings
-from Basis.Logger import logging
-from Basis.Process import Process
-from Basis.Constant import Plugins
-from Basis.Functions import genFlag, hostFormat, getAvailablePort
+from Utils.Logger import logger
+from Utils.Test import Settings
+from Utils.Process import Process
+from Utils.Constant import Plugins
+from Utils.Common import genFlag, hostFormat, getAvailablePort
 
 pluginParams = {}
 
@@ -220,8 +220,8 @@ def cloakLoad() -> None:
     pluginParams['CK_PUBLIC'] = re.search(r'\s+(\S+)$', ckKey.split('\n')[0])[1]
     pluginParams['CK_PRIVATE'] = re.search(r'\s+(\S+)$', ckKey.split('\n')[1])[1]
     pluginParams['CK_UID'] = re.search(r'\s+(\S+)\n', os.popen('ck-server -uid').read())[1]  # generate uid for clock
-    logging.info('generate cloak uid -> %s' % pluginParams['CK_UID'])
-    logging.info('generate cloak key -> %s (Public) | %s (Private)' % (
+    logger.info('generate cloak uid -> %s' % pluginParams['CK_UID'])
+    logger.info('generate cloak key -> %s (Public) | %s (Private)' % (
         pluginParams['CK_PUBLIC'], pluginParams['CK_PRIVATE']
     ))
     ckPrefix = 'UID=${CK_UID};PublicKey=${CK_PUBLIC};ServerName=${SITE};'  # cloak plugin's basic command

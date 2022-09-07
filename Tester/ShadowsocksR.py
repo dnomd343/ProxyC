@@ -3,12 +3,12 @@
 
 import os
 import json
-from Basis.Test import Settings
 from Builder import ShadowsocksR
-from Basis.Logger import logging
-from Basis.Process import Process
-from Basis.Functions import genFlag, getAvailablePort
-from Basis.Constant import ssrMethods, ssrProtocols, ssrObfuscations
+from Utils.Logger import logger
+from Utils.Test import Settings
+from Utils.Process import Process
+from Utils.Common import genFlag, getAvailablePort
+from Utils.Constant import ssrMethods, ssrProtocols, ssrObfuscations
 
 
 def loadServer(configFile: str, proxyInfo: dict) -> Process:  # load server process
@@ -64,7 +64,7 @@ def loadTest(method: str, protocol: str, obfs: str) -> dict:
             'port': proxyInfo['port'],
         }
     }
-    logging.debug('New ShadowsocksR test -> %s' % testInfo)
+    logger.debug('New ShadowsocksR test -> %s' % testInfo)
     return testInfo
 
 
@@ -75,4 +75,4 @@ def load():
         yield loadTest('aes-128-ctr', protocol, 'plain')
     for obfs in ssrObfuscations:
         yield loadTest('aes-128-ctr', 'origin', obfs)
-    logging.info('ShadowsocksR test yield complete')
+    logger.info('ShadowsocksR test yield complete')

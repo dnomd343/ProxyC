@@ -7,11 +7,11 @@ import base64
 import itertools
 from Tester import Plugin
 from Builder import Shadowsocks
-from Basis.Test import Settings
-from Basis.Logger import logging
-from Basis.Process import Process
-from Basis.Functions import md5Sum, genFlag, getAvailablePort
-from Basis.Constant import PathEnv, ssMethods, ssAllMethods, mbedtlsMethods
+from Utils.Logger import logger
+from Utils.Test import Settings
+from Utils.Process import Process
+from Utils.Common import md5Sum, genFlag, getAvailablePort
+from Utils.Constant import PathEnv, ssMethods, ssAllMethods, mbedtlsMethods
 
 
 def loadConfig(proxyInfo: dict) -> dict:  # load basic config option
@@ -134,7 +134,7 @@ def loadTest(serverType: str, clientType: str, method: str, plugin: dict or None
     }
     if plugin is not None:
         testInfo['server'] = plugin['inject'](testInfo['server'], plugin)
-    logging.debug('New Shadowsocks test -> %s' % testInfo)
+    logger.debug('New Shadowsocks test -> %s' % testInfo)
     return testInfo
 
 
@@ -167,4 +167,4 @@ def load(isExtra: bool = False):
             yield next(ssIter)
         except StopIteration:
             break
-    logging.info('Shadowsocks test yield complete')
+    logger.info('Shadowsocks test yield complete')

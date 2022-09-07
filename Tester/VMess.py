@@ -6,11 +6,11 @@ import json
 import itertools
 from Tester import V2ray
 from Builder import VMess
-from Basis.Test import Settings
-from Basis.Logger import logging
-from Basis.Process import Process
-from Basis.Constant import PathEnv, vmessMethods
-from Basis.Functions import md5Sum, genUUID, getAvailablePort
+from Utils.Logger import logger
+from Utils.Test import Settings
+from Utils.Process import Process
+from Utils.Constant import PathEnv, vmessMethods
+from Utils.Common import md5Sum, genUUID, getAvailablePort
 
 
 def loadServer(configFile: str, proxyInfo: dict, streamConfig: dict) -> Process:  # load server process
@@ -69,7 +69,7 @@ def loadTest(method: str, aid: int, stream: dict) -> dict:
             'port': proxyInfo['port'],
         }
     }
-    logging.debug('New VMess test -> %s' % testInfo)
+    logger.debug('New VMess test -> %s' % testInfo)
     return testInfo
 
 
@@ -79,4 +79,4 @@ def load():
         yield loadTest(method, aid, streams[0])
     for stream in streams[1:]:  # skip first stream that has benn checked
         yield loadTest('auto', 0, stream)  # aead with auto security
-    logging.info('VMess test yield complete')
+    logger.info('VMess test yield complete')

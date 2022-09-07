@@ -4,10 +4,10 @@
 import copy
 import itertools
 from Builder import Brook
-from Basis.Test import Settings
-from Basis.Logger import logging
-from Basis.Process import Process
-from Basis.Functions import hostFormat, genFlag, getAvailablePort
+from Utils.Logger import logger
+from Utils.Test import Settings
+from Utils.Process import Process
+from Utils.Common import hostFormat, genFlag, getAvailablePort
 
 
 def originStream(isUot: bool) -> dict:
@@ -78,7 +78,7 @@ def loadTest(stream: dict) -> dict:
             'port': proxyInfo['port'],
         }
     }
-    logging.debug('New Brook test -> %s' % testInfo)
+    logger.debug('New Brook test -> %s' % testInfo)
     return testInfo
 
 
@@ -91,4 +91,4 @@ def load():
         addStream(wsStream(isRaw, isSecure))  # websocket stream test
     for stream in streams:
         yield loadTest(stream)
-    logging.info('Brook test yield complete')
+    logger.info('Brook test yield complete')
