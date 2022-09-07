@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import re
 from IPy import IP
 from Utils.Logger import logger
 from Utils.Common.Coding import *
@@ -48,3 +49,21 @@ def splitParam(params: str) -> dict:  # split params
         for param in params.split('&'):
             ret[param.split('=', 1)[0]] = urlDecode(param.split('=', 1)[1])
     return ret
+
+
+def splitEdParam(path: str) -> tuple[str, int or None]: # split early-data option
+    if path.find('?') == -1:
+        return path, None
+    ed = None
+    params = []
+    content = re.search(r'^([\s\S]*?)\?([\s\S]*)$', path)  # ...?...
+    for field in content[2].split('&'): # ?param_1=...&param_2=...
+        if not field.startswith('ed='):
+            params.append(field)
+            continue
+        ed = int(field[3:]) # ed=...
+    if ed is None: # ed param not found
+        return path, None
+    if len(params) == 0: # param -> []
+        return content[1], ed
+    return '%s?%s' % (content[1], '&'.join(params)), ed
