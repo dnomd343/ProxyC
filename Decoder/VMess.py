@@ -3,11 +3,11 @@
 
 import json
 from Utils.Logger import logger
+from Decoder.V2ray import v2ray
 from Utils.Exception import decodeException
 from Utils.Common import b64Decode, checkScheme
-from Utils.Common import hostFormat, splitTag, splitEdParam, splitParam
+from Utils.Common import splitTag, splitEdParam
 
-from Decoder.V2ray import v2ray
 
 def v2rayN(url: str) -> dict:
     """
@@ -26,7 +26,7 @@ def v2rayN(url: str) -> dict:
         'type': 'vmess',
         'name': url['ps'] if 'ps' in url else '',  # ps -> remark
         'info': {
-            'server': hostFormat(url['add']),
+            'server': url['add'],
             'port': url['port'],
             'id': url['id'],
             'aid': url['aid'] if 'aid' in url else 0,  # default alter id -> 0
