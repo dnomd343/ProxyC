@@ -3,4 +3,4 @@
 
 from Decoder.VMess import v2rayN
 from Decoder.ShadowsocksR import ssr
-from Decoder.Shadowsocks import ssPlain, ssCommon, sip002
+from Decoder.Shadowsocks import ss, sip002
