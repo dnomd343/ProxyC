@@ -5,11 +5,11 @@ import os
 import json
 from gevent import pywsgi
 from Checker import formatCheck
-from Basis.Logger import logging
-from Basis.Manager import Manager
+from Utils.Logger import logger
+from Utils.Manager import Manager
 from flask import Flask, Response, request
-from Basis.Exception import managerException
-from Basis.Constant import ApiPort, ApiPath, ApiToken, Version
+from Utils.Exception import managerException
+from Utils.Constant import ApiPort, ApiPath, ApiToken, Version
 
 webApi = Flask(__name__)  # init flask server
 
@@ -57,7 +57,7 @@ def getTaskList() -> Response:
     if not tokenCheck():  # token check
         return genError('Invalid token')
     taskList = Manager.listUnion()
-    logging.debug('API get task list -> %s' % taskList)
+    logger.debug('API get task list -> %s' % taskList)
     return jsonResponse({
         'success': True,
         'task': taskList,
@@ -81,7 +81,7 @@ def createTask() -> Response:
         except Exception as exp:
             return genError('Proxy error in %s -> %s' % (proxy, exp))
 
-    logging.debug('API create task -> check = %s | proxy = %s' % (checkList, proxyList))
+    logger.debug('API create task -> check = %s | proxy = %s' % (checkList, proxyList))
     tasks = []
     for proxy in proxyList:
         tasks.append({
@@ -89,7 +89,7 @@ def createTask() -> Response:
             'check': checkList  # load check items
         })
     checkId = Manager.addUnion(tasks)  # add into manager -> get id
-    logging.debug('API return task id -> %s' % checkId)
+    logger.debug('API return task id -> %s' % checkId)
     return jsonResponse({
         'success': True,
         'id': checkId,
@@ -102,7 +102,7 @@ def createTask() -> Response:
 def getTaskInfo(taskId: str) -> Response:
     if not tokenCheck():  # token check
         return genError('Invalid token')
-    logging.debug('API get task -> %s' % taskId)
+    logger.debug('API get task -> %s' % taskId)
     if not Manager.isUnion(taskId):
         return genError('Task not found')
     return jsonResponse({
@@ -115,7 +115,7 @@ def getTaskInfo(taskId: str) -> Response:
 def deleteTask(taskId: str) -> Response:
     if not tokenCheck():  # token check
         return genError('Invalid token')
-    logging.debug('API get task -> %s' % taskId)
+    logger.debug('API get task -> %s' % taskId)
     if not Manager.isUnion(taskId):
         return genError('Task not found')
     try:
@@ -129,7 +129,7 @@ def deleteTask(taskId: str) -> Response:
 
 @webApi.route(os.path.join(ApiPath, 'version'), methods = ['GET'])
 def getVersion() -> Response:
-    logging.debug('API get version -> %s' + Version)
+    logger.debug('API get version -> %s' + Version)
     return jsonResponse({
         'success': True,
         'version': Version,
@@ -137,6 +137,6 @@ def getVersion() -> Response:
 
 
 def startServer() -> None:
-    logging.warning('API server at http://:%i%s' % (ApiPort, ApiPath))
-    logging.warning('API ' + ('without token' if ApiToken == '' else 'token -> %s' % ApiToken))
+    logger.warning('API server at http://:%i%s' % (ApiPort, ApiPath))
+    logger.warning('API ' + ('without token' if ApiToken == '' else 'token -> %s' % ApiToken))
     pywsgi.WSGIServer(('0.0.0.0', ApiPort), webApi).serve_forever()  # powered by gevent

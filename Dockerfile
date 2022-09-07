@@ -448,7 +448,7 @@ COPY . /asset/usr/local/share/ProxyC/
 # Release docker image
 FROM ${PYTHON_IMG}
 RUN apk add --no-cache boost-program_options c-ares ca-certificates libev libsodium libstdc++ mbedtls pcre && \
-    ln -s /usr/local/share/ProxyC/main.py /usr/bin/proxyc
+    ln -s /usr/local/share/ProxyC/Main.py /usr/bin/proxyc
 COPY --from=asset /asset /
 EXPOSE 7839
 ENTRYPOINT ["proxyc"]
