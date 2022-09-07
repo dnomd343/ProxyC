@@ -153,6 +153,7 @@ def __vmessCommonDecode(url: str) -> dict:
         'remark': remark
     }
     params = baseFunc.paramSplit(match[4])
+
     if 'encryption' in params:
         info['method'] = params['encryption']
     stream = {
