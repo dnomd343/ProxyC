@@ -2,11 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import re
-import time
 import uuid
 import random
 import hashlib
-from IPy import IP
+
 from Utils.Logger import logger
 
 
@@ -42,20 +41,6 @@ def isPort(port: int) -> bool:
 
 def md5Sum(data: str, encode: str = 'utf-8') -> str:
     return hashlib.md5(data.encode(encoding = encode)).hexdigest()  # MD5 hash
-
-
-def hostFormat(host: str, v6Bracket: bool = False) -> str:
-    try:
-        ip = IP(host)
-        if v6Bracket and ip.version() == 6:
-            return '[%s]' % str(ip)  # [IPv6]
-        return str(ip)  # IPv4 / IPV6
-    except:  # not ip address
-        return host
-
-
-def v6AddBracket(host: str) -> str:  # add bracket for ipv6
-    return hostFormat(host, v6Bracket = True)
 
 
 def genFlag(length: int = 12) -> str:  # generate random task flag

@@ -90,7 +90,7 @@ kcpObject = rulesFilter({
         'optional': True,
         'default': 'none',
         'type': str,
-        'format': lambda s: toStrTidy(s).replace('_', '-'),
+        'format': lambda s: toStrTidy(s).replace('_', '-'),  # TODO: '' => 'none'
         'filter': lambda s: s in udpObfuscations,
         'errMsg': 'Unknown mKCP obfs method'
     },

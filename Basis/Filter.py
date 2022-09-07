@@ -81,12 +81,14 @@ def Filter(raw: dict, rules: dict) -> dict:
         else:  # key exist
             data[key] = raw[key]
         # format process (data --[format]--> data)
+        # TODO: some 'none' value should be format as None
         if data[key] is None:  # key content is None
             if not rule['allowNone']:  # key is not allow None
                 raise filterException('Field `%s` shouldn\'t be None' % key)
             continue  # skip following process
         try:
             data[key] = rule['format'](data[key])  # run format
+            # TODO: format result maybe None, check allowNone again (allow -> skip following process)
         except:
             raise filterException(rule['errMsg'])  # format error
         # filter process (data --[type check (& filter check)]--> pass / non-pass)
