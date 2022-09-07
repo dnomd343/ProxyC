@@ -51,7 +51,7 @@ if len(inputArgs) != 0 and inputArgs[0].lower() == 'test':  # test mode
 else:
     mainArgs = mainArgParse(inputArgs)
     if mainArgs.version:  # output version and exit
-        print('ProxyC version -> %s' % Constant.Version)
+        print('ProxyC version %s' % Constant.Version)
         sys.exit(0)
     Constant.LogLevel = mainArgs.log  # overwrite global options
     Constant.DnsServer = mainArgs.dns
@@ -67,7 +67,7 @@ from Utils.Check import Check
 from Utils import DnsProxy
 from Utils.Logger import logger
 from Utils.Manager import Manager
-from Utils.Test import Test, loadBind, loadCert
+from Utils.Tester import Test, loadBind, loadCert
 from concurrent.futures import ThreadPoolExecutor
 
 

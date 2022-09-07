@@ -119,7 +119,7 @@ def runTest(testInfo: dict, testUrl: str, testSelect: set or None, delay: int = 
         testInfo['client'].quit()
         testInfo['server'].quit()
         logger.warning('[%s] Client info' % testId)
-        logger.error('[%(id)s-server]\n▲ CMD => %(cmd)s\n▲ ENV => %(env)s\n▲ FILE => %(file)s\n%(output)s' % {
+        logger.error('[%(id)s-server]\n⬤ CMD => %(cmd)s\n⬤ ENV => %(env)s\n⬤ FILE => %(file)s\n%(output)s' % {
             'id': testId,
             'cmd': testInfo['client'].cmd,
             'env': testInfo['client'].env,
@@ -127,7 +127,7 @@ def runTest(testInfo: dict, testUrl: str, testSelect: set or None, delay: int = 
             'output': '-' * 96 + '\n' + testInfo['client'].output + '-' * 96,
         })
         logger.warning('[%s] Server info' % testId)
-        logger.error('[%(id)s-client]\n▲ CMD => %(cmd)s\n▲ ENV => %(env)s\n▲ FILE => %(file)s\n%(output)s' % {
+        logger.error('[%(id)s-client]\n⬤ CMD => %(cmd)s\n⬤ ENV => %(env)s\n⬤ FILE => %(file)s\n%(output)s' % {
             'id': testId,
             'cmd': testInfo['server'].cmd,
             'env': testInfo['server'].env,

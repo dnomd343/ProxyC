@@ -3,8 +3,8 @@
 
 import copy
 import itertools
-from Utils.Test import Settings
 from Utils.Common import genFlag
+from Utils.Tester import Settings
 from Utils.Constant import quicMethods, udpObfuscations
 
 httpConfig = {

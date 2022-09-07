@@ -5,7 +5,7 @@ import copy
 import itertools
 from Builder import Brook
 from Utils.Logger import logger
-from Utils.Test import Settings
+from Utils.Tester import Settings
 from Utils.Process import Process
 from Utils.Common import hostFormat, genFlag, getAvailablePort
 

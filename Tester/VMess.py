@@ -7,7 +7,7 @@ import itertools
 from Tester import V2ray
 from Builder import VMess
 from Utils.Logger import logger
-from Utils.Test import Settings
+from Utils.Tester import Settings
 from Utils.Process import Process
 from Utils.Constant import PathEnv, vmessMethods
 from Utils.Common import md5Sum, genUUID, getAvailablePort

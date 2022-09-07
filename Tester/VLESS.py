@@ -6,7 +6,7 @@ import json
 from Tester import Xray
 from Builder import VLESS
 from Utils.Logger import logger
-from Utils.Test import Settings
+from Utils.Tester import Settings
 from Utils.Process import Process
 from Utils.Constant import xtlsFlows
 from Utils.Common import md5Sum, genUUID, getAvailablePort

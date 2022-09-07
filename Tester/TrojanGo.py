@@ -6,7 +6,7 @@ import json
 from Tester import Plugin
 from Builder import TrojanGo
 from Utils.Logger import logger
-from Utils.Test import Settings
+from Utils.Tester import Settings
 from Utils.Process import Process
 from Utils.Constant import trojanGoMethods
 from Utils.Common import md5Sum, genFlag, getAvailablePort

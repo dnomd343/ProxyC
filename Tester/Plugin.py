@@ -5,7 +5,7 @@ import os
 import re
 import json
 from Utils.Logger import logger
-from Utils.Test import Settings
+from Utils.Tester import Settings
 from Utils.Process import Process
 from Utils.Constant import Plugins
 from Utils.Common import genFlag, hostFormat, getAvailablePort

@@ -5,7 +5,7 @@ import os
 import json
 from Builder import ShadowsocksR
 from Utils.Logger import logger
-from Utils.Test import Settings
+from Utils.Tester import Settings
 from Utils.Process import Process
 from Utils.Common import genFlag, getAvailablePort
 from Utils.Constant import ssrMethods, ssrProtocols, ssrObfuscations

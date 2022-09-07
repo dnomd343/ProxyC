@@ -6,7 +6,7 @@ import json
 import itertools
 from Builder import Hysteria
 from Utils.Logger import logger
-from Utils.Test import Settings
+from Utils.Tester import Settings
 from Utils.Process import Process
 from Utils.Constant import hysteriaProtocols
 from Utils.Common import hostFormat, genFlag, getAvailablePort

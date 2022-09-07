@@ -4,8 +4,8 @@
 import copy
 import itertools
 from Tester import V2ray
-from Utils.Test import Settings
 from Utils.Common import genFlag
+from Utils.Tester import Settings
 from Utils.Constant import xtlsFlows, quicMethods, udpObfuscations
 
 loadConfig = V2ray.loadConfig
