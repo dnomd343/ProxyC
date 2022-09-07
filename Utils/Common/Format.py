@@ -1,8 +1,26 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from IPy import IP
 from Utils.Logger import logger
 from Utils.Common.Coding import *
+
+
+def v6AddBracket(host: str) -> str:  # add bracket for ipv6
+    return hostFormat(host, v6Bracket = True)
+
+
+def hostFormat(host: str, v6Bracket: bool = False) -> str:
+    try:
+        if host[:1] == '[' and host[-1:] == ']':  # [IPv6] format
+            host = host[1:-1]  # remove extra bracket
+        ip = IP(host)
+        if v6Bracket and ip.version() == 6:
+            return '[%s]' % str(ip)  # [IPv6]
+        return str(ip)  # IPv4 / IPV6
+    except:  # not ip address
+        return host
+
 
 def checkScheme(url: str, scheme: str, name: str) -> str:  # check url scheme and remove it
     if not url.startswith('%s://' % scheme):

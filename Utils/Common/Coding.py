@@ -13,7 +13,7 @@ def urlDecode(content: str) -> str:  # url decode (RFC3986)
     return urllib.parse.unquote(content, encoding = 'utf-8')
 
 
-def base64Encode(content: str, urlSafe: bool = True, padding: bool = False) -> str:  # base64 encode
+def b64Encode(content: str, urlSafe: bool = True, padding: bool = False) -> str:  # base64 encode
     content = base64.b64encode(content.encode(encoding = 'utf-8')).decode(encoding = 'utf-8')
     if urlSafe:
         content = content.replace('+', '-')  # `+` => `-`
@@ -23,7 +23,7 @@ def base64Encode(content: str, urlSafe: bool = True, padding: bool = False) -> s
     return content.replace('=', '')  # remove `=` padding
 
 
-def base64Decode(content: str) -> str:  # base64 decode
+def b64Decode(content: str) -> str:  # base64 decode
     try:
         content = content.replace('-', '+').replace('_', '/')  # compatible urlSafe
         if len(content) % 4 in range(2, 4):  # remainder -> 2 or 3
