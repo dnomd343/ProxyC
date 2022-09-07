@@ -22,8 +22,8 @@ from Filter import Filter
 # ret = Decoder.v2rayN('vmess://eyJhZGQiOiJmbnlkdXpheW92dnNxaTMyZ2kucTc1NDMudG9wIiwicHMiOiJ2MXzpppnmuK8wM3zljp_nlJ984piF4piF4piFICgyKSIsInNjeSI6ImF1dG8iLCJ0eXBlIjoiaHR0cCIsInNuaSI6IiIsInBhdGgiOiIvIiwicG9ydCI6MzgzMzcsInYiOjIsImhvc3QiOiJ4aGY0eHE3ZDVjYjRnc3kzeW1teWR3b2kuc2luYS5jbiIsInRscyI6IiIsImlkIjoiOTAxY2UyNTUtOTM2OS1kMWUyLTk1ODQtZGE1YTdqZjA1NDdrIiwibmV0IjoidGNwIiwiYWlkIjowfQ')
 # ret = Decoder.v2rayN('vmess://ew0KICAidiI6ICIyIiwNCiAgInBzIjogIummmea4rzLnur8iLA0KICAiYWRkIjogIjExOS4yOC44OC4yMzAiLA0KICAicG9ydCI6ICI0NDMiLA0KICAiaWQiOiAiODRhOGU2ZDItMWFkMy00NjEyLTgzNjItYTdjMjNlOWU5MzEyIiwNCiAgImFpZCI6ICIwIiwNCiAgInNjeSI6ICJhdXRvIiwNCiAgIm5ldCI6ICJ3cyIsDQogICJ0eXBlIjogIm5vbmUiLA0KICAiaG9zdCI6ICJ0ZXN0LnNjdXRyb2JvdC5jb20iLA0KICAicGF0aCI6ICIvdm1lc3M/ZGVtbz10cnVlJmVkPTIwNDgmdGVzdD1vayIsDQogICJ0bHMiOiAidGxzIiwNCiAgInNuaSI6ICJoay5zY3V0cm9ib3QuY29tIiwNCiAgImFscG4iOiAiIg0KfQ==')
 
-ret = Decoder.vmess('vmess://901ce214-9369-d1e2-9584-da5a7ff0547d@pqxsiziyovtsqljrhq.q7543.top:38337/?type=tcp&encryption=auto&headerType=http&host=xhf4xq7d5cb4gsyjpmmydwoi.sina.cn&path=%2F#v1%7C%E9%A6%99%E6%B8%AF01%7CMPTCP%7C%E2%98%85%E2%98%85%E2%98%85%20%282%29')
-
+# ret = Decoder.vmess('vmess://901ce214-9369-d1e2-9584-da5a7ff0547d@pqxsiziyovtsqljrhq.q7543.top:38337/?type=tcp&encryption=auto&headerType=http&host=xhf4xq7d5cb4gsyjpmmydwoi.sina.cn&path=%2F#v1%7C%E9%A6%99%E6%B8%AF01%7CMPTCP%7C%E2%98%85%E2%98%85%E2%98%85%20%282%29')
+ret = Decoder.vmess('vmess://5f50d808-8281-45d9-a0c2-69e039099da7@119.28.88.230:443/?type=ws&encryption=auto&host=hk.scutrobot.com&path=%2Fvmess%3Fed%3D2048&security=tls&sni=hk.scutrobot.com#%E9%A6%99%E6%B8%AF2%E7%BA%BF')
 # ret['info']['server'] = '[%s]' % ret['info']['server']
 
 ret['info'] = Filter(ret['type'], ret['info'])
