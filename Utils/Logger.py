@@ -4,7 +4,7 @@
 import sys
 import logging
 import colorlog
-from Basis.Constant import LogLevel, LogFile
+from Utils.Constant import LogLevel, LogFile
 
 logColor = {  # log color
     'DEBUG': 'white',
