@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 
 import copy
-from Basis.Functions import isHost, isPort
-from Basis.Filter import Filter, rulesFilter
-from Basis.Functions import toInt, toStr, toStrTidy
-from Basis.Constant import ssrMethods, ssrProtocols, ssrObfuscations
+from Utils.Common import isHost, isPort
+from Utils.Filter import Filter, rulesFilter
+from Utils.Common import toInt, toStr, toStrTidy
+from Utils.Constant import ssrMethods, ssrProtocols, ssrObfuscations
 
 
 def ssrProtocolFormat(protocol: str) -> str:

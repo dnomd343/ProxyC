@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import copy
-from Basis.Functions import isHost, isPort
-from Basis.Filter import Filter, rulesFilter
-from Basis.Functions import toInt, toStr, toStrTidy, toBool
+from Utils.Common import isHost, isPort
+from Utils.Filter import Filter, rulesFilter
+from Utils.Common import toInt, toStr, toStrTidy, toBool
 
 secureObject = rulesFilter({
     'verify': {

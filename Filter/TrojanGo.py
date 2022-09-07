@@ -3,10 +3,10 @@
 
 import copy
 from Filter.Plugin import pluginObject
-from Basis.Constant import trojanGoMethods
-from Basis.Functions import isHost, isPort
-from Basis.Filter import Filter, rulesFilter
-from Basis.Functions import isIpAddr, toInt, toStr, toStrTidy, toBool
+from Utils.Common import isHost, isPort
+from Utils.Constant import trojanGoMethods
+from Utils.Filter import Filter, rulesFilter
+from Utils.Common import isIpAddr, toInt, toStr, toStrTidy, toBool
 
 ssObject = rulesFilter({
     'method': {

@@ -7,8 +7,7 @@ from Utils.Constant.Others import *
 from Utils.Constant.Default import *
 from Utils.Constant.Shadowsocks import *
 
-# Create WorkDir
 try:
-    os.makedirs(WorkDir)  # just like `mkdir -p ...`
+    os.makedirs(WorkDir)  # create work folder (`mkdir -p ...`)
 except:
     pass  # folder exist or target is another thing

@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import copy
-from Basis.Filter import rulesFilter
-from Basis.Constant import pluginClients
-from Basis.Functions import toStr, toStrTidy
+from Utils.Filter import rulesFilter
+from Utils.Constant import pluginClients
+from Utils.Common import toStr, toStrTidy
 
 pluginAlias = {
     'obfs-local': {'obfs', 'simple-obfs'},

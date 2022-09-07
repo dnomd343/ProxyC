@@ -4,7 +4,7 @@
 import json
 from Utils.Logger import logger
 from Utils.Exception import decodeException
-from Utils.Common import base64Decode, checkScheme, hostFormat
+from Utils.Common import b64Decode, checkScheme, hostFormat
 
 def v2rayN(url: str) -> dict:
     """
@@ -17,7 +17,7 @@ def v2rayN(url: str) -> dict:
     }
     info = config['info']
     logger.debug('V2rayN url decode -> %s' % url)
-    url = json.loads(base64Decode(checkScheme(url, 'vmess', 'V2rayN')))
+    url = json.loads(b64Decode(checkScheme(url, 'vmess', 'V2rayN')))
     logger.debug('V2rayN json format -> %s' % url)
     if int(url['v']) != 2:
         logger.warning('V2rayN url with unknown version')

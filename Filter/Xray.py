@@ -3,9 +3,9 @@
 
 import copy
 from Filter import V2ray
-from Basis.Filter import rulesFilter
-from Basis.Constant import xtlsFlows
-from Basis.Functions import toStrTidy, toBool
+from Utils.Filter import rulesFilter
+from Utils.Constant import xtlsFlows
+from Utils.Common import toStrTidy, toBool
 
 
 def xtlsFlowFormat(flow: str) -> str:

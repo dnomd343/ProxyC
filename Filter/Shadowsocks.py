@@ -3,10 +3,10 @@
 
 import copy
 from Filter.Plugin import pluginObject
-from Basis.Constant import ssAllMethods
-from Basis.Functions import isHost, isPort
-from Basis.Filter import Filter, rulesFilter
-from Basis.Functions import toInt, toStr, toStrTidy
+from Utils.Constant import ssAllMethods
+from Utils.Common import isHost, isPort
+from Utils.Filter import Filter, rulesFilter
+from Utils.Common import toInt, toStr, toStrTidy
 
 ssObject = rulesFilter({
     'server': {

@@ -6,8 +6,8 @@
 
 import copy
 from Utils.Logger import logger
+from Utils.Common import urlDecode, b64Decode
 from Utils.Common import checkScheme, splitTag
-from Utils.Common import urlDecode, base64Decode
 
 ssBasicConfig = {
     'type': 'ss',
@@ -37,7 +37,7 @@ def ssCommon(url: str) -> dict:
     config = copy.deepcopy(ssBasicConfig)
     logger.debug('Shadowsocks common decode -> %s' % url)
     url, config['name'] = splitTag(checkScheme(url, 'ss', 'Shadowsocks common'))
-    userinfo, url = base64Decode(url).rsplit('@', 1)
+    userinfo, url = b64Decode(url).rsplit('@', 1)
     config['info']['server'], config['info']['port'] = url.rsplit(':', 1)
     config['info']['method'], config['info']['passwd'] = userinfo.split(':', 1)
     logger.debug('Shadowsocks common decode release -> %s', config)
@@ -54,7 +54,7 @@ def sip002(url: str) -> dict:
     url, config['name'] = splitTag(checkScheme(url, 'ss', 'SIP002'))
     userinfo, url = url.rsplit('@', 1)
     try:
-        userinfo = base64Decode(userinfo)  # userinfo encode base64 is optional
+        userinfo = b64Decode(userinfo)  # userinfo encode base64 is optional
     except:
         userinfo = urlDecode(userinfo)  # not base64 decode -> url encode format
     config['info']['method'], config['info']['passwd'] = userinfo.split(':', 1)

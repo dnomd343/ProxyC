@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from Basis.Filter import rulesFilter
-from Basis.Constant import quicMethods, udpObfuscations
-from Basis.Functions import isIpAddr, toInt, toStr, toStrTidy, toBool
+from Utils.Filter import rulesFilter
+from Utils.Constant import quicMethods, udpObfuscations
+from Utils.Common import isIpAddr, toInt, toStr, toStrTidy, toBool
 
 tlsObject = rulesFilter({
     'sni': {

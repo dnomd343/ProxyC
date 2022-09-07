@@ -3,10 +3,10 @@
 
 import copy
 from Filter import V2ray
-from Basis.Constant import vmessMethods
-from Basis.Functions import isHost, isPort
-from Basis.Filter import Filter, rulesFilter
-from Basis.Functions import toInt, toStrTidy
+from Utils.Constant import vmessMethods
+from Utils.Common import isHost, isPort
+from Utils.Common import toInt, toStrTidy
+from Utils.Filter import Filter, rulesFilter
 
 vmessObject = rulesFilter({
     'server': {

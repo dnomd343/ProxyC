@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import copy
+from Utils.Logger import logger
 from Utils.Exception import filterException
 
 filterObject = {
@@ -72,6 +73,7 @@ def Filter(raw: dict, rules: dict) -> dict:
     data = {}
     raw = copy.deepcopy(raw)
     rules = copy.deepcopy(rules)
+
     for key, rule in rules.items():
         # pretreatment process (raw --[copy / default value]--> data)
         if key not in raw:  # key not exist
@@ -80,19 +82,19 @@ def Filter(raw: dict, rules: dict) -> dict:
             data[key] = rule['default']  # set default value
         else:  # key exist
             data[key] = raw[key]
+
         # format process (data --[format]--> data)
-        # TODO: some 'none' value should be format as None
         if data[key] is None:  # key content is None
             if not rule['allowNone']:  # key is not allow None
                 raise filterException('Field `%s` shouldn\'t be None' % key)
             continue  # skip following process
         try:
-            data[key] = rule['format'](data[key])  # run format
-            # TODO: format result maybe None, check allowNone again (allow -> skip following process)
+            data[key] = rule['format'](data[key])  # run format function
         except:
             raise filterException(rule['errMsg'])  # format error
+
         # filter process (data --[type check (& filter check)]--> pass / non-pass)
-        if type(rule['type']) == type:  # str / int / bool / ...
+        if type(rule['type']) == type:  # str / int / bool / ... -> list
             rule['type'] = [rule['type']]  # str -> [str] / int -> [int] / ...
         if type(rule['type']) == list:  # [str, int, bool, ...]
             if data[key] == any and any in rule['type']:  # special case -> skip type filter

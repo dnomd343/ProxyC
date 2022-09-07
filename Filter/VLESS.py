@@ -3,9 +3,9 @@
 
 import copy
 from Filter import Xray
-from Basis.Functions import isHost, isPort
-from Basis.Filter import Filter, rulesFilter
-from Basis.Functions import toInt, toStrTidy
+from Utils.Common import isHost, isPort
+from Utils.Common import toInt, toStrTidy
+from Utils.Filter import Filter, rulesFilter
 
 vlessObject = rulesFilter({
     'server': {
