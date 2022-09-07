@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import json
-from Basis.Exception import buildException
-from Basis.Constant import ssMethods, ssAllMethods, mbedtlsMethods
+from Utils.Exception import buildException
+from Utils.Constant import ssMethods, ssAllMethods, mbedtlsMethods
 
 
 def loadConfig(proxyInfo: dict, socksInfo: dict) -> dict:  # load basic config option

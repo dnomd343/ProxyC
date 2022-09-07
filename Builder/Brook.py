@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-from Basis.Functions import v6AddBracket
+from Utils.Common import v6AddBracket
 
 def loadOrigin(proxyInfo: dict) -> list:  # origin stream
     return ['client'] + [

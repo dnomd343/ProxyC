@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import json
-from Basis.Functions import v6AddBracket
+from Utils.Common import v6AddBracket
 
 
 def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, dict]:

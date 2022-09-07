@@ -3,8 +3,8 @@
 
 import json
 from Builder import V2ray
-from Basis.Constant import vmessMethods
-from Basis.Exception import buildException
+from Utils.Constant import vmessMethods
+from Utils.Exception import buildException
 
 
 def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, dict]:

@@ -3,7 +3,7 @@
 
 import json
 from Builder import Xray
-from Basis.Exception import buildException
+from Utils.Exception import buildException
 
 
 def load(proxyInfo: dict, socksInfo: dict, configFile: str) -> tuple[list, str, dict]:

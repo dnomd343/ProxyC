@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from Builder import V2ray
-from Basis.Constant import xtlsFlows
-from Basis.Exception import buildException
+from Utils.Constant import xtlsFlows
+from Utils.Exception import buildException
 
 loadConfig = V2ray.loadConfig
 

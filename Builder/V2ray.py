@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import copy
-from Basis.Exception import buildException
+from Utils.Exception import buildException
 
 httpConfig = {  # http obfs configure in default
     'type': 'http',

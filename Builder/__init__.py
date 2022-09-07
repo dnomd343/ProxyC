@@ -4,12 +4,12 @@
 import os
 import copy
 from Filter import Filter
-from Basis.Logger import logging
-from Basis.Process import Process
-from Basis.Functions import v6AddBracket
-from Basis.Constant import WorkDir, PathEnv
-from Basis.Functions import genFlag, getAvailablePort
-from Basis.Exception import buildException, filterException
+from Utils.Logger import logger
+from Utils.Process import Process
+from Utils.Common import v6AddBracket
+from Utils.Exception import buildException
+from Utils.Constant import WorkDir, PathEnv
+from Utils.Common import genFlag, getAvailablePort
 
 from Builder import Brook
 from Builder import VMess
@@ -50,14 +50,14 @@ class Builder(object):
     output = None  # output capture of proxy client (after process exit)
 
     def __loadClient(self):
-        logging.info('[%s] Builder load %s client at %s -> %s' % (
+        logger.info('[%s] Builder load %s client at %s -> %s' % (
             self.id, self.proxyType,
             'socks5://%s:%i' % (v6AddBracket(self.socksAddr), self.socksPort), self.proxyInfo
         ))
         configFile = os.path.join(  # config file path
             WorkDir, self.id + clientEntry[self.proxyType][1]  # workDir + taskId + file suffix
         )
-        logging.debug('[%s] Builder config file -> %s' % (self.id, configFile))
+        logger.debug('[%s] Builder config file -> %s' % (self.id, configFile))
         command, fileContent, envVar = clientEntry[self.proxyType][0](self.proxyInfo, {  # load client boot info
             'addr': self.socksAddr,  # specify socks5 info
             'port': self.socksPort,
@@ -71,7 +71,7 @@ class Builder(object):
     def __init__(self, proxyType: str, proxyInfo: dict, bindAddr: str, taskId: str = '') -> None:  # init proxy client
         self.id = genFlag(length = 12) if taskId == '' else taskId  # load task ID
         if proxyType not in clientEntry:
-            logging.error('[%s] Builder receive unknown proxy type %s' % (self.id, proxyType))
+            logger.error('[%s] Builder receive unknown proxy type %s' % (self.id, proxyType))
             raise buildException('Unknown proxy type')
         self.proxyType = proxyType  # proxy type -> ss / ssr / vmess ...
         self.proxyInfo = Filter(proxyType, proxyInfo)  # filter input proxy info
@@ -84,6 +84,6 @@ class Builder(object):
         return self.__process.status()
 
     def destroy(self) -> None:  # kill sub process and remove config file
-        logging.debug('[%s] Builder destroy' % self.id)
+        logger.debug('[%s] Builder destroy' % self.id)
         self.__process.quit()
         self.output = self.__process.output
