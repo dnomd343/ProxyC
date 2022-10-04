@@ -27,7 +27,7 @@ def loadServer(configFile: str, proxyInfo: dict, streamConfig: dict) -> Process:
         'streamSettings': streamConfig
     })
     serverFile = os.path.join(Settings['workDir'], configFile)
-    return Process(Settings['workDir'], cmd = ['v2ray', '-c', serverFile], file = {
+    return Process(Settings['workDir'], cmd = ['v2ray', 'run', '-c', serverFile], file = {
         'path': serverFile,
         'content': json.dumps(vmessConfig)
     }, env = {
@@ -75,7 +75,7 @@ def loadTest(method: str, aid: int, stream: dict) -> dict:
 
 def load():
     streams = V2ray.loadStream()  # load v2ray-core stream list
-    for method, aid in itertools.product(vmessMethods, [0, 64]):  # test every methods (and whether enable aead)
+    for method, aid in itertools.product(vmessMethods, [0, 64]):  # test every method (and whether enable aead)
         yield loadTest(method, aid, streams[0])
     for stream in streams[1:]:  # skip first stream that has benn checked
         yield loadTest('auto', 0, stream)  # aead with auto security
