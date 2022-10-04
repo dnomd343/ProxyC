@@ -160,8 +160,8 @@ RUN git submodule update --init && ./autogen.sh && ./configure --disable-documen
 # Compile qtun
 WORKDIR /qtun/
 RUN cargo fetch
-RUN cargo build --release && cd ./target/release/ && mv qtun-local qtun-server /plugins/ && strip /plugins/qtun-*
-COPY --from=upx /usr/upx /usr/bin/
+RUN cargo build --release && cd ./target/release/ && mv qtun-client qtun-server /plugins/ && strip /plugins/qtun-*
+COPY --from=upx /tmp/upx /usr/bin/
 RUN ls /plugins/qtun-* | xargs -P0 -n1 upx -9
 
 # Compile sip003 plugins (part2 -> go1.16)
@@ -339,7 +339,7 @@ RUN curl -sL https://api.github.com/repos/klzgrad/naiveproxy/releases/tags/${NAI
       | jq .assets | jq .[].name | grep naiveproxy-${NAIVE}-openwrt-$(uname -m) \
       | cut -b 2- | rev | cut -b 2- | rev | tac > list.dat
 RUN echo "while read FILE_NAME; do" >> naive.sh && \
-    echo "wget https://github.com/klzgrad/naiveproxy/releases/download/\${NAIVE_VERSION}/\${FILE_NAME}" >> naive.sh && \
+    echo "wget https://github.com/klzgrad/naiveproxy/releases/download/\${NAIVE}/\${FILE_NAME}" >> naive.sh && \
     echo "tar xf \${FILE_NAME} && ldd ./\$(echo \$FILE_NAME | rev | cut -b 8- | rev)/naive" >> naive.sh && \
     echo "[ \$? -eq 0 ] && cp ./\$(echo \$FILE_NAME | rev | cut -b 8- | rev)/naive /tmp/ && break" >> naive.sh && \
     echo "done < list.dat" >> naive.sh && sh naive.sh && strip /tmp/naive
@@ -377,10 +377,11 @@ FROM ${GO14} AS relaybaton
 ENV RELAYBATON="0.6.0"
 RUN apk add build-base git perl rsync
 RUN wget https://github.com/iyouport-org/relaybaton/archive/refs/tags/v${RELAYBATON}.tar.gz && tar xf v${RELAYBATON}.tar.gz
-WORKDIR ./relaybaton-${RELAYBATON}/
+WORKDIR ./relaybaton-${RELAYBATON}/cmd/cli/
 RUN go get -d
+WORKDIR ../../
 RUN make && mv ./bin/relaybaton /tmp/
-COPY --from=upx /upx/ /usr/
+COPY --from=upx /tmp/upx /usr/bin/
 RUN upx -9 /tmp/relaybaton
 
 # Compile dnsproxy
