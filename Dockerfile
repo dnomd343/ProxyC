@@ -268,6 +268,16 @@ RUN env CGO_ENABLED=0 go build -v -trimpath -ldflags "-s -w" && mv main /tmp/v2r
 COPY --from=upx /tmp/upx /usr/bin/
 RUN upx -9 /tmp/v2ray
 
+FROM ${GO19} AS sing
+ENV SING="1.0.5"
+RUN wget https://github.com/SagerNet/sing-box/archive/refs/tags/v${SING}.tar.gz && tar xf v${SING}.tar.gz
+WORKDIR ./sing-box-${SING}/cmd/sing-box/
+RUN go get -d
+RUN env CGO_ENABLED=0 go build -v -trimpath -ldflags "-s -w" \
+      -tags "with_quic with_grpc with_wireguard with_shadowsocksr with_ech with_utls" && mv sing-box /tmp/
+COPY --from=upx /tmp/upx /usr/bin/
+RUN upx -9 /tmp/sing-box
+
 # Compile trojan-go
 FROM ${GO18} AS trojan-go
 ENV TROJAN_GO="v0.10.6"
@@ -415,6 +425,7 @@ COPY --from=shadowsocks /release/ /release/usr/bin/
 COPY --from=plugin /plugins/ /release/usr/bin/
 COPY --from=xray /tmp/xray /release/usr/bin/
 COPY --from=v2ray /tmp/v2ray /release/usr/bin/
+COPY --from=sing /tmp/sing-box /release/usr/bin/
 COPY --from=trojan /tmp/trojan* /release/usr/bin/
 COPY --from=gost /tmp/gost* /release/usr/bin/
 COPY --from=brook /tmp/brook /release/usr/bin/
