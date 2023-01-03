@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import json
 from Utils.Common import b64Encode
 from Utils.Common import urlEncode
 
@@ -25,19 +26,68 @@ def v2rayN(info: dict, name: str) -> str:
     }
 
     stream = info['stream']
+    config['net'] = stream['type']
+
     if stream['type'] == 'tcp':
-
-        ...
+        if stream['obfs'] is None:
+            config.update({
+                'type': 'none',
+                'host': '',
+                'path': '',
+            })
+        else:
+            config.update({
+                'type': 'http',
+                'host': stream['obfs']['host'],
+                'path': stream['obfs']['path'],
+            })
     elif stream['type'] == 'kcp':
-        ...
+        config.update({
+            'type': stream['obfs'],
+            'host': '',
+            'path': '' if stream['seed'] is None else stream['seed'],
+        })
     elif stream['type'] == 'ws':
-        ...
+        config.update({
+            'type': 'none',
+            'host': stream['host'],
+            'path': stream['path'],  # TODO: add `ed` field
+        })
     elif stream['type'] == 'h2':
-        ...
+        config.update({
+            'type': 'none',
+            'host': stream['host'],
+            'path': stream['path'],
+        })
     elif stream['type'] == 'quic':
-        ...
+        config.update({
+            'type': stream['obfs'],
+            'host': stream['method'],
+            'path': stream['passwd'],
+        })
     elif stream['type'] == 'grpc':
-        ...
+        config.update({
+            'type': stream['mode'],
+            'host': '',
+            'path': stream['service'],
+        })
 
-    print(config)
-    print(info)
+    secure = stream['secure']
+    if secure is None:  # without TLS secure layer
+        config.update({
+            'tls': '',
+            'sni': '',
+            'alpn': '',
+        })
+    else:
+        config.update({
+            'tls': 'tls',
+            'sni': secure['sni'],
+            'alpn': '' if secure['alpn'] is None else secure['alpn'],
+        })
+
+    return 'vmess://%s' % b64Encode(
+        json.dumps(config, indent = 2).replace('\n', '\r\n'),
+        urlSafe = False,
+        padding = True,
+    )

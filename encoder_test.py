@@ -55,4 +55,4 @@ vmess_demo_1['info'] = Filter('vmess', vmess_demo_1['info'])
 # print(vless_demo_1)
 # print(vmess_demo_1)
 
-Encoder.v2rayN(vmess_demo_1['info'], 'demo')
+print(Encoder.v2rayN(vmess_demo_1['info'], 'demo'))
