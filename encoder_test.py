@@ -27,7 +27,7 @@ vless_demo_1 = {
     }
 }
 
-vmess_demo_1 =   {
+vmess_demo_2 =   {
     'type': 'vmess',
     'name': '🇭🇰 DataGrids DMIT VMess 1Gbps',
     'info': {
@@ -51,8 +51,9 @@ vmess_demo_1 =   {
 }
 
 vless_demo_1['info'] = Filter('vless', vless_demo_1['info'])
-vmess_demo_1['info'] = Filter('vmess', vmess_demo_1['info'])
+vmess_demo_2['info'] = Filter('vmess', vmess_demo_2['info'])
 # print(vless_demo_1)
 # print(vmess_demo_1)
 
-print(Encoder.v2rayN(vmess_demo_1['info'], 'demo'))
+print(Encoder.v2rayN(vmess_demo_2['info'], 'demo'))
+print(Encoder.vless(vmess_demo_1['info'], 'demo'))
