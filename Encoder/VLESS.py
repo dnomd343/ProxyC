@@ -15,19 +15,20 @@ def vless(info: dict, name: str) -> str:
     link += str(info['port']) + '?' # add <remote-port>
     
     # stream settings
-    streamInfo = info['stream']['type']
+    streamInfo = info['stream']
+    
     stremType = streamInfo['type']
     flow = streamInfo.get('flow', None)
     headerType = streamInfo.get('obfs', 'none')
-    host = streamInfo.get('host', None)
-    path = streamInfo.get('path', None)
-    security = streamInfo.get('secure', None)
-    alpn = streamInfo.get('alpn', None)
-    sni = streamInfo.get('sni', None)
+    host = streamInfo['secure'].get('host', None)
+    path = streamInfo['secure'].get('path', None)
+    alpn = streamInfo['secure'].get('alpn', None)
+    sni = streamInfo['secure'].get('sni', None)
+    security = streamInfo['secure'].get('type', None)
     
     link += 'type=' + stremType + '&' # add <type>
     link += 'flow=' + flow + '&' if flow else '' # add <flow>
-    link += 'headerType=' + headerType + '&' # add <headerType>
+    link += 'headerType=' + headerType + '&' if headerType != None else 'none' # add <headerType>
     link += 'security=' + security + '&' if security else '' # add <security>
     link += 'alpn=' + alpn + '&' if alpn else '' # add <alpn>
     link += 'sni=' + sni + '&' if sni else '' # add <sni>
@@ -35,5 +36,4 @@ def vless(info: dict, name: str) -> str:
     link += 'path=' + path + '&' if path else '' # add <path>
 
     link += '#' + urlEncode(name) # add <descriptive-text>
-    print(link)
     return link
