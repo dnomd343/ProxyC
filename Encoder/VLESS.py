@@ -16,7 +16,7 @@ def vless(info: dict, name: str) -> str:
     
     # stream settings
     streamInfo = info['stream']['type']
-    type = streamInfo['type']
+    stremType = streamInfo['type']
     flow = streamInfo.get('flow', None)
     headerType = streamInfo.get('obfs', 'none')
     host = streamInfo.get('host', None)
@@ -25,7 +25,7 @@ def vless(info: dict, name: str) -> str:
     alpn = streamInfo.get('alpn', None)
     sni = streamInfo.get('sni', None)
     
-    link += 'type=' + type + '&' # add <type>
+    link += 'type=' + stremType + '&' # add <type>
     link += 'flow=' + flow + '&' if flow else '' # add <flow>
     link += 'headerType=' + headerType + '&' # add <headerType>
     link += 'security=' + security + '&' if security else '' # add <security>
